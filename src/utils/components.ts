@@ -31,3 +31,31 @@ export const getFilteredData = (data: IData[] | undefined, searchQuery: string):
         );
     });
 };
+
+export function toLocalDatetimeString(date: Date) {
+    const pad = (n: number) => n.toString().padStart(2, "0");
+
+    return (
+        date.getFullYear() +
+        "-" +
+        pad(date.getMonth() + 1) +
+        "-" +
+        pad(date.getDate()) +
+        "T" +
+        pad(date.getHours()) +
+        ":" +
+        pad(date.getMinutes())
+    );
+}
+
+export function sanitizeAmountInput(raw: string): string {
+    if (!raw) return "";
+    let s = raw.replace(/[^\d.,-]/g, "");
+    const hasMinus = s.includes("-");
+    s = s.replace(/-/g, "");
+    if (hasMinus) s = "-" + s;
+    s = s.replace(/,/g, ".");
+    const parts = s.split(".");
+    if (parts.length > 2) s = parts.shift() + "." + parts.join("");
+    return s;
+}

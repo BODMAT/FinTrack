@@ -1,23 +1,31 @@
 import { TransactionsCard } from "./TransactionsCard";
 import { useUserData } from "../../hooks/useUserData";
 import { CustomMessage } from "../Helpers";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { getFilteredData } from "../../utils/components";
 import { DebouncedSearchInput } from "./DebouncedSearchInput";
 import { usePopupStore } from "../../store/popup";
 import { ChangeTransactionPopup } from "./ChangeTransactionPopup";
 
 export function Transactions() {
-    const { data } = useUserData(0);
+    const { data } = useUserData();
     const [visibleCount, setVisibleCount] = useState(10);
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchInput,] = useState("");
+    const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+
     const handleLoadMore = () => {
         setVisibleCount((count) => count + 10);
     };
 
-    const sortedData = data?.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    const filteredData = getFilteredData(sortedData, searchQuery);
-    const visibleData = filteredData?.slice(0, visibleCount) ?? [];
+    const sortedData = useMemo(() => {
+        return data ? [...data].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) : [];
+    }, [data]);
+
+    const filteredData = useMemo(() => getFilteredData(sortedData, debouncedSearchQuery), [sortedData, debouncedSearchQuery]);
+
+    const visibleData = useMemo(() => {
+        return filteredData?.slice(0, visibleCount);
+    }, [filteredData, visibleCount]);
 
     const { open } = usePopupStore();
     const handleOpenPopup = () => {
@@ -29,12 +37,12 @@ export function Transactions() {
             <div className="flex justify-between max-[970px]:flex-col items-center gap-6 mb-[27px]">
                 <h1 className="text-[var(--color-title)] text-[32px] font-semibold">Dashboard</h1>
                 <div className="flex gap-3 max-[400px]:flex-col justify-center">
-                    <DebouncedSearchInput searchQuery={searchQuery} setSearchQuery={setSearchQuery} />
+                    <DebouncedSearchInput searchQuery={searchInput} setDebouncedSearchQuery={setDebouncedSearchQuery} />
                     <button onClick={handleOpenPopup()} className="bg-[var(--color-card)] rounded-[10px] p-[10px] text-[var(--color-text)] border-1 border-[var(--color-fixed-text)] transitioned cursor-pointer hover:border-[var(--color-hover)] hover:text-[var(--color-hover)] hover:scale-95 text-[16px] font-bold">Add new</button>
                 </div>
             </div>
             <div className="flex flex-col gap-4">
-                {visibleData.length > 0
+                {visibleData && visibleData.length > 0
                     ? visibleData.map((item) => <TransactionsCard key={item.id} data={item} />)
                     : <CustomMessage message="No transactions" />
                 }

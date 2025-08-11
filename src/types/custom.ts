@@ -27,3 +27,7 @@ export interface DashboardCardProps {
         labels: string[];
     };
 }
+
+export interface IDataForm extends Omit<IData, "amount"> {
+    amount: string;
+}

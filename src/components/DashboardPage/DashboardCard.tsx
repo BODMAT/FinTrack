@@ -9,14 +9,13 @@ import { PopupDashboardCard } from "./PopupDashboardCard";
 export function DashboardCard({ myImg, title, reversedPercentage = false, inPopup = false }: DashboardCardProps) {
     const { open } = usePopupStore();
     const { period } = usePeriodStore();
-    const queryData = useUserData(0);
+    const queryData = useUserData();
 
     if (queryData.isLoading) return <Spinner />;
     if (queryData.error) return <ErrorCustom />;
     if (!queryData.data) return <NoData />;
 
     const { total, percentage, currentRangeForChart } = useUserDataWithStats(
-        0,
         period,
         title
     );

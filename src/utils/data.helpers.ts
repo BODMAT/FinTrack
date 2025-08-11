@@ -148,6 +148,8 @@ export function getPercentageOfRangeIncrease(
     return Math.round(((currentTotal - previousTotal) / previousTotal) * 100);
 }
 
-export function getDataById(data: IData[], dataId: number): IData | undefined {
-    return data.find((item) => item.id === dataId);
+export function generateId(): number {
+    const now = new Date().getTime();
+    const random = Math.floor(Math.random() * 1000000);
+    return random + now;
 }

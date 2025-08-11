@@ -31,7 +31,7 @@ export function NoData() {
 export function CustomMessage({ message }: { message: string }) {
     return (
         <div>
-            <div className="flex p-3 justify-center items-center transitioned text-[var(--text-red)] text-3xl">
+            <div className="flex p-3 justify-center items-center transitioned text-[var(--color-text)] text-2xl">
                 <h1>{message}</h1>
             </div>
         </div>

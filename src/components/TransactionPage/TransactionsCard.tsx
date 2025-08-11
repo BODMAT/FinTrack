@@ -3,12 +3,13 @@ import DeleteIcon from "../../assets/transactions/delete-icon.svg?react";
 import ChangeIcon from "../../assets/transactions/edit-box-icon.svg?react";
 import { usePopupStore } from "../../store/popup";
 import { ChangeTransactionPopup } from "./ChangeTransactionPopup";
+import { DeleteTransactionPopup } from "./DeleteTransactionPopup";
 
 export function TransactionsCard({ data }: { data: IData }) {
     const { open } = usePopupStore();
-    const handleOpenPopup = (id: number) => {
-        return () => open("Change transaction", <ChangeTransactionPopup id={id} />);
-    }
+
+    const handleOpenChange = (id: number) => () => open("Change transaction", <ChangeTransactionPopup id={id} />);
+    const handleOpenDelete = (id: number) => () => open("Delete transaction", <DeleteTransactionPopup id={id} />);
     return (
         <div
             className="grid grid-cols-8 items-center gap-4 p-3 rounded border border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned roboto text-[18px] max-[1300px]:grid-cols-7 max-[1000px]:grid-cols-6 max-[970px]:grid-cols-3 max-[450px]:grid-cols-2"
@@ -32,10 +33,10 @@ export function TransactionsCard({ data }: { data: IData }) {
             </span>
             <span className="text-center col-span-2 max-[1300px]:col-span-1 justify-self-center px-2 break-words whitespace-normal">{data.location ?? "No location"}</span>
             <span className="flex gap-3 max-[1200px]:flex-col max-[1200px]:justify-self-center max-[1200px]:gap-1 max-[970px]:flex-row">
-                <button onClick={handleOpenPopup(data.id)} className="rotate-[45deg] w-14 h-14 justify-self-center cursor-pointer p-1 hover:text-[var(--color-hover)] rounded transitioned hover:scale-110">
+                <button onClick={handleOpenChange(data.id)} className="rotate-[45deg] w-14 h-14 justify-self-center cursor-pointer p-1 hover:text-[var(--color-hover)] rounded transitioned hover:scale-110">
                     <ChangeIcon />
                 </button>
-                <button className="w-14 h-14 justify-self-center cursor-pointer p-1 hover:text-[var(--color-hover)] rounded transitioned hover:scale-110">
+                <button onClick={handleOpenDelete(data.id)} className="w-14 h-14 justify-self-center cursor-pointer p-1 hover:text-[var(--color-hover)] rounded transitioned hover:scale-110">
                     <DeleteIcon />
                 </button>
             </span>

@@ -1,11 +1,10 @@
 import { StrictMode } from 'react'
-import { QueryClientProvider, QueryClient } from '@tanstack/react-query'
+import { QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { createRoot } from 'react-dom/client'
 import { App } from '../App/App.tsx'
 import './tailwind.css'
-
-const queryClient = new QueryClient();
+import { queryClient } from '../../api/queryClient.ts'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -1,50 +1,125 @@
-import { useUserDataById } from "../../hooks/useUserData";
+import { useState } from "react";
+import { changeDataById, getUserDataById } from "../../hooks/useUserData";
+import { sanitizeAmountInput, toLocalDatetimeString } from "../../utils/components";
+import type { IData, IDataForm } from "../../types/custom";
+import { generateId } from "../../utils/data.helpers";
+import { usePopupStore } from "../../store/popup";
+import { CustomMessage } from "../Helpers";
 
 export function ChangeTransactionPopup({ id }: { id?: number | undefined }) {
-    const currentData = id ? useUserDataById(0, id) : undefined;
+    const currentData = id ? getUserDataById(id) : undefined;
+    const { open, close } = usePopupStore();
+    const [form, setForm] = useState<IDataForm>({
+        id: id ?? generateId(),
+        date: currentData ? currentData.date : new Date().toISOString(),
+        title: currentData ? currentData.title : "",
+        amount: currentData ? String(currentData.amount) : "0",
+        location: currentData ? currentData.location : "",
+        isIncome: currentData ? currentData.isIncome : true
+    });
+    const handleChangeTransaction = (e: React.FormEvent<HTMLFormElement>) => {
+        try {
+            e.preventDefault();
+            const numericAmount = Number(form.amount.replace(",", "."));
+            if (isNaN(numericAmount)) {
+                return;
+            }
+
+            const data: IData = {
+                ...form,
+                amount: numericAmount,
+                date: new Date(form.date).toISOString()
+            };
+
+            if (id) {
+                changeDataById(data.id, data);
+                close();
+                setTimeout(() => open("Notification", <CustomMessage message="Transaction changed successfully!" />), 300);
+            } else {
+                changeDataById(data.id, data, true);
+                close();
+                setTimeout(() => open("Notification", <CustomMessage message="Transaction added successfully!" />), 300);
+            }
+
+        } catch (error) {
+            open("Error", <CustomMessage message="Something went wrong!" />);
+        }
+    }
 
     return (
         <div className="bg-[var(--color-card)] rounded-[10px] p-[20px] mx-auto">
-            <h2 className="text-[var(--color-title)] text-[24px] font-bold mb-[10px]">
-                {id ? "Change transaction" : "Transaction add transaction"}
-            </h2>
-            <form>
-                <div className="flex flex-col mb-[20px]">
-                    <label className="text-[var(--color-text)] text-[16px] font-semibold mb-[10px]" htmlFor="date">
+            <form className="flex flex-col gap-5" onSubmit={handleChangeTransaction}>
+                <div className="flex items-center gap-5 max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
+                    <label className="text-[var(--color-text)] text-[20px] font-semibold min-w-30" htmlFor="location">
+                        Title:
+                    </label>
+                    <input
+                        type="text"
+                        id="title"
+                        value={form.title}
+                        onChange={(e) => setForm({ ...form, title: e.target.value })}
+                        className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
+                    />
+                </div>
+                <div className="flex items-center gap-5 max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
+                    <label className="text-[var(--color-text)] text-[20px] font-semibold min-w-30" htmlFor="date">
                         Date:
                     </label>
                     <input
-                        type="date"
+                        type="datetime-local"
+                        value={toLocalDatetimeString(new Date(form.date))}
+                        onChange={(e) => setForm({ ...form, date: new Date(e.target.value).toISOString() })}
                         id="date"
-                        value={currentData ? currentData.date : ""}
-                        onChange={(e) => console.log(e.target.value)}
                         className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
                     />
                 </div>
-                <div className="flex flex-col mb-[20px]">
-                    <label className="text-[var(--color-text)] text-[16px] font-semibold mb-[10px]" htmlFor="amount">
+                <div className="flex items-center gap-5 max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
+                    <label className="text-[var(--color-text)] text-[20px] font-semibold min-w-30" htmlFor="amount">
                         Amount:
                     </label>
                     <input
-                        type="number"
+                        type="text"
                         id="amount"
-                        value={currentData ? currentData.amount : ""}
-                        onChange={(e) => console.log(e.target.value)}
+                        value={form.amount}
+                        onChange={(e) => setForm({ ...form, amount: sanitizeAmountInput(e.target.value) })}
                         className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
                     />
                 </div>
-                <div className="flex flex-col mb-[20px]">
-                    <label className="text-[var(--color-text)] text-[16px] font-semibold mb-[10px]" htmlFor="location">
+                <div className="flex items-center gap-5 max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
+                    <label className="text-[var(--color-text)] text-[20px] font-semibold min-w-30" htmlFor="location">
                         Location:
                     </label>
                     <input
                         type="text"
                         id="location"
-                        value={currentData ? currentData.location : ""}
-                        onChange={(e) => console.log(e.target.value)}
+                        value={form.location}
+                        onChange={(e) => setForm({ ...form, location: e.target.value })}
                         className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
                     />
                 </div>
+                <div className="flex gap-7 items-center justify-center max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
+                    <label className="text-[var(--color-text)] text-[20px] font-semibold">
+                        <input
+                            className="mr-3"
+                            type="radio"
+                            name="transactionType"
+                            checked={form.isIncome}
+                            onChange={() => setForm({ ...form, isIncome: true })}
+                        />
+                        Income
+                    </label>
+                    <label className="text-[var(--color-text)] text-[20px] font-semibold">
+                        <input
+                            className="mr-3"
+                            type="radio"
+                            name="transactionType"
+                            checked={!form.isIncome}
+                            onChange={() => setForm({ ...form, isIncome: false })}
+                        />
+                        Outcome
+                    </label>
+                </div>
+
                 <button
                     type="submit"
                     className="bg-[var(--color-hover)] text-[var(--color-fixed)] rounded-[10px] p-[10px] w-full hover:bg-[var(--color-hover-reverse)] hover:text-[var(--color-hover)] transitioned cursor-pointer"
