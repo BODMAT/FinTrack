@@ -1,0 +1,33 @@
+import type { IData } from "../types/custom";
+
+export const getFilteredData = (data: IData[] | undefined, searchQuery: string): IData[] | undefined => {
+    searchQuery = searchQuery.trim().toLowerCase();
+    if (!searchQuery) return data;
+
+    const words = searchQuery.split(/\s+/);
+
+    return data?.filter(item => {
+        const dateObj = new Date(item.date);
+        const dateVariants = [
+            dateObj.toLocaleDateString("uk-UA"),
+            dateObj.toLocaleDateString("en-GB"),
+            dateObj.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
+            dateObj.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" }),
+            dateObj.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }),
+            item.date
+        ].map(str => str.toLowerCase());
+
+        const title = item.title.toLowerCase();
+        const location = item.location?.toLowerCase() || "";
+        const sum = item.amount.toString().toLowerCase();
+        const type = (item.isIncome ? "income" : "outcome").toLowerCase();
+
+        return words.every(word =>
+            title.includes(word) ||
+            location.includes(word) ||
+            sum.includes(word) ||
+            type.includes(word) ||
+            dateVariants.some(dateVariant => dateVariant.includes(word))
+        );
+    });
+};
