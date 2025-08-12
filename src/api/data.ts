@@ -15,7 +15,7 @@ export const getDataByUserId = async (userId: number): Promise<IData[]> => {
                 const data: IData[] = [];
                 const startDate = new Date(2023, 0, 1).getTime();
                 const endDate = Date.now();
-                const totalItems = 500;
+                const totalItems = 200;
 
                 for (let i = 0; i < totalItems; i++) {
                     const timestamp = startDate + ((endDate - startDate) / totalItems) * i;

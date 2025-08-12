@@ -75,6 +75,7 @@
     #dee2e6
   );
     --color-text: #000;
+    --color-placeholder: #868e96;
     --color-title: #25282c;
     --color-background: #ffffff;
 
@@ -103,6 +104,7 @@
   );
   
     --color-text: #ffffff;
+    --color-placeholder: #868e96;
     --color-title: #b2c0d1;
 
     --color-background: #000204;

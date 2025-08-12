@@ -21,13 +21,13 @@ const selectDateOptions: Array<{ label: string; value: CustomDate }> = [
 export function IncomeOutcomeAnalitics() {
     const { period: range, setPeriod: setRange } = usePeriodStore();
     const query = useUserData();
+    const { currentRangeForChart } = useUserDataWithStats(range, "income");
 
     if (query.isLoading) return <Spinner />;
     if (query.error) return <ErrorCustom />;
-
-    const { currentRangeForChart } = useUserDataWithStats(range, "income");
-
+    if (!query.data) return <NoData />;
     if (!currentRangeForChart) return <NoData />;
+
 
     const { income, outcome, labels } = currentRangeForChart;
 

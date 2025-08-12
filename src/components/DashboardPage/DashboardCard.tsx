@@ -10,15 +10,14 @@ export function DashboardCard({ myImg, title, reversedPercentage = false, inPopu
     const { open } = usePopupStore();
     const { period } = usePeriodStore();
     const queryData = useUserData();
-
-    if (queryData.isLoading) return <Spinner />;
-    if (queryData.error) return <ErrorCustom />;
-    if (!queryData.data) return <NoData />;
-
     const { total, percentage, currentRangeForChart } = useUserDataWithStats(
         period,
         title
     );
+
+    if (queryData.isLoading) return <Spinner />;
+    if (queryData.error) return <ErrorCustom />;
+    if (!queryData.data) return <NoData />;
 
     if (!currentRangeForChart) return <NoData />;
 

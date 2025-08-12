@@ -32,7 +32,7 @@ export const getFilteredData = (data: IData[] | undefined, searchQuery: string):
     });
 };
 
-export function toLocalDatetimeString(date: Date) {
+export function toLocalDatetimeString(date: Date, isPrettier = false) {
     const pad = (n: number) => n.toString().padStart(2, "0");
 
     return (
@@ -41,7 +41,7 @@ export function toLocalDatetimeString(date: Date) {
         pad(date.getMonth() + 1) +
         "-" +
         pad(date.getDate()) +
-        "T" +
+        `${isPrettier ? " " : "T"}` +
         pad(date.getHours()) +
         ":" +
         pad(date.getMinutes())
@@ -58,4 +58,13 @@ export function sanitizeAmountInput(raw: string): string {
     const parts = s.split(".");
     if (parts.length > 2) s = parts.shift() + "." + parts.join("");
     return s;
+}
+
+export function sanitizeText(text: string) {
+    return String(text ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
