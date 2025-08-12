@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Layout } from "./Layout";
 import { Dashboard } from "../DashboardPage/Dashboard";
-import { Analitycs } from "../Analitycs";
+import { Analitycs } from "../AnalitycsPage/Analitycs";
 import { Transactions } from "../TransactionPage/Transactions";
 import { PopUpPortal } from "../../portals/PopUp.portal";
 import { CustomMessage } from "../Helpers";

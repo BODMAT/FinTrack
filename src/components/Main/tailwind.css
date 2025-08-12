@@ -44,6 +44,27 @@
         @apply transition-all duration-500 ease-[cubic-bezier(0.075,0.82,0.165,1)];
     }
 
+    .scrollable {
+      @apply overflow-y-auto;
+    }
+  
+    .scrollable::-webkit-scrollbar {
+      width: 8px; 
+    }
+  
+    .scrollable::-webkit-scrollbar-track {
+      background: transparent;
+    }
+  
+    .scrollable::-webkit-scrollbar-thumb {
+      background-color: #888;
+      border-radius: 10px;
+    }
+  
+    .scrollable::-webkit-scrollbar-thumb:hover {
+      background-color: #555;
+    }
+
     :root {
     --color-main: linear-gradient(
     295deg,

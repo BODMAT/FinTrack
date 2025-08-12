@@ -35,7 +35,7 @@ export function Transactions() {
     return (
         <section className="w-full">
             <div className="flex justify-between max-[970px]:flex-col items-center gap-6 mb-[27px]">
-                <h1 className="text-[var(--color-title)] text-[32px] font-semibold">Dashboard</h1>
+                <h1 className="text-[var(--color-title)] text-[32px] font-semibold">Transactions</h1>
                 <div className="flex gap-3 max-[400px]:flex-col justify-center">
                     <DebouncedSearchInput searchQuery={searchInput} setDebouncedSearchQuery={setDebouncedSearchQuery} />
                     <button onClick={handleOpenPopup()} className="bg-[var(--color-card)] rounded-[10px] p-[10px] text-[var(--color-text)] border-1 border-[var(--color-fixed-text)] transitioned cursor-pointer hover:border-[var(--color-hover)] hover:text-[var(--color-hover)] hover:scale-95 text-[16px] font-bold">Add new</button>
