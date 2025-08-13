@@ -17,24 +17,44 @@ const client = new OpenAI({
 });
 
 app.post("/analyze", async (req, res) => {
-    const { data, prompt } = req.body;
+    const { data, prompt, model } = req.body;
 
-    try {
-        const completion = await client.chat.completions.create({
-            model: "openai/gpt-oss-120b:cerebras",
-            messages: [
-                {
-                    role: "user",
-                    content: `Here is the data: ${JSON.stringify(data)}. ${prompt}`,
-                },
-            ],
-        });
+    const modelsToTry = model
+        ? (Array.isArray(model) ? model : [model])
+        : ["openai/gpt-oss-120b",
+            "openai/gpt-oss-20b",
+            "gpt-4-turbo",
+            "gpt-4o",
+            "gpt-3.5-turbo",
+            "meta-llama/Meta-Llama-3-70B-Instruct",
+            "mistralai/Mixtral-8x7B-Instruct-v0.1"];
 
-        res.json(completion);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Server error" });
+    let completion = null;
+    let errorMessages = [];
+
+    for (const m of modelsToTry) {
+        try {
+            completion = await client.chat.completions.create({
+                model: m,
+                messages: [
+                    { role: "system", content: "You are a helpful assistant." },
+                    { role: "user", content: `${prompt}\n\nData:\n${JSON.stringify(data)}` }
+                ]
+            });
+            break;
+        } catch (err) {
+            errorMessages.push(`Model ${m} failed: ${err.message}`);
+        }
     }
+
+    if (!completion) {
+        return res.status(500).json({ error: "All models failed", details: errorMessages });
+    }
+
+    res.json({
+        model: completion.model,
+        result: completion.choices[0].message.content
+    });
 });
 
 app.listen(PORT, () => {
