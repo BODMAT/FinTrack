@@ -50,15 +50,13 @@ export function toLocalDatetimeString(date: Date, isPrettier = false) {
 
 export function sanitizeAmountInput(raw: string): string {
     if (!raw) return "";
-    let s = raw.replace(/[^\d.,-]/g, "");
-    const hasMinus = s.includes("-");
-    s = s.replace(/-/g, "");
-    if (hasMinus) s = "-" + s;
+    let s = raw.replace(/[^\d.,]/g, "");
     s = s.replace(/,/g, ".");
     const parts = s.split(".");
     if (parts.length > 2) s = parts.shift() + "." + parts.join("");
     return s;
 }
+
 
 export function sanitizeText(text: string) {
     return String(text ?? "")

@@ -1,3 +1,4 @@
+import { useCallback, useEffect } from "react";
 import { useUserData } from "../../hooks/useUserData";
 import { NoData, Spinner } from "../Helpers";
 import { analyzeData } from "../../api/ai";
@@ -11,13 +12,9 @@ export function Analitycs() {
     const { data, isLoading, isError } = useUserData();
     const { prompt, response, loading, setPrompt, setResponse, setLoading } = useAIStore();
 
-
-    if (isLoading) return <Spinner />;
-    if (isError || !data) return <NoData />;
-
-    async function handleAnalyze() {
+    const handleAnalyze = useCallback(async () => {
         setLoading(true);
-
+        setPrompt("");
         try {
             if (!prompt || !data) return;
             const result = await analyzeData(data, prompt);
@@ -28,8 +25,21 @@ export function Analitycs() {
         } finally {
             setLoading(false);
         }
-    }
+    }, [prompt, data, setLoading, setPrompt, setResponse]);
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                handleAnalyze();
+            }
+        };
+        window.addEventListener("keydown", handleKeyDown);
+        return () => window.removeEventListener("keydown", handleKeyDown);
+    }, [handleAnalyze]);
+
+    if (isLoading) return <Spinner />;
+    if (isError || !data) return <NoData />;
 
     return (
         <section className="w-full ">
@@ -68,7 +78,7 @@ export function Analitycs() {
                        bg-[var(--color-card)]  rounded-2xl border-2 border-[var(--color-fixed-text)]
                        shadow-lg"
                     >
-                        <div className="flex gap-6 my-6 mx-4 justify-between items-center">
+                        <div className="flex gap-6 my-2 mx-3 justify-between items-center">
                             <textarea
                                 name="prompt"
                                 value={prompt}

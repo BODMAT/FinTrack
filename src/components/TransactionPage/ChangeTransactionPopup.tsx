@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { changeDataById, getUserDataById } from "../../hooks/useUserData";
+import { changeDataById, getUserDataById } from "../../utils/query";
 import { sanitizeAmountInput, toLocalDatetimeString } from "../../utils/components";
 import type { IData, IDataForm } from "../../types/custom";
 import { generateId } from "../../utils/data.helpers";

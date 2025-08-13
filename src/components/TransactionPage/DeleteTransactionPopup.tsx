@@ -1,4 +1,4 @@
-import { deleteDataById } from "../../hooks/useUserData";
+import { deleteDataById } from "../../utils/query";
 import { usePopupStore } from "../../store/popup";
 import { CustomMessage } from "../Helpers";
 
