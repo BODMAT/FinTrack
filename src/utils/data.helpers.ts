@@ -1,4 +1,5 @@
 import type { CustomDate, IData, MoneyType } from "../types/custom";
+import { simpleMemoize3 } from "./other";
 
 export function groupData(data: IData[], range: CustomDate, nowDate?: Date) {
     const now = nowDate || new Date();
@@ -152,4 +153,22 @@ export function generateId(): number {
     const now = new Date().getTime();
     const random = Math.floor(Math.random() * 1000000);
     return random + now;
+}
+
+const memoizedGroupData = simpleMemoize3(groupData);
+const memoizedGetTotalOfRange = simpleMemoize3(getTotalOfRange);
+const memoizedGetPercentage = simpleMemoize3(getPercentageOfRangeIncrease);
+
+export function getUserDataWithStats(data: IData[], range: CustomDate, title: MoneyType) {
+    const currentRangeForChart = memoizedGroupData(data, range);
+    const total = memoizedGetTotalOfRange(data, range, title);
+    const percentage = memoizedGetPercentage(data, range, title);
+    const balance = memoizedGetTotalOfRange(data, range, "balance");
+
+    return {
+        currentRangeForChart,
+        total,
+        percentage,
+        balance,
+    };
 }

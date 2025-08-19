@@ -18,13 +18,11 @@ export const getFilteredData = (data: IData[] | undefined, searchQuery: string):
         ].map(str => str.toLowerCase());
 
         const title = item.title.toLowerCase();
-        const location = item.location?.toLowerCase() || "";
         const sum = item.amount.toString().toLowerCase();
         const type = (item.isIncome ? "income" : "outcome").toLowerCase();
 
         return words.every(word =>
             title.includes(word) ||
-            location.includes(word) ||
             sum.includes(word) ||
             type.includes(word) ||
             dateVariants.some(dateVariant => dateVariant.includes(word))
@@ -56,7 +54,6 @@ export function sanitizeAmountInput(raw: string): string {
     if (parts.length > 2) s = parts.shift() + "." + parts.join("");
     return s;
 }
-
 
 export function sanitizeText(text: string) {
     return String(text ?? "")

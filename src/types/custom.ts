@@ -8,7 +8,10 @@ export interface IData {
     isIncome: boolean;
     date: string;
 
-    location?: string;
+    location?: {
+        lat: number;
+        lng: number;
+    };
 }
 
 export type CustomDate = "day" | "week" | "month" | "year" | "all";
@@ -28,9 +31,14 @@ export interface DashboardCardProps {
     };
 }
 
-export interface IDataForm extends Omit<IData, "amount"> {
+export interface IDataForm extends Omit<IData, "amount" | "location"> {
     amount: string;
+    location?: {
+        lat: string;
+        lng: string;
+    };
 }
+
 
 export interface AIState {
     prompt: string;

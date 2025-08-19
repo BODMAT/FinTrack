@@ -16,10 +16,10 @@ export function Dashboard() {
                 <DashboardCard myImg={expenses} title="outcome" reversedPercentage />
             </div>
             <div className="flex gap-[18px] max-[1100px]:flex-col">
-                <div className="flex-2/3 max-[1100px]:flex-1">
+                <div className="flex-1/2 max-[1100px]:flex-1">
                     <IncomeOutcomeAnalitics />
                 </div>
-                <div className="flex-1/3 max-[1100px]:flex-1">
+                <div className="flex-1/2 max-[1100px]:flex-1">
                     <IncomeOutcomeMap />
                 </div>
             </div>

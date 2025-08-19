@@ -31,7 +31,7 @@ export function TransactionsCard({ data }: { data: IData }) {
                     minute: "2-digit"
                 })}`}
             </span>
-            <span className="text-center col-span-2 max-[1300px]:col-span-1 justify-self-center px-2 break-words whitespace-normal">{data.location ?? "No location"}</span>
+            <span className="text-center col-span-2 max-[1300px]:col-span-1 justify-self-center px-2 break-words whitespace-normal">{data.location ? `${data.location.lat}, ${data.location.lng}` : "No location"}</span>
             <span className="flex gap-3 max-[1200px]:flex-col max-[1200px]:justify-self-center max-[1200px]:gap-1 max-[970px]:flex-row">
                 <button onClick={handleOpenChange(data.id)} className="rotate-[45deg] w-14 h-14 justify-self-center cursor-pointer p-1 hover:text-[var(--color-hover)] rounded transitioned hover:scale-110">
                     <ChangeIcon />

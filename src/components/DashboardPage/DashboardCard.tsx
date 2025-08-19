@@ -1,23 +1,22 @@
 import React from "react";
 import { usePopupStore } from "../../store/popup";
 import { usePeriodStore } from "../../store/period";
-import { useUserData, useUserDataWithStats } from "../../hooks/useUserData";
+import { useUserData } from "../../hooks/useUserData";
 import { ErrorCustom, NoData, Spinner } from "../Helpers";
 import type { DashboardCardProps } from "../../types/custom";
 import { PopupDashboardCard } from "./PopupDashboardCard";
+import { getUserDataWithStats } from "../../utils/data.helpers";
 
 export function DashboardCard({ myImg, title, reversedPercentage = false, inPopup = false }: DashboardCardProps) {
     const { open } = usePopupStore();
     const { period } = usePeriodStore();
     const queryData = useUserData();
-    const { total, percentage, currentRangeForChart } = useUserDataWithStats(
-        period,
-        title
-    );
 
     if (queryData.isLoading) return <Spinner />;
     if (queryData.error) return <ErrorCustom />;
-    if (!queryData.data) return <NoData />;
+    if (!queryData.data || queryData.data.length === 0) return <NoData />;
+
+    const { total, percentage, currentRangeForChart } = getUserDataWithStats(queryData.data, period, title);
 
     if (!currentRangeForChart) return <NoData />;
 

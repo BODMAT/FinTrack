@@ -5,8 +5,9 @@ import {
 import type { CustomDate } from "../../types/custom";
 import Select from "react-select";
 import { usePeriodStore } from "../../store/period";
-import { useUserDataWithStats, useUserData } from "../../hooks/useUserData";
+import { useUserData } from "../../hooks/useUserData";
 import { ErrorCustom, NoData, Spinner } from "../Helpers";
+import { getUserDataWithStats } from "../../utils/data.helpers";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
@@ -21,13 +22,12 @@ const selectDateOptions: Array<{ label: string; value: CustomDate }> = [
 export function IncomeOutcomeAnalitics() {
     const { period: range, setPeriod: setRange } = usePeriodStore();
     const query = useUserData();
-    const { currentRangeForChart } = useUserDataWithStats(range, "income");
 
     if (query.isLoading) return <Spinner />;
     if (query.error) return <ErrorCustom />;
-    if (!query.data) return <NoData />;
-    if (!currentRangeForChart) return <NoData />;
+    if (!query.data || query.data.length === 0) return <NoData />;
 
+    const { currentRangeForChart } = getUserDataWithStats(query.data, range, "income");
 
     const { income, outcome, labels } = currentRangeForChart;
 
@@ -117,7 +117,12 @@ export function IncomeOutcomeAnalitics() {
             </div>
             <div className="w-full overflow-x-auto">
                 <div className="min-w-[400px] h-[450px]">
-                    <Bar data={chartData} options={chartOptions} />
+                    {currentRangeForChart && currentRangeForChart.labels.length > 0 ? (
+                        <Bar data={chartData} options={chartOptions} />
+                    ) : (
+                        <Spinner />
+                    )}
+
                 </div>
             </div>
 

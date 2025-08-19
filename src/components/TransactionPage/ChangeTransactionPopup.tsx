@@ -14,21 +14,34 @@ export function ChangeTransactionPopup({ id }: { id?: number | undefined }) {
         date: currentData ? currentData.date : new Date().toISOString(),
         title: currentData ? currentData.title : "",
         amount: currentData ? String(currentData.amount) : "0",
-        location: currentData ? currentData.location : "",
+        location: currentData
+            ? {
+                lat: String(currentData.location?.lat ?? 0),
+                lng: String(currentData.location?.lng ?? 0),
+            }
+            : { lat: "0", lng: "0" },
+
         isIncome: currentData ? currentData.isIncome : true
     });
     const handleChangeTransaction = (e: React.FormEvent<HTMLFormElement>) => {
         try {
             e.preventDefault();
             const numericAmount = Number(form.amount.replace(",", "."));
-            if (isNaN(numericAmount)) {
+            const numericLocationLat = Number(form.location?.lat.replace(",", "."));
+            const numericLocationLng = Number(form.location?.lng.replace(",", "."));
+            if (isNaN(numericAmount) || isNaN(numericLocationLat) || isNaN(numericLocationLng)) {
                 return;
             }
 
             const data: IData = {
-                ...form,
+                id: form.id,
+                title: form.title,
                 amount: numericAmount,
-                date: new Date(form.date).toISOString()
+                date: form.date,
+                isIncome: form.isIncome,
+                ...(numericLocationLat !== 0 && numericLocationLng !== 0
+                    ? { location: { lat: numericLocationLat, lng: numericLocationLng } }
+                    : {}),
             };
 
             if (id) {
@@ -45,6 +58,19 @@ export function ChangeTransactionPopup({ id }: { id?: number | undefined }) {
             open("Error", <CustomMessage message="Something went wrong!" />);
         }
     }
+
+    const handleLocationChange = (key: "lat" | "lng", value: string) => {
+        const sanitized = value.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1");
+
+        setForm({
+            ...form,
+            location: {
+                lat: key === "lat" ? sanitized : form.location?.lat ?? "",
+                lng: key === "lng" ? sanitized : form.location?.lng ?? "",
+            },
+        });
+    };
+
 
     return (
         <div className="bg-[var(--color-card)] rounded-[10px] p-[20px] mx-auto">
@@ -85,18 +111,36 @@ export function ChangeTransactionPopup({ id }: { id?: number | undefined }) {
                         className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
                     />
                 </div>
+
+                {/* Location */}
                 <div className="flex items-center gap-5 max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
-                    <label className="text-[var(--color-text)] text-[20px] font-semibold min-w-30" htmlFor="location">
-                        Location:
+                    <label htmlFor="locationLat" className="text-[var(--color-text)] text-[20px] font-semibold min-w-30">
+                        Latitude:
                     </label>
                     <input
                         type="text"
-                        id="location"
-                        value={form.location}
-                        onChange={(e) => setForm({ ...form, location: e.target.value })}
+                        id="locationLat"
+                        placeholder="23.456"
+                        value={form.location?.lat}
+                        onChange={(e) => handleLocationChange("lat", e.target.value)}
                         className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
                     />
                 </div>
+
+                <div className="flex items-center gap-5 max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
+                    <label htmlFor="locationLng" className="text-[var(--color-text)] text-[20px] font-semibold min-w-30">
+                        Longitude:
+                    </label>
+                    <input
+                        type="text"
+                        id="locationLng"
+                        placeholder="23.456"
+                        value={form.location?.lng}
+                        onChange={(e) => handleLocationChange("lng", e.target.value)}
+                        className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
+                    />
+                </div>
+
                 <div className="flex gap-7 items-center justify-center max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
                     <label className="text-[var(--color-text)] text-[20px] font-semibold">
                         <input
