@@ -1,12 +1,13 @@
 import { useState } from "react";
-import { changeDataById, getUserDataById } from "../../utils/query";
 import { sanitizeAmountInput, toLocalDatetimeString } from "../../utils/components";
 import type { IData, IDataForm } from "../../types/custom";
 import { generateId } from "../../utils/data.helpers";
 import { usePopupStore } from "../../store/popup";
 import { CustomMessage } from "../Helpers";
+import { useUser } from "../../hooks/useUser";
 
 export function ChangeTransactionPopup({ id }: { id?: number | undefined }) {
+    const { changeDataById, getUserDataById } = useUser();
     const currentData = id ? getUserDataById(id) : undefined;
     const { open, close } = usePopupStore();
     const [form, setForm] = useState<IDataForm>({

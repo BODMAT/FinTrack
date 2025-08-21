@@ -1,23 +1,24 @@
 import { useCallback, useEffect } from "react";
-import { useUserData } from "../../hooks/useUserData";
-import { NoData, Spinner } from "../Helpers";
+import { useUser } from "../../hooks/useUser";
+import { CustomMessage, NoData, Spinner } from "../Helpers";
 import { analyzeData } from "../../api/ai";
 import { motion } from "framer-motion";
 import { useAIStore } from "../../store/AIResponse";
 import { sanitizeText, toLocalDatetimeString } from "../../utils/components";
 import { TypingText } from "./TypingText";
 import { FixedPanel } from "../../portals/FixedPanel";
+import { type Response } from "../../types/custom";
 
 export function Analitycs() {
-    const { data, isLoading, isError } = useUserData();
+    const { user, isLoading, error } = useUser();
     const { prompt, response, loading, setPrompt, setResponse, setLoading } = useAIStore();
 
     const handleAnalyze = useCallback(async () => {
         setLoading(true);
         setPrompt("");
         try {
-            if (!prompt || !data) return;
-            const result = await analyzeData(data, prompt);
+            if (!prompt || !user.data) return;
+            const result = await analyzeData(user.data, prompt);
             setResponse(result, true);
         } catch (err) {
             console.error(err);
@@ -25,7 +26,7 @@ export function Analitycs() {
         } finally {
             setLoading(false);
         }
-    }, [prompt, data, setLoading, setPrompt, setResponse]);
+    }, [prompt, user, setLoading, setPrompt, setResponse]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -38,8 +39,12 @@ export function Analitycs() {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [handleAnalyze]);
 
+    if (user.nickname === null) {
+        return <CustomMessage message="You are not logged in. Please log in to see your analytics." />
+    }
     if (isLoading) return <Spinner />;
-    if (isError || !data) return <NoData />;
+    if (error) return <CustomMessage message="Something went wrong, please wait a few seconds" />;
+    if (!user.data) return <NoData />;
 
     return (
         <section className="w-full ">
@@ -47,7 +52,7 @@ export function Analitycs() {
                 <h1 className="text-[var(--color-title)] transitioned text-[32px] font-semibold mb-6">Analytics</h1>
                 <div>
                     {loading && <div className="h-30 w-30 overflow-hidden flex justify-center items-center mx-auto"><Spinner /></div>}
-                    {response && [...response].reverse().map((item, index) => {
+                    {response && [...response].reverse().map((item: Response, index) => {
                         const isNewest = index === 0;
                         return (
                             <motion.div key={item.id}

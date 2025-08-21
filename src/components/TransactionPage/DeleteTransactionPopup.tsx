@@ -1,9 +1,10 @@
-import { deleteDataById } from "../../utils/query";
+import { useUser } from "../../hooks/useUser";
 import { usePopupStore } from "../../store/popup";
 import { CustomMessage } from "../Helpers";
 
 export function DeleteTransactionPopup({ id }: { id: number }) {
     const { open, close } = usePopupStore();
+    const { deleteDataById } = useUser();
     const handleDelete = () => {
         deleteDataById(id);
         close();

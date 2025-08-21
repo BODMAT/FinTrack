@@ -165,10 +165,28 @@ export function getUserDataWithStats(data: IData[], range: CustomDate, title: Mo
     const percentage = memoizedGetPercentage(data, range, title);
     const balance = memoizedGetTotalOfRange(data, range, "balance");
 
+    const maxPositiveTransaction = data
+        .filter((item) => item.isIncome)
+        .sort((a, b) => b.amount - a.amount)[0]?.amount || 0;
+    const maxNegativeTransaction = data
+        .filter((item) => !item.isIncome)
+        .sort((a, b) => b.amount - a.amount)[0]?.amount || 0;
+
+    const minPositiveTransaction = data
+        .filter((item) => item.isIncome)
+        .sort((a, b) => a.amount - b.amount)[0]?.amount || 0;
+    const minNegativeTransaction = data
+        .filter((item) => !item.isIncome)
+        .sort((a, b) => a.amount - b.amount)[0]?.amount || 0;
+
     return {
         currentRangeForChart,
         total,
         percentage,
         balance,
+        maxPositiveTransaction,
+        maxNegativeTransaction,
+        minPositiveTransaction,
+        minNegativeTransaction
     };
 }

@@ -1,5 +1,5 @@
 import { TransactionsCard } from "./TransactionsCard";
-import { useUserData } from "../../hooks/useUserData";
+import { useUser } from "../../hooks/useUser";
 import { CustomMessage } from "../Helpers";
 import { useMemo, useState } from "react";
 import { getFilteredData } from "../../utils/components";
@@ -8,7 +8,8 @@ import { usePopupStore } from "../../store/popup";
 import { ChangeTransactionPopup } from "./ChangeTransactionPopup";
 
 export function Transactions() {
-    const { data } = useUserData();
+    const { user, } = useUser();
+
     const [visibleCount, setVisibleCount] = useState(10);
     const [searchInput,] = useState("");
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
@@ -18,8 +19,8 @@ export function Transactions() {
     };
 
     const sortedData = useMemo(() => {
-        return data ? [...data].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) : [];
-    }, [data]);
+        return user.data ? [...user.data].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) : [];
+    }, [user.data]);
 
     const filteredData = useMemo(() => getFilteredData(sortedData, debouncedSearchQuery), [sortedData, debouncedSearchQuery]);
 
@@ -31,7 +32,9 @@ export function Transactions() {
     const handleOpenPopup = () => {
         return () => open("Add transaction", <ChangeTransactionPopup />);
     }
-
+    if (user.nickname === null) {
+        return <CustomMessage message="You are not logged in. Please log in to see your transactions." />
+    }
     return (
         <section className="w-full">
             <div className="flex justify-between max-[970px]:flex-col items-center gap-6 mb-[27px]">
@@ -47,7 +50,7 @@ export function Transactions() {
                     : <CustomMessage message="No transactions" />
                 }
 
-                {visibleCount < (data?.length ?? 0) && (
+                {visibleCount < (user.data?.length ?? 0) && (
                     <button
                         onClick={handleLoadMore}
                         className="mt-2 px-4 py-2 bg-[var(--color-hover)] text-[var(--color-fixed)] rounded hover:bg-[var(--color-hover-reverse)] hover:text-[var(--color-hover)] transitioned cursor-pointer"

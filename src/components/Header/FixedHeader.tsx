@@ -77,7 +77,7 @@ export function FixedHeader() {
                     </ul>
                     <div className="mt-[20px] py-[12px] px-[10px] flex justify-center"><SwitchTheme /></div>
                 </nav>
-                <div className="py-[12px]">
+                <div className="py-[12px] w-full">
                     <ProfileInfo changable />
                 </div>
             </div>

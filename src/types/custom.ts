@@ -1,5 +1,15 @@
 import type { FC, SVGProps } from "react";
 
+export interface IUser {
+    nickname: string | null;
+    password: string | null;
+
+    userName: string | null;
+    userPhoto: string | null;
+
+    data: IData[] | null;
+}
+
 export interface IData {
     id: number;
 
@@ -51,9 +61,15 @@ export interface AIState {
     changeToOld: (id: number) => void;
 }
 
-interface Response {
+export interface Response {
     id: number;
     isNew: boolean;
     content: string;
     date: string;
+}
+
+export interface IProfileInfoState {
+    nickname: string | null;
+    password: string | null;
+    submitted: boolean;
 }

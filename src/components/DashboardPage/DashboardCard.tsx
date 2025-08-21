@@ -1,24 +1,23 @@
 import React from "react";
 import { usePopupStore } from "../../store/popup";
 import { usePeriodStore } from "../../store/period";
-import { useUserData } from "../../hooks/useUserData";
+import { useUser } from "../../hooks/useUser";
 import { ErrorCustom, NoData, Spinner } from "../Helpers";
 import type { DashboardCardProps } from "../../types/custom";
 import { PopupDashboardCard } from "./PopupDashboardCard";
-import { getUserDataWithStats } from "../../utils/data.helpers";
 
 export function DashboardCard({ myImg, title, reversedPercentage = false, inPopup = false }: DashboardCardProps) {
     const { open } = usePopupStore();
     const { period } = usePeriodStore();
-    const queryData = useUserData();
+    const { user, isLoading, error, getStats } = useUser();
 
-    if (queryData.isLoading) return <Spinner />;
-    if (queryData.error) return <ErrorCustom />;
-    if (!queryData.data || queryData.data.length === 0) return <NoData />;
+    if (isLoading) return <Spinner />;
+    if (error) return <ErrorCustom />;
+    if (!user.data || !user.data.length) return <NoData />;
 
-    const { total, percentage, currentRangeForChart } = getUserDataWithStats(queryData.data, period, title);
-
-    if (!currentRangeForChart) return <NoData />;
+    const stats = getStats(period, title);
+    if (!stats) return <NoData />;
+    const { total, percentage, currentRangeForChart } = stats;
 
     const handleOpenPopup = () => {
         open(`Graph with ${title === "balance"
