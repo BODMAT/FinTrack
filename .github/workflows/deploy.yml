@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - master
+    paths:
+      - 'apps/web/**'
+      - '.github/workflows/deploy.yml'
 
 jobs:
   build:
@@ -22,16 +25,18 @@ jobs:
 
       # Крок 3: Встановлюємо залежності
       - name: Install dependencies
+        working-directory: ./apps/web
         run: npm ci  # використовуємо "npm ci" для чистої установки залежностей
 
-      # Крок 5: Створюємо білд
+      # Крок 4: Створюємо білд
       - name: Build the project
+        working-directory: ./apps/web
         run: npm run build
 
-      # Крок 6: Деплой на gh-pages
+      # Крок 5: Деплой на gh-pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           personal_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist  # директорія, де знаходиться результат білду
+          publish_dir: ./apps/web/dist  # директорія, де знаходиться результат білду
           publish_branch: gh-pages

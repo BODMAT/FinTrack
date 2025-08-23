@@ -10,8 +10,8 @@ export const getUserByNickAndPass = async (
     perPage?: number
 ): Promise<IUser> => {
     try {
-        return await new Promise<IUser>((resolve, reject) => {
-            const timeout = setTimeout(() => {
+        return await new Promise<IUser>((resolve) => {
+            setTimeout(() => {
                 const data: IData[] = [];
                 const startDate = new Date(2023, 0, 1).getTime();
                 const endDate = Date.now();
