@@ -53,15 +53,10 @@ export interface IDataForm extends Omit<IData, "amount" | "location"> {
 export interface AIState {
     prompt: string;
     response: Response[] | null;
-    loading: boolean;
-
-    setPrompt: (prompt: string) => void;
-    setResponse: (newResponse: string, isNew?: boolean) => void;
-    setLoading: (loading: boolean) => void;
-    changeToOld: (id: number) => void;
 }
 
 export interface Response {
+    forPrompt: string;
     id: number;
     isNew: boolean;
     content: string;

@@ -1,9 +1,9 @@
 import { useEffect, useState, useRef } from "react";
-import { useAIStore } from "../../store/AIResponse";
+import { useAnalitycsAI } from "../../hooks/useAnalitycsAI";
 
 export function TypingText({ text, id }: { text: string; id: number }) {
     const [displayed, setDisplayed] = useState("");
-    const changeToOld = useAIStore(state => state.changeToOld);
+    const { changeResponseToOld } = useAnalitycsAI();
     const timeoutRef = useRef<number | null>(null);
 
     useEffect(() => {
@@ -23,7 +23,7 @@ export function TypingText({ text, id }: { text: string; id: number }) {
             }
 
             if (!cancelled) {
-                changeToOld(id);
+                changeResponseToOld({ id });
             }
         }
 
@@ -33,7 +33,7 @@ export function TypingText({ text, id }: { text: string; id: number }) {
             cancelled = true;
             if (timeoutRef.current !== null) clearTimeout(timeoutRef.current);
         };
-    }, [text, id, changeToOld]);
+    }, [text, id, changeResponseToOld]);
 
     return <>{displayed}</>;
 }

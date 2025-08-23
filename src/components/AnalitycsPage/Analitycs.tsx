@@ -1,32 +1,24 @@
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useUser } from "../../hooks/useUser";
 import { CustomMessage, NoData, Spinner } from "../Helpers";
-import { analyzeData } from "../../api/ai";
 import { motion } from "framer-motion";
-import { useAIStore } from "../../store/AIResponse";
 import { sanitizeText, toLocalDatetimeString } from "../../utils/components";
 import { TypingText } from "./TypingText";
 import { FixedPanel } from "../../portals/FixedPanel";
 import { type Response } from "../../types/custom";
+import { useAnalitycsAI } from "../../hooks/useAnalitycsAI";
 
 export function Analitycs() {
+    const [prompt, setPrompt] = useState<string>("");
     const { user, isLoading, error } = useUser();
-    const { prompt, response, loading, setPrompt, setResponse, setLoading } = useAIStore();
+    const { data, isLoading: isLoadingAI, getResponse } = useAnalitycsAI();
+    const handleAnalyze = useCallback(() => {
+        if (!prompt || !user.data) return;
+        getResponse({ prompt });
 
-    const handleAnalyze = useCallback(async () => {
-        setLoading(true);
         setPrompt("");
-        try {
-            if (!prompt || !user.data) return;
-            const result = await analyzeData(user.data, prompt);
-            setResponse(result, true);
-        } catch (err) {
-            console.error(err);
-            setResponse("Something went wrong, please wait a few seconds", true);
-        } finally {
-            setLoading(false);
-        }
-    }, [prompt, user, setLoading, setPrompt, setResponse]);
+    }, [prompt, user, getResponse]);
+
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -43,7 +35,7 @@ export function Analitycs() {
         return <CustomMessage message="You are not logged in. Please log in to see your analytics." />
     }
     if (isLoading) return <Spinner />;
-    if (error) return <CustomMessage message="Something went wrong, please wait a few seconds" />;
+    if (error) return <CustomMessage message="Something went wrong, please try again" />;
     if (!user.data) return <NoData />;
 
     return (
@@ -51,23 +43,34 @@ export function Analitycs() {
             <div className="relative">
                 <h1 className="text-[var(--color-title)] transitioned text-[32px] font-semibold mb-6">Analytics</h1>
                 <div>
-                    {loading && <div className="h-30 w-30 overflow-hidden flex justify-center items-center mx-auto"><Spinner /></div>}
-                    {response && [...response].reverse().map((item: Response, index) => {
+                    {isLoadingAI && <div className="h-30 w-30 overflow-hidden flex justify-center items-center mx-auto"><Spinner /></div>}
+                    {data?.response && [...data.response].reverse().map((item: Response, index) => {
                         const isNewest = index === 0;
                         return (
                             <motion.div key={item.id}
-                                className="mt-6 text-[var(--color-text)] px-5 py-2 border-1 border-[var(--color-fixed-text)] rounded"
+                                className=""
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ duration: 0.3, delay: index * 0.1 }}
                             >
-                                {isNewest ? (
-                                    <TypingText id={item.id} text={sanitizeText(item.content)} />
-                                ) : (
-                                    <>{sanitizeText(item.content)}</>
-                                )}
-                                <div className="w-full italic text-right mt-3 text-[var(--color-placeholder)]">
-                                    {toLocalDatetimeString(new Date(item.date), true)}
+                                <div className="mt-6 text-[var(--color-text)] px-5 py-2 border-1 border-[var(--color-fixed-text)] rounded max-w-[70%] max-sm:max-w-full w-fit items-end ml-auto flex flex-col justify-end">
+                                    <div className="flex flex-row-reverse items-center gap-3">
+                                        {user && user.userPhoto && <img src={user.userPhoto} className="w-8 h-8 rounded-full" alt="" />}
+                                        <div className="">{item.forPrompt}</div>
+                                    </div>
+                                    <div className="w-full italic text-right mt-3 text-[var(--color-placeholder)]">
+                                        {toLocalDatetimeString(new Date(item.date), true)}
+                                    </div>
+                                </div>
+                                <div className="mt-6 text-[var(--color-text)] px-5 py-2 border-1 border-[var(--color-fixed-text)] rounded max-w-[70%] max-sm:max-w-full">
+                                    {isNewest ? (
+                                        <TypingText id={item.id} text={sanitizeText(item.content)} />
+                                    ) : (
+                                        <>{sanitizeText(item.content)}</>
+                                    )}
+                                    <div className="w-full italic text-right mt-3 text-[var(--color-placeholder)]">
+                                        {toLocalDatetimeString(new Date(item.date), true)}
+                                    </div>
                                 </div>
                             </motion.div>
                         );
@@ -98,7 +101,7 @@ export function Analitycs() {
                             <button
                                 onClick={handleAnalyze}
                                 type="button"
-                                disabled={loading}
+                                disabled={isLoadingAI}
                                 className="w-[120px] h-12 border-1 border-[var(--color-fixed-text)] rounded-[10px] p-3
                                text-[var(--color-text)] cursor-pointer transitioned
                                hover:bg-[var(--color-fixed-text)] hover:text-[var(--color-card)]
