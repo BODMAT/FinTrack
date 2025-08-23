@@ -4,9 +4,6 @@ on:
   push:
     branches:
       - master
-    paths:
-      - 'apps/web/**'
-      - '.github/workflows/deploy.yml'
 
 jobs:
   build:
@@ -17,26 +14,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # Крок 2: Налаштовуємо Node.js середовище
+      # Крок 2: Налаштовуємо Node.js середовище та кешування
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 20
+          cache: 'npm'
 
-      # Крок 3: Встановлюємо залежності
+      # Крок 3: Встановлюємо залежності з кореня проєкту
       - name: Install dependencies
-        working-directory: ./apps/web
-        run: npm ci  # використовуємо "npm ci" для чистої установки залежностей
+        run: npm ci
 
-      # Крок 4: Створюємо білд
-      - name: Build the project
-        working-directory: ./apps/web
-        run: npm run build
+      # Крок 4: Створюємо білд для веб-додатку
+      - name: Build the web app
+        run: npm run build --filter=fintrack-web
 
       # Крок 5: Деплой на gh-pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
-          personal_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./apps/web/dist  # директорія, де знаходиться результат білду
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./apps/web/dist
           publish_branch: gh-pages
