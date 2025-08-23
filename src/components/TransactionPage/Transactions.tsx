@@ -1,37 +1,31 @@
 import { TransactionsCard } from "./TransactionsCard";
 import { useUser } from "../../hooks/useUser";
 import { CustomMessage } from "../Helpers";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { getFilteredData } from "../../utils/components";
 import { DebouncedSearchInput } from "./DebouncedSearchInput";
 import { usePopupStore } from "../../store/popup";
 import { ChangeTransactionPopup } from "./ChangeTransactionPopup";
+import { useIntersecrion } from "../../hooks/useIntersection";
+import { useInfinityUserData } from "../../hooks/useInfiniteUserData";
 
 export function Transactions() {
-    const { user, } = useUser();
-
-    const [visibleCount, setVisibleCount] = useState(10);
-    const [searchInput,] = useState("");
+    const { user } = useUser();
+    const [searchInput] = useState("");
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
 
-    const handleLoadMore = () => {
-        setVisibleCount((count) => count + 10);
-    };
+    const { fetchNextPage, data, isFetchingNextPage, hasNextPage } = useInfinityUserData();
 
-    const sortedData = useMemo(() => {
-        return user.data ? [...user.data].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()) : [];
-    }, [user.data]);
+    const cursorRef = useIntersecrion(() => {
+        fetchNextPage();
+    });
 
-    const filteredData = useMemo(() => getFilteredData(sortedData, debouncedSearchQuery), [sortedData, debouncedSearchQuery]);
-
-    const visibleData = useMemo(() => {
-        return filteredData?.slice(0, visibleCount);
-    }, [filteredData, visibleCount]);
-
+    const filteredData = getFilteredData(user.data ?? [], debouncedSearchQuery);
     const { open } = usePopupStore();
     const handleOpenPopup = () => {
         return () => open("Add transaction", <ChangeTransactionPopup />);
     }
+
     if (user.nickname === null) {
         return <CustomMessage message="You are not logged in. Please log in to see your transactions." />
     }
@@ -45,18 +39,21 @@ export function Transactions() {
                 </div>
             </div>
             <div className="flex flex-col gap-4">
-                {visibleData && visibleData.length > 0
-                    ? visibleData.map((item) => <TransactionsCard key={item.id} data={item} />)
-                    : <CustomMessage message="No transactions" />
-                }
+                {/* input empty - data from infinity */}
+                {user.nickname && !debouncedSearchQuery && data && (
+                    <>
+                        {data.map((item) => item && <TransactionsCard key={item.id} data={item} />)}
+                        {data?.length > 0 && <div ref={cursorRef}></div>}
+                        {isFetchingNextPage && <CustomMessage message="Loading..." />}
+                        {!hasNextPage && <CustomMessage message="No more transactions" />}
+                    </>
+                )}
 
-                {visibleCount < (user.data?.length ?? 0) && (
-                    <button
-                        onClick={handleLoadMore}
-                        className="mt-2 px-4 py-2 bg-[var(--color-hover)] text-[var(--color-fixed)] rounded hover:bg-[var(--color-hover-reverse)] hover:text-[var(--color-hover)] transitioned cursor-pointer"
-                    >
-                        Load more
-                    </button>
+                {/* has input - data from user (filtered) */}
+                {debouncedSearchQuery && (
+                    filteredData
+                        ? filteredData.map((item) => <TransactionsCard key={item.id} data={item} />)
+                        : <CustomMessage message="No transactions" />
                 )}
             </div>
         </section>
