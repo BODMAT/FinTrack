@@ -34,7 +34,8 @@ export function useAnalitycsAI() {
         },
     });
 
-    const changeResponseToOld = useMutation<AIState, Error, { id: number }>({
+    // optimistic update
+    const changeResponseToOld = useMutation<AIState, Error, { id: number }, { previousData: AIState }>({
         mutationFn: async ({ id }) => {
             if (!data || !data?.response) {
                 throw new Error('Data is not available');
@@ -43,9 +44,36 @@ export function useAnalitycsAI() {
             return updatedData;
         },
 
-        onSuccess: (data) => {
-            queryClient.setQueryData(["AI"], data);
-            localStorage.setItem("AI", JSON.stringify(data));
+        onMutate: async ({ id }) => {
+            await queryClient.cancelQueries({ queryKey: ["AI"] });
+            const previousData = queryClient.getQueryData<AIState>(["AI"]);
+
+            queryClient.setQueryData<AIState>(["AI"], (old) => {
+                if (!old || !old.response) return old as AIState;
+                return {
+                    ...old,
+                    response: old.response.map((item) =>
+                        item.id === id ? { ...item, isNew: false } : item
+                    ),
+                };
+            });
+
+            localStorage.setItem("AI", JSON.stringify(queryClient.getQueryData(["AI"])));
+
+            return previousData ? { previousData } : { previousData: emptyAI }
+        },
+
+        onError: (_, __, context) => {
+            if (context?.previousData) {
+                queryClient.setQueryData(["AI"], context.previousData);
+                localStorage.setItem("AI", JSON.stringify(context.previousData));
+            }
+        },
+
+        onSettled: () => {
+            queryClient.invalidateQueries({
+                queryKey: ["AI"],
+            })
         },
     });
 
