@@ -7,7 +7,7 @@ dotenv.config();
 const HOST = process.env.HOST || "localhost";
 const PORT = process.env.PORT || 8000;
 
-async function main() {
+(async () => {
 	try {
 		await prisma.$connect();
 
@@ -15,11 +15,9 @@ async function main() {
 			console.log(`🚀 Server is running on http://${HOST}:${PORT}`);
 		});
 	} catch (err) {
-		console.error("Error starting app:", err);
+		console.error("❌ Error while starting the app:", err);
 		process.exit(1);
 	} finally {
 		await prisma.$disconnect();
 	}
-}
-
-main();
+})();

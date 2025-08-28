@@ -11,6 +11,9 @@
 		"predev": "npm run build",
 		"dev": "concurrently \"npx tsc -w\" \"nodemon dist/server.js\""
 	},
+	"prisma": {
+		"seed": "tsx src/prisma/seed.ts"
+	},
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/BODMAT/FinTrack.git"
@@ -44,6 +47,7 @@
 		"prisma": "^6.14.0",
 		"rimraf": "^6.0.1",
 		"ts-node": "^10.9.2",
+		"tsx": "^4.20.5",
 		"typescript": "^5.9.2"
 	}
 }

@@ -27,7 +27,7 @@ export async function getUser(req: Request, res: Response, next: NextFunction) {
 	try {
 		const { id } = req.params;
 		const user = await userService.getUser(String(id));
-		if (!user) throw new Error("User not found");
+		if (!user) throw new Error("Not found");
 		res.status(200).json(user);
 	} catch (err) {
 		next(err);

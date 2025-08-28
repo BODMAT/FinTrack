@@ -19,14 +19,14 @@ export function errorHandler(
 	}
 
 	if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2002") {
-		return res.status(409).json({ error: "User already exists" });
+		return res.status(409).json({ error: "Item already exists" });
 	}
 
 	if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === "P2025") {
-		return res.status(404).json({ error: "User not found" });
+		return res.status(404).json({ error: "Not found" });
 	}
 
-	if (err instanceof Error && err.message === "User not found") {
+	if (err instanceof Error && err.message === "Not found") {
 		return res.status(404).json({ error: "Not Found" });
 	}
 
