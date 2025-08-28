@@ -27,7 +27,7 @@ jobs:
 
       # Крок 4: Створюємо білд для веб-додатку
       - name: Build the web app
-        run: npm run build --filter=fintrack-web
+        run: npx turbo run build --filter=fintrack-web
 
       # Крок 5: Деплой на gh-pages
       - name: Deploy to GitHub Pages
