@@ -26,6 +26,14 @@ export function errorHandler(
 		return res.status(404).json({ error: "Not found" });
 	}
 
+	if (err instanceof Error && err.message === "user_id is required") {
+		return res.status(400).json({ error: "user_id is required" });
+	}
+
+	if (err instanceof Error && err.message === "Invalid pagination params") {
+		return res.status(400).json({ error: "Invalid pagination params" });
+	}
+
 	if (err instanceof Error && err.message === "Not found") {
 		return res.status(404).json({ error: "Not Found" });
 	}

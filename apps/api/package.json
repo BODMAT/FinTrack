@@ -7,12 +7,14 @@
 	"scripts": {
 		"build": "rimraf dist && npx tsc",
 		"prestart": "npm run build",
-		"start": "node dist/server.js",
+		"start": "dotenv -e ../../.env -- node dist/server.js",
 		"predev": "npm run build",
-		"dev": "concurrently \"npx tsc -w\" \"nodemon dist/server.js\""
-	},
-	"prisma": {
-		"seed": "tsx src/prisma/seed.ts"
+		"dev": "dotenv -e ../../.env -- concurrently \"npx tsc -w\" \"nodemon dist/server.js\"",
+		"prisma": "dotenv -e ../../.env -- prisma",
+		"prisma:migrate": "npm run prisma -- migrate dev",
+		"prisma:generate": "npm run prisma -- generate",
+		"prisma:studio": "npm run prisma -- studio",
+		"prisma:seed": "dotenv -e ../../.env -- tsx src/prisma/seed.ts"
 	},
 	"repository": {
 		"type": "git",
@@ -43,6 +45,7 @@
 		"@types/express": "^5.0.3",
 		"@types/node": "^24.3.0",
 		"concurrently": "^9.2.1",
+		"dotenv-cli": "^10.0.0",
 		"nodemon": "^3.1.10",
 		"prisma": "^6.14.0",
 		"rimraf": "^6.0.1",
