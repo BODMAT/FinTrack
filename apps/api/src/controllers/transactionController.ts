@@ -34,13 +34,14 @@ const updateTransactionSchema = z.object({
 // Controllers
 export async function getAllTransactions(req: Request, res: Response, next: NextFunction) {
 	try {
-		let transactions = [];
-		const userId = req.query.user_id;
-		if (userId) {
-			transactions = await transactionService.getAllTransactions(String(userId));
-		} else {
-			transactions = await transactionService.getAllTransactions();
-		}
+		const userId = typeof req.query.user_id === 'string' ? String(req.query.user_id) : undefined;
+		if (!userId) throw new Error("user_id is required");
+
+		const page = req.query.page ? Number(req.query.page) : 1;
+		const perPage = req.query.perPage ? Number(req.query.perPage) : 10;
+		if (Number.isNaN(page) || Number.isNaN(perPage)) throw new Error("Invalid pagination params");
+
+		const transactions = await transactionService.getAllTransactions(userId, page, perPage);
 		res.status(200).json(transactions);
 	} catch (err) {
 		next(err);
