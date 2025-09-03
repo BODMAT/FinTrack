@@ -2,10 +2,11 @@
 	"name": "fintrack",
 	"private": true,
 	"scripts": {
+		"dev": "turbo run dev",
 		"dev:web": "turbo run dev --filter=fintrack-web",
 		"dev:api": "turbo run dev --filter=fintrack-api",
 		"dev:bot": "turbo run dev --filter=fintrack-bot",
-		"dev": "turbo run dev",
+		"start:api:production": "npm --prefix apps/api run start",
 		"build": "turbo run build",
 		"lint": "turbo run lint",
 		"format": "prettier --write \"**/*.{ts,tsx,md}\"",

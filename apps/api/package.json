@@ -9,7 +9,7 @@
 		"prestart": "npm run build",
 		"start": "dotenv -e ../../.env -- node dist/server.js",
 		"predev": "npm run build",
-		"dev": "dotenv -e ../../.env -- concurrently \"npx tsc -w\" \"nodemon dist/server.js\"",
+		"dev": "dotenv -e ../../.env -- concurrently \"npx tsc -w\" \"dotenv -e ../../.env -- nodemon dist/server.js\"",
 		"prisma": "dotenv -e ../../.env -- prisma",
 		"prisma:migrate": "npm run prisma -- migrate dev",
 		"prisma:generate": "npm run prisma -- generate",
