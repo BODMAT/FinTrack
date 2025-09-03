@@ -1,10 +1,13 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { lazy } from "react";
+
 import { Layout } from "./Layout";
-import { Dashboard } from "../DashboardPage/Dashboard";
-import { Analitycs } from "../AnalitycsPage/Analitycs";
-import { Transactions } from "../TransactionPage/Transactions";
 import { PopUpPortal } from "../../portals/PopUp.portal";
-import { CustomMessage } from "../Helpers";
+
+const Dashboard = lazy(() => import("../DashboardPage/Dashboard").then(module => ({ default: module.Dashboard })));
+const Analitycs = lazy(() => import("../AnalitycsPage/Analitycs").then(module => ({ default: module.Analitycs })));
+const Transactions = lazy(() => import("../TransactionPage/Transactions").then(module => ({ default: module.Transactions })));
+const CustomMessage = lazy(() => import("../Helpers").then(module => ({ default: module.CustomMessage })));
 
 export function App() {
   return (
