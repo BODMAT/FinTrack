@@ -14,7 +14,7 @@ export function ProfileInfo({ changable = false }: { changable?: boolean }) {
         ${changable ? "cursor-pointer bg-transparent hover:bg-[var(--color-card)] rounded hover:shadow p-2" : "w-full  justify-between"}`}>
 
             <div className="w-[50px] h-[50px] rounded-full overflow-hidden bg-[var(--color-hover-reverse)]">
-                {user.userPhoto ? (
+                {user && user.userPhoto ? (
                     <div className="flex justify-center items-center h-full">
                         <img
                             className="w-[45px] h-[45px] rounded-full"
@@ -28,8 +28,8 @@ export function ProfileInfo({ changable = false }: { changable?: boolean }) {
                     </div>
                 )}
             </div>
-            {user.nickname && (<span>{user.userName ?? "Anonimus"}<br /> tg: @{user.nickname}</span>)}
-            {!user.nickname && (<span className="text-[16px]">Add telegram token</span>)}
+            {user && (<span>{user.userName ?? "Anonimus"}<br /> tg: @{user.nickname}</span>)}
+            {!user && (<span className="text-[16px]">Add telegram token</span>)}
 
             {changable && (
                 <ArrToBottom className="w-[20px] h-[20px] fill-current text-[var(--color-fixed-text)] transition-all duration-500 rotate-[-90deg] group-hover:rotate-0" />

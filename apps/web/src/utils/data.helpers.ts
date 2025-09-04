@@ -16,7 +16,7 @@ export function groupData(data: IData[], range: CustomDate, nowDate?: Date) {
     const map = new Map<string, { income: number, outcome: number; rawDate: Date }>();
 
     const filtered = data.filter((item) => {
-        const date = new Date(item.date);
+        const date = new Date(item.created_at);
 
         if (range === "day") {
             return date.toDateString() === now.toDateString();
@@ -46,7 +46,7 @@ export function groupData(data: IData[], range: CustomDate, nowDate?: Date) {
 
 
     for (const item of filtered) {
-        const date = new Date(item.date);
+        const date = new Date(item.created_at);
         let key = "";
         let rawDate = new Date(date);
 
@@ -71,7 +71,7 @@ export function groupData(data: IData[], range: CustomDate, nowDate?: Date) {
         }
 
         const group = map.get(key) || { income: 0, outcome: 0, rawDate };
-        if (item.isIncome) group.income += item.amount;
+        if (item.type === "INCOME") group.income += item.amount;
         else group.outcome += item.amount;
 
         map.set(key, group);
@@ -88,8 +88,8 @@ export function groupData(data: IData[], range: CustomDate, nowDate?: Date) {
 
 export function getTotalOfRange(data: IData[], range: CustomDate, title: MoneyType, nowDate?: Date): number {
     if (title === "balance") {
-        const totalIncome = data.filter((item) => item.isIncome).reduce((acc, cur) => acc + cur.amount, 0);
-        const totalOutcome = data.filter((item) => !item.isIncome).reduce((acc, cur) => acc + cur.amount, 0);
+        const totalIncome = data.filter((item) => item.type === "INCOME").reduce((acc, cur) => acc + cur.amount, 0);
+        const totalOutcome = data.filter((item) => item.type !== "INCOME").reduce((acc, cur) => acc + cur.amount, 0);
         return totalIncome - totalOutcome;
     }
 
@@ -149,10 +149,10 @@ export function getPercentageOfRangeIncrease(
     return Math.round(((currentTotal - previousTotal) / previousTotal) * 100);
 }
 
-export function generateId(): number {
+export function generateId(): string {
     const now = new Date().getTime();
     const random = Math.floor(Math.random() * 1000000);
-    return random + now;
+    return `${now}_${random}`;
 }
 
 const memoizedGroupData = simpleMemoize3(groupData);
@@ -166,17 +166,17 @@ export function getUserDataWithStats(data: IData[], range: CustomDate, title: Mo
     const balance = memoizedGetTotalOfRange(data, range, "balance");
 
     const maxPositiveTransaction = data
-        .filter((item) => item.isIncome)
+        .filter((item) => item.type === "INCOME")
         .sort((a, b) => b.amount - a.amount)[0]?.amount || 0;
     const maxNegativeTransaction = data
-        .filter((item) => !item.isIncome)
+        .filter((item) => item.type !== "INCOME")
         .sort((a, b) => b.amount - a.amount)[0]?.amount || 0;
 
     const minPositiveTransaction = data
-        .filter((item) => item.isIncome)
+        .filter((item) => item.type === "INCOME")
         .sort((a, b) => a.amount - b.amount)[0]?.amount || 0;
     const minNegativeTransaction = data
-        .filter((item) => !item.isIncome)
+        .filter((item) => item.type !== "INCOME")
         .sort((a, b) => a.amount - b.amount)[0]?.amount || 0;
 
     return {

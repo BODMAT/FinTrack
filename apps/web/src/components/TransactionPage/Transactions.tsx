@@ -13,6 +13,7 @@ export function Transactions() {
     const { user } = useUser();
     const [searchInput] = useState("");
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
+    console.log(user?.data);
 
     const { fetchNextPage, data, isFetchingNextPage, hasNextPage } = useInfinityUserData();
 
@@ -20,13 +21,13 @@ export function Transactions() {
         fetchNextPage();
     });
 
-    const filteredData = getFilteredData(user.data ?? [], debouncedSearchQuery);
+    const filteredData = getFilteredData(user?.data ?? [], debouncedSearchQuery);
     const { open } = usePopupStore();
     const handleOpenPopup = () => {
         return () => open("Add transaction", <ChangeTransactionPopup />);
     }
 
-    if (user.nickname === null) {
+    if (user?.nickname === null) {
         return <CustomMessage message="You are not logged in. Please log in to see your transactions." />
     }
     return (
@@ -40,7 +41,7 @@ export function Transactions() {
             </div>
             <div className="flex flex-col gap-4">
                 {/* input empty - data from infinity */}
-                {user.nickname && !debouncedSearchQuery && data && (
+                {user?.nickname && !debouncedSearchQuery && data && (
                     <>
                         {data.map((item) => item && <TransactionsCard key={item.id} data={item} />)}
                         {data?.length > 0 && <div ref={cursorRef}></div>}

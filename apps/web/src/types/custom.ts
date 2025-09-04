@@ -11,16 +11,17 @@ export interface IUser {
 }
 
 export interface IData {
-    id: number;
+    userId: string;
+    id: string;
 
     title: string;
     amount: number;
-    isIncome: boolean;
-    date: string;
+    type: "INCOME" | "EXPENSE";
+    created_at: string;
 
     location?: {
-        lat: number;
-        lng: number;
+        latitude: number;
+        longitude: number;
     };
 }
 
@@ -44,8 +45,8 @@ export interface DashboardCardProps {
 export interface IDataForm extends Omit<IData, "amount" | "location"> {
     amount: string;
     location?: {
-        lat: string;
-        lng: string;
+        latitude: string;
+        longitude: string;
     };
 }
 
@@ -57,7 +58,7 @@ export interface AIState {
 
 export interface Response {
     forPrompt: string;
-    id: number;
+    id: string;
     isNew: boolean;
     content: string;
     date: string;

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { sanitizeAmountInput, toLocalDatetimeString } from "../../utils/components";
 import type { IData, IDataForm } from "../../types/custom";
 import { generateId } from "../../utils/data.helpers";
@@ -6,51 +6,69 @@ import { usePopupStore } from "../../store/popup";
 import { CustomMessage } from "../Helpers";
 import { useUser } from "../../hooks/useUser";
 
-export function ChangeTransactionPopup({ id }: { id?: number | undefined }) {
+export function ChangeTransactionPopup({ id }: { id?: string | undefined }) {
     const { changeDataById, getUserDataById } = useUser();
-    const currentData = id ? getUserDataById(id) : undefined;
+    const { data: currentData } = getUserDataById(id ?? "", {
+        enabled: !!id
+    });
+
     const { open, close } = usePopupStore();
     const [form, setForm] = useState<IDataForm>({
-        id: id ?? generateId(),
-        date: currentData ? currentData.date : new Date().toISOString(),
-        title: currentData ? currentData.title : "",
-        amount: currentData ? String(currentData.amount) : "0",
-        location: currentData
-            ? {
-                lat: String(currentData.location?.lat ?? 0),
-                lng: String(currentData.location?.lng ?? 0),
-            }
-            : { lat: "0", lng: "0" },
-
-        isIncome: currentData ? currentData.isIncome : true
+        userId: "97e72bd8-96c2-4150-a98e-852de2ab46e8",
+        id: generateId(),
+        created_at: new Date().toISOString(),
+        title: "",
+        amount: "0",
+        location: { latitude: "0", longitude: "0" },
+        type: "INCOME",
     });
+
+    useEffect(() => {
+        if (currentData) {
+            setForm({
+                userId: currentData.userId,
+                id: currentData.id,
+                created_at: currentData.created_at,
+                title: currentData.title,
+                amount: String(currentData.amount),
+                location: {
+                    latitude: String(currentData.location?.latitude ?? 0),
+                    longitude: String(currentData.location?.longitude ?? 0),
+                },
+                type: currentData.type,
+            });
+        }
+    }, [currentData]);
+
     const handleChangeTransaction = (e: React.FormEvent<HTMLFormElement>) => {
         try {
             e.preventDefault();
             const numericAmount = Number(form.amount.replace(",", "."));
-            const numericLocationLat = Number(form.location?.lat.replace(",", "."));
-            const numericLocationLng = Number(form.location?.lng.replace(",", "."));
+            const numericLocationLat = Number(form.location?.latitude.replace(",", "."));
+            const numericLocationLng = Number(form.location?.longitude.replace(",", "."));
             if (isNaN(numericAmount) || isNaN(numericLocationLat) || isNaN(numericLocationLng)) {
+                console.error("Invalid numeric values:", numericAmount, numericLocationLat, numericLocationLng);
                 return;
             }
 
             const data: IData = {
+                userId: form.userId,
                 id: form.id,
                 title: form.title,
                 amount: numericAmount,
-                date: form.date,
-                isIncome: form.isIncome,
+                created_at: form.created_at,
+                type: form.type,
                 ...(numericLocationLat !== 0 && numericLocationLng !== 0
-                    ? { location: { lat: numericLocationLat, lng: numericLocationLng } }
+                    ? { location: { latitude: numericLocationLat, longitude: numericLocationLng } }
                     : {}),
             };
 
             if (id) {
-                changeDataById(data.id, data);
+                changeDataById({ dataId: data.id, newData: data });
                 close();
                 setTimeout(() => open("Notification", <CustomMessage message="Transaction changed successfully!" />), 300);
             } else {
-                changeDataById(data.id, data, true);
+                changeDataById({ dataId: data.id, newData: data, isNewOrChange: true });
                 close();
                 setTimeout(() => open("Notification", <CustomMessage message="Transaction added successfully!" />), 300);
             }
@@ -66,8 +84,8 @@ export function ChangeTransactionPopup({ id }: { id?: number | undefined }) {
         setForm({
             ...form,
             location: {
-                lat: key === "lat" ? sanitized : form.location?.lat ?? "",
-                lng: key === "lng" ? sanitized : form.location?.lng ?? "",
+                latitude: key === "lat" ? sanitized : form.location?.latitude ?? "",
+                longitude: key === "lng" ? sanitized : form.location?.longitude ?? "",
             },
         });
     };
@@ -94,8 +112,8 @@ export function ChangeTransactionPopup({ id }: { id?: number | undefined }) {
                     </label>
                     <input
                         type="datetime-local"
-                        value={toLocalDatetimeString(new Date(form.date))}
-                        onChange={(e) => setForm({ ...form, date: new Date(e.target.value).toISOString() })}
+                        value={toLocalDatetimeString(new Date(form.created_at))}
+                        onChange={(e) => setForm({ ...form, created_at: new Date(e.target.value).toISOString() })}
                         id="date"
                         className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
                     />
@@ -122,7 +140,7 @@ export function ChangeTransactionPopup({ id }: { id?: number | undefined }) {
                         type="text"
                         id="locationLat"
                         placeholder="23.456"
-                        value={form.location?.lat}
+                        value={form.location?.latitude}
                         onChange={(e) => handleLocationChange("lat", e.target.value)}
                         className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
                     />
@@ -136,7 +154,7 @@ export function ChangeTransactionPopup({ id }: { id?: number | undefined }) {
                         type="text"
                         id="locationLng"
                         placeholder="23.456"
-                        value={form.location?.lng}
+                        value={form.location?.longitude}
                         onChange={(e) => handleLocationChange("lng", e.target.value)}
                         className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
                     />
@@ -148,8 +166,8 @@ export function ChangeTransactionPopup({ id }: { id?: number | undefined }) {
                             className="mr-3"
                             type="radio"
                             name="transactionType"
-                            checked={form.isIncome}
-                            onChange={() => setForm({ ...form, isIncome: true })}
+                            checked={form.type === "INCOME"}
+                            onChange={() => setForm({ ...form, type: "INCOME" })}
                         />
                         Income
                     </label>
@@ -158,8 +176,8 @@ export function ChangeTransactionPopup({ id }: { id?: number | undefined }) {
                             className="mr-3"
                             type="radio"
                             name="transactionType"
-                            checked={!form.isIncome}
-                            onChange={() => setForm({ ...form, isIncome: false })}
+                            checked={form.type === "EXPENSE"}
+                            onChange={() => setForm({ ...form, type: "EXPENSE" })}
                         />
                         Outcome
                     </label>

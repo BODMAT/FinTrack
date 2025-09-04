@@ -9,22 +9,33 @@ import { PopupDashboardCard } from "./PopupDashboardCard";
 export function DashboardCard({ myImg, title, reversedPercentage = false, inPopup = false }: DashboardCardProps) {
     const { open } = usePopupStore();
     const { period } = usePeriodStore();
-    const { user, isLoading, error, getStats } = useUser();
+    const { transactions, isLoading, error, getStats } = useUser();
 
     if (isLoading) return <Spinner />;
     if (error) return <ErrorCustom />;
-    if (!user.data || !user.data.length) return <NoData />;
+    if (!transactions || !transactions.length) return <NoData />;
 
     const stats = getStats(period, title);
     if (!stats) return <NoData />;
+
     const { total, percentage, currentRangeForChart } = stats;
 
     const handleOpenPopup = () => {
-        open(`Graph with ${title === "balance"
-            ? "Current balance"
-            : `${title[0].toUpperCase() + title.slice(1)} per ${period === "all" ? "all time" : period}`
-            }`, <PopupDashboardCard myImg={myImg} title={title} reversedPercentage={reversedPercentage} inPopup dataForPopupChart={currentRangeForChart} />, true);
-    }
+        open(
+            `Graph with ${title === "balance"
+                ? "Current balance"
+                : `${title[0].toUpperCase() + title.slice(1)} per ${period === "all" ? "all time" : period}`
+            }`,
+            <PopupDashboardCard
+                myImg={myImg}
+                title={title}
+                reversedPercentage={reversedPercentage}
+                inPopup
+                dataForPopupChart={currentRangeForChart}
+            />,
+            true
+        );
+    };
 
     return (
         <div className="flex-[calc(25%-13.5px)] p-[19px] border-1 border-[var(--color-fixed-text)] rounded-[10px] transitioned bg-transparent">

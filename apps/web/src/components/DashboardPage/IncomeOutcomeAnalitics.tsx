@@ -20,16 +20,14 @@ const selectDateOptions: Array<{ label: string; value: CustomDate }> = [
 
 export function IncomeOutcomeAnalitics() {
     const { period: range, setPeriod: setRange } = usePeriodStore();
-    const { user, isLoading, error, getStats } = useUser();
+    const { transactions, isLoading, error, getStats } = useUser();
 
     if (isLoading) return <Spinner />;
     if (error) return <ErrorCustom />;
-    if (!user.data || user.data.length === 0) return <NoData />;
+    if (!transactions || !transactions.length) return <NoData />;
 
     const stats = getStats(range, "income");
-    if (!stats) {
-        return <NoData />;
-    }
+    if (!stats) return <NoData />;
 
     const { currentRangeForChart } = stats;
     const { income, outcome, labels } = currentRangeForChart;
@@ -38,30 +36,16 @@ export function IncomeOutcomeAnalitics() {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-            legend: {
-                display: false,
-            },
+            legend: { display: false },
         },
-        scales: {
-            y: {
-                beginAtZero: true,
-            },
-        },
+        scales: { y: { beginAtZero: true } },
     };
 
     const chartData = {
         labels,
         datasets: [
-            {
-                label: "Income",
-                data: income,
-                backgroundColor: "#d64bc2",
-            },
-            {
-                label: "Outcome",
-                data: outcome,
-                backgroundColor: "#ffd4f4",
-            },
+            { label: "Income", data: income, backgroundColor: "#d64bc2" },
+            { label: "Outcome", data: outcome, backgroundColor: "#ffd4f4" },
         ],
     };
 

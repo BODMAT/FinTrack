@@ -5,19 +5,31 @@ import saving from "../../assets/dashboard/saving.svg?react";
 import expenses from "../../assets/dashboard/expenses.svg?react";
 import { IncomeOutcomeAnalitics } from "./IncomeOutcomeAnalitics";
 import { IncomeOutcomeMap } from "./IncomeOutcomeMap";
-import { CustomMessage } from "../Helpers";
+import { CustomMessage, Spinner } from "../Helpers";
 import { useUser } from "../../hooks/useUser";
+
 export function Dashboard() {
-    const { user } = useUser();
-    if (user.nickname === null) {
-        return <CustomMessage message="You are not logged in. Please log in to see your dashboard." />
+    const { user, transactions, isLoading } = useUser();
+
+    if (isLoading) return <Spinner />;
+
+    if (!user) {
+        return (
+            <CustomMessage message="You are not logged in. Please log in to see your dashboard." />
+        );
     }
-    if (!user.data || user.data.length === 0) {
-        return <CustomMessage message="You have no transactions. Please add some transactions to see your dashboard." />
+
+    if (!transactions || transactions.length === 0) {
+        return (
+            <CustomMessage message="You have no transactions. Please add some transactions to see your dashboard." />
+        );
     }
+
     return (
         <section className="w-full">
-            <h1 className="text-[var(--color-title)] text-[32px] font-semibold mb-[27px]">Dashboard</h1>
+            <h1 className="text-[var(--color-title)] text-[32px] font-semibold mb-[27px]">
+                Dashboard
+            </h1>
             <div className="flex gap-[18px] flex-wrap mb-[24px]">
                 <DashboardCard myImg={balance} title="balance" />
                 <DashboardCard myImg={income} title="income" reversedPercentage />
@@ -33,5 +45,5 @@ export function Dashboard() {
                 </div>
             </div>
         </section>
-    )
+    );
 }

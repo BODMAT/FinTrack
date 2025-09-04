@@ -35,7 +35,7 @@ export function useAnalitycsAI() {
     });
 
     // optimistic update
-    const changeResponseToOld = useMutation<AIState, Error, { id: number }, { previousData: AIState }>({
+    const changeResponseToOld = useMutation<AIState, Error, { id: string }, { previousData: AIState }>({
         mutationFn: async ({ id }) => {
             if (!data || !data?.response) {
                 throw new Error('Data is not available');

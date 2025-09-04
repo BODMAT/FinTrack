@@ -13,21 +13,22 @@ L.Icon.Default.mergeOptions({
 });
 
 export function IncomeOutcomeMap() {
-    const { user, getStats } = useUser();
-    if (!user.data || user.data.length === 0) return null;
+    const { transactions, getStats } = useUser();
+
+    if (!transactions || !transactions.length) return null;
 
     const { minNegativeTransaction, maxNegativeTransaction } = getStats("all", "outcome") ?? {};
     const { minPositiveTransaction, maxPositiveTransaction } = getStats("all", "income") ?? {};
 
     const center: LatLngTuple = [51.505, -0.09];
-    const markers = user.data?.filter((item) => item.location) || [];
+    const markers = transactions.filter((item) => item.location);
 
     return (
         <section className="relative h-full border-1 border-[var(--color-fixed-text)] rounded-[10px] overflow-hidden transitioned">
             <MapContainer
                 center={
                     markers.length
-                        ? [markers[0].location!.lat, markers[0].location!.lng]
+                        ? [markers[0].location!.latitude, markers[0].location!.longitude]
                         : center
                 }
                 zoom={9}
@@ -38,19 +39,20 @@ export function IncomeOutcomeMap() {
                     attribution='&copy; OpenStreetMap contributors'
                 />
                 {markers.map((item, index) => {
+                    const isIncome: boolean = item.type === "INCOME";
                     return (
                         <Marker
                             key={index}
-                            position={[item.location!.lat, item.location!.lng] as LatLngTuple}
+                            position={[item.location!.latitude, item.location!.longitude] as LatLngTuple}
                             icon={ColoredMarker(
                                 item.amount,
-                                item.isIncome ? "income" : "outcome",
-                                item.isIncome ? (minPositiveTransaction ?? 0) : (minNegativeTransaction ?? 0),
-                                item.isIncome ? (maxPositiveTransaction ?? 0) : (maxNegativeTransaction ?? 0)
+                                isIncome ? "income" : "outcome",
+                                isIncome ? (minPositiveTransaction ?? 0) : (minNegativeTransaction ?? 0),
+                                isIncome ? (maxPositiveTransaction ?? 0) : (maxNegativeTransaction ?? 0)
                             )}
                         >
                             <Popup>
-                                {item.title}: {item.isIncome ? "+" : "-"}{item.amount} $
+                                {item.title}: {isIncome ? "+" : "-"}{item.amount} $
                             </Popup>
                         </Marker>
                     )

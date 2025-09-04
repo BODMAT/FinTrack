@@ -2,7 +2,7 @@ import { useUser } from "../../hooks/useUser";
 import { usePopupStore } from "../../store/popup";
 import { CustomMessage } from "../Helpers";
 
-export function DeleteTransactionPopup({ id }: { id: number }) {
+export function DeleteTransactionPopup({ id }: { id: string }) {
     const { open, close } = usePopupStore();
     const { deleteDataById } = useUser();
     const handleDelete = () => {

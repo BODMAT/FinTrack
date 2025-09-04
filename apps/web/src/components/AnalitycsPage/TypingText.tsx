@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useAnalitycsAI } from "../../hooks/useAnalitycsAI";
 
-export function TypingText({ text, id }: { text: string; id: number }) {
+export function TypingText({ text, id }: { text: string; id: string }) {
     const [displayed, setDisplayed] = useState("");
     const { changeResponseToOld } = useAnalitycsAI();
     const timeoutRef = useRef<number | null>(null);

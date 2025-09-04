@@ -5,8 +5,8 @@ import { useUser } from "../../hooks/useUser";
 export function ProfileInfoPopup() {
     const { user, login, logout, isLoading } = useUser();
 
-    const [nickname, setNickname] = useState(user.nickname || "");
-    const [password, setPassword] = useState(user.password || "");
+    const [nickname, setNickname] = useState(user?.nickname || "");
+    const [password, setPassword] = useState(user?.password || "");
 
     const handleSave = () => {
         if (!nickname || !password) return;
@@ -29,7 +29,7 @@ export function ProfileInfoPopup() {
                     >
                         {isLoading ? "Loading..." : "Log in"}
                     </button>
-                    {user.nickname && (
+                    {user && (
                         <button
                             type="button"
                             onClick={logout}

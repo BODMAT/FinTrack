@@ -7,19 +7,19 @@ export const getFilteredData = (data: IData[] | undefined, searchQuery: string):
     const words = searchQuery.split(/\s+/);
 
     return data?.filter(item => {
-        const dateObj = new Date(item.date);
+        const dateObj = new Date(item.created_at);
         const dateVariants = [
             dateObj.toLocaleDateString("uk-UA"),
             dateObj.toLocaleDateString("en-GB"),
             dateObj.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }),
             dateObj.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" }),
             dateObj.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true }),
-            item.date
+            item.created_at
         ].map(str => str.toLowerCase());
 
         const title = item.title.toLowerCase();
         const sum = item.amount.toString().toLowerCase();
-        const type = (item.isIncome ? "income" : "outcome").toLowerCase();
+        const type = (item.type === "INCOME" ? "income" : "outcome").toLowerCase();
 
         return words.every(word =>
             title.includes(word) ||
