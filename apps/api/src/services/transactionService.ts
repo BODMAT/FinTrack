@@ -7,6 +7,7 @@ export async function getAllTransactions(userId: string, page: number, perPage: 
 			where: { userId },
 			skip: (page - 1) * perPage,
 			take: perPage,
+			include: { location: true }
 		}),
 		prisma.transaction.count({ where: { userId } })
 	]);
@@ -29,18 +30,21 @@ export async function getTransaction(transactionId: string, userId?: string) {
 				id: transactionId,
 				userId,
 			},
+			include: { location: true }
 		});
 	}
 	return await prisma.transaction.findUnique({
 		where: {
 			id: transactionId,
 		},
+		include: { location: true }
 	});
 }
 
 export async function createTransaction(transaction: Prisma.TransactionCreateInput) {
 	return prisma.transaction.create({
 		data: transaction,
+		include: { location: true }
 	});
 }
 
@@ -50,6 +54,7 @@ export async function updateTransaction(transactionId: string, transaction: Pris
 			id: transactionId,
 		},
 		data: transaction,
+		include: { location: true }
 	});
 }
 
