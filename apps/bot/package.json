@@ -1,0 +1,42 @@
+{
+	"name": "fintrack-bot",
+	"version": "0.1.0",
+	"description": "Fintrack Telegram bot.",
+	"keywords": [
+		"typescript",
+		"nodejs",
+		"grammy",
+		"telegram bot"
+	],
+	"homepage": "https://github.com/BODMAT/FinTrack#readme",
+	"bugs": {
+		"url": "https://github.com/BODMAT/FinTrack/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/BODMAT/FinTrack.git"
+	},
+	"license": "ISC",
+	"author": "Makar Dzhehur",
+	"type": "module",
+	"main": "bot.js",
+	"scripts": {
+		"build": "rimraf dist && npx tsc",
+		"prestart": "npm run build",
+		"start": "dotenv -e ../../.env -- node dist/bot.js",
+		"predev": "npm run build",
+		"dev": "dotenv -e ../../.env -- concurrently \"npx tsc -w\" \"dotenv -e ../../.env -- nodemon dist/bot.js\""
+	},
+	"dependencies": {
+		"dotenv": "^16.6.1",
+		"grammy": "^1.38.2"
+	},
+	"devDependencies": {
+		"@types/node": "^24.3.1",
+		"concurrently": "^9.2.1",
+		"dotenv-cli": "^10.0.0",
+		"nodemon": "^3.1.10",
+		"rimraf": "^6.0.1",
+		"typescript": "^5.9.2"
+	}
+}

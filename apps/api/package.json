@@ -2,8 +2,25 @@
 	"name": "fintrack-api",
 	"version": "0.1.0",
 	"description": "Fintrack REST API.",
-	"main": "server.js",
+	"keywords": [
+		"typescript",
+		"nodejs",
+		"express",
+		"prisma",
+		"rest api"
+	],
+	"homepage": "https://github.com/BODMAT/FinTrack#readme",
+	"bugs": {
+		"url": "https://github.com/BODMAT/FinTrack/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/BODMAT/FinTrack.git"
+	},
+	"license": "ISC",
+	"author": "Makar Dzhehur",
 	"type": "module",
+	"main": "server.js",
 	"scripts": {
 		"build": "rimraf dist && npx tsc",
 		"prestart": "npm run build",
@@ -16,24 +33,6 @@
 		"prisma:studio": "npm run prisma -- studio",
 		"prisma:seed": "dotenv -e ../../.env -- tsx src/prisma/seed.ts"
 	},
-	"repository": {
-		"type": "git",
-		"url": "git+https://github.com/BODMAT/FinTrack.git"
-	},
-	"keywords": [
-		"typescript",
-		"nodejs",
-		"express",
-		"prisma",
-		"finance",
-		"dashboard"
-	],
-	"author": "Makar Dzhehur",
-	"license": "ISC",
-	"bugs": {
-		"url": "https://github.com/BODMAT/FinTrack/issues"
-	},
-	"homepage": "https://github.com/BODMAT/FinTrack#readme",
 	"dependencies": {
 		"@prisma/client": "^6.14.0",
 		"cors": "^2.8.5",
