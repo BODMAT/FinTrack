@@ -13,7 +13,7 @@ export function Transactions() {
     const { user } = useUser();
     const [searchInput] = useState("");
     const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
-    console.log(user?.data);
+    // console.log(user?.data);
 
     const { fetchNextPage, data, isFetchingNextPage, hasNextPage } = useInfinityUserData();
 

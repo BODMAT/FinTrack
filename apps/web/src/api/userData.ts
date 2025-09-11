@@ -11,17 +11,14 @@ export const TransactionSchema = z.object({
     created_at: z.iso.datetime(),
     type: z.enum(["EXPENSE", "INCOME"]),
 
-    amount: z.string().refine(val => !isNaN(Number(val)), {
-        message: "amount must be a number string",
-    }).transform(Number),
+    amount: z.string()
+        .refine(val => !isNaN(Number(val)), {
+            message: "amount must be a number string",
+        }),
 
     location: z.object({
-        latitude: z.string().refine(val => !isNaN(Number(val)), {
-            message: "lat must be a number string",
-        }).transform(Number),
-        longitude: z.string().refine(val => !isNaN(Number(val)), {
-            message: "lng must be a number string",
-        }).transform(Number),
+        latitude: z.number().min(-90).max(90),
+        longitude: z.number().min(-180).max(180),
     }).optional(),
 });
 

@@ -71,8 +71,8 @@ export function groupData(data: IData[], range: CustomDate, nowDate?: Date) {
         }
 
         const group = map.get(key) || { income: 0, outcome: 0, rawDate };
-        if (item.type === "INCOME") group.income += item.amount;
-        else group.outcome += item.amount;
+        if (item.type === "INCOME") group.income += Number(item.amount);
+        else group.outcome += Number(item.amount);
 
         map.set(key, group);
     }
@@ -88,8 +88,8 @@ export function groupData(data: IData[], range: CustomDate, nowDate?: Date) {
 
 export function getTotalOfRange(data: IData[], range: CustomDate, title: MoneyType, nowDate?: Date): number {
     if (title === "balance") {
-        const totalIncome = data.filter((item) => item.type === "INCOME").reduce((acc, cur) => acc + cur.amount, 0);
-        const totalOutcome = data.filter((item) => item.type !== "INCOME").reduce((acc, cur) => acc + cur.amount, 0);
+        const totalIncome = data.filter((item) => item.type === "INCOME").reduce((acc, cur) => acc + Number(cur.amount), 0);
+        const totalOutcome = data.filter((item) => item.type !== "INCOME").reduce((acc, cur) => acc + Number(cur.amount), 0);
         return totalIncome - totalOutcome;
     }
 
@@ -167,17 +167,17 @@ export function getUserDataWithStats(data: IData[], range: CustomDate, title: Mo
 
     const maxPositiveTransaction = data
         .filter((item) => item.type === "INCOME")
-        .sort((a, b) => b.amount - a.amount)[0]?.amount || 0;
+        .sort((a, b) => Number(b.amount) - Number(a.amount))[0]?.amount || 0;
     const maxNegativeTransaction = data
         .filter((item) => item.type !== "INCOME")
-        .sort((a, b) => b.amount - a.amount)[0]?.amount || 0;
+        .sort((a, b) => Number(b.amount) - Number(a.amount))[0]?.amount || 0;
 
     const minPositiveTransaction = data
         .filter((item) => item.type === "INCOME")
-        .sort((a, b) => a.amount - b.amount)[0]?.amount || 0;
+        .sort((a, b) => Number(a.amount) - Number(b.amount))[0]?.amount || 0;
     const minNegativeTransaction = data
         .filter((item) => item.type !== "INCOME")
-        .sort((a, b) => a.amount - b.amount)[0]?.amount || 0;
+        .sort((a, b) => Number(a.amount) - Number(b.amount))[0]?.amount || 0;
 
     return {
         currentRangeForChart,

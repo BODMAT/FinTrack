@@ -4,11 +4,18 @@ import { CustomMessage } from "../Helpers";
 
 export function DeleteTransactionPopup({ id }: { id: string }) {
     const { open, close } = usePopupStore();
-    const { deleteDataById } = useUser();
-    const handleDelete = () => {
-        deleteDataById(id);
-        close();
-        setTimeout(() => open("Notification", <CustomMessage message="Transaction deleted successfully!" />), 300);
+    const { deleteDataByIdAsync } = useUser();
+    const handleDelete = async () => {
+        try {
+            await deleteDataByIdAsync(id);
+            close();
+            setTimeout(() => open("Notification", <CustomMessage message="Transaction deleted successfully!" />), 300);
+        } catch (err) {
+            console.error(err);
+            close();
+            setTimeout(() => open("Notification", <CustomMessage message={`Something went wrong: ${err}`} />), 300);
+        }
+
     }
     return (
         <div>

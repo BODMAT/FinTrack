@@ -23,7 +23,6 @@ export function useUser() {
             return user.data ?? [];
         },
         enabled: !!currentUser,
-        staleTime: 1000 * 60 * 5,
     });
 
     const loginMutation = useMutation<IUser, Error, { nickname: string; password: string }>({
@@ -88,7 +87,9 @@ export function useUser() {
         logout,
         getUserDataById,
         changeDataById: transactionMutation.mutate,
+        changeDataByIdAsync: transactionMutation.mutateAsync,
         deleteDataById: deleteTransactionMutation.mutate,
+        deleteDataByIdAsync: deleteTransactionMutation.mutateAsync,
         getStats,
         error: loginMutation.error,
     };

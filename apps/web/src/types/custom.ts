@@ -15,7 +15,7 @@ export interface IData {
     id: string;
 
     title: string;
-    amount: number;
+    amount: string;
     type: "INCOME" | "EXPENSE";
     created_at: string;
 
@@ -68,4 +68,10 @@ export interface IProfileInfoState {
     nickname: string | null;
     password: string | null;
     submitted: boolean;
+}
+
+export interface IErrorState {
+    date: string | null;
+    lat: string | null;
+    lng: string | null;
 }

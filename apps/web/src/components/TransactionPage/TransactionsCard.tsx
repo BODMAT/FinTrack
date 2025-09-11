@@ -15,7 +15,7 @@ export function TransactionsCard({ data }: { data: IData }) {
             className="grid grid-cols-8 items-center gap-4 p-3 rounded border border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned roboto text-[18px] max-[1300px]:grid-cols-7 max-[1000px]:grid-cols-6 max-[970px]:grid-cols-3 max-[450px]:grid-cols-2"
         >
             <span className="justify-self-center px-2 truncate break-all whitespace-normal text-center">{data.title}</span>
-            <span className="justify-self-center px-2 font-semibold">${data.amount.toFixed(2)}</span>
+            <span className="justify-self-center px-2 font-semibold">${Number(data.amount).toFixed(2)}</span>
             <span className={`justify-self-center py-2 px-5 text-sm rounded-xl text-gray-40 ${data.type === "INCOME" ? "bg-[var(--bg-green)]" : "bg-[var(--bg-red)]"}`}>
                 {data.type === "INCOME" ? "Income" : "Outcome"}
             </span>

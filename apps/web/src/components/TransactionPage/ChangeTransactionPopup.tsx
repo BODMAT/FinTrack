@@ -1,13 +1,13 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { sanitizeAmountInput, toLocalDatetimeString } from "../../utils/components";
-import type { IData, IDataForm } from "../../types/custom";
+import type { IData, IDataForm, IErrorState } from "../../types/custom";
 import { generateId } from "../../utils/data.helpers";
 import { usePopupStore } from "../../store/popup";
 import { CustomMessage } from "../Helpers";
 import { useUser } from "../../hooks/useUser";
 
 export function ChangeTransactionPopup({ id }: { id?: string | undefined }) {
-    const { changeDataById, getUserDataById } = useUser();
+    const { changeDataByIdAsync, getUserDataById } = useUser();
     const { data: currentData } = getUserDataById(id ?? "", {
         enabled: !!id
     });
@@ -40,7 +40,7 @@ export function ChangeTransactionPopup({ id }: { id?: string | undefined }) {
         }
     }, [currentData]);
 
-    const handleChangeTransaction = (e: React.FormEvent<HTMLFormElement>) => {
+    const handleChangeTransaction = async (e: React.FormEvent<HTMLFormElement>) => {
         try {
             e.preventDefault();
             const numericAmount = Number(form.amount.replace(",", "."));
@@ -55,7 +55,7 @@ export function ChangeTransactionPopup({ id }: { id?: string | undefined }) {
                 userId: form.userId,
                 id: form.id,
                 title: form.title,
-                amount: numericAmount,
+                amount: String(numericAmount),
                 created_at: form.created_at,
                 type: form.type,
                 ...(numericLocationLat !== 0 && numericLocationLng !== 0
@@ -64,22 +64,55 @@ export function ChangeTransactionPopup({ id }: { id?: string | undefined }) {
             };
 
             if (id) {
-                changeDataById({ dataId: data.id, newData: data });
+                await changeDataByIdAsync({ dataId: data.id, newData: data });
                 close();
                 setTimeout(() => open("Notification", <CustomMessage message="Transaction changed successfully!" />), 300);
             } else {
-                changeDataById({ dataId: data.id, newData: data, isNewOrChange: true });
+                await changeDataByIdAsync({ dataId: data.id, newData: data, isNewOrChange: true });
                 close();
                 setTimeout(() => open("Notification", <CustomMessage message="Transaction added successfully!" />), 300);
             }
 
         } catch (error) {
-            open("Error", <CustomMessage message="Something went wrong!" />);
+            open("Error", <CustomMessage message={`Something went wrong! ${error}`} />);
         }
     }
 
+    const [error, setError] = useState<IErrorState>({
+        date: null,
+        lat: null,
+        lng: null
+    });
+
+    useEffect(() => {
+        if (error.date || error.lat || error.lng) {
+            setTimeout(() => {
+                setError({
+                    date: null,
+                    lat: null,
+                    lng: null
+                });
+            }, 3000);
+        }
+    }, [error]);
+
     const handleLocationChange = (key: "lat" | "lng", value: string) => {
         const sanitized = value.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1");
+
+        if (key === "lat" && (Number(sanitized) > 90 || Number(sanitized) < -90)) {
+            setError({
+                ...error,
+                lat: "Latitude must be between -90 and 90",
+            });
+            return;
+        };
+        if (key === "lng" && (Number(sanitized) > 180 || Number(sanitized) < -180)) {
+            setError({
+                ...error,
+                lng: "Longitude must be between -180 and 180",
+            });
+            return;
+        };
 
         setForm({
             ...form,
@@ -88,6 +121,23 @@ export function ChangeTransactionPopup({ id }: { id?: string | undefined }) {
                 longitude: key === "lng" ? sanitized : form.location?.longitude ?? "",
             },
         });
+    };
+
+    const handleChangeDate = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedDate = new Date(e.target.value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        if (selectedDate > today) {
+            setError({
+                ...error,
+                date: "Invalid date. Please enter today or earlier.",
+            });
+            return;
+        }
+
+        setForm({ ...form, created_at: selectedDate.toISOString() });
+        setError({ ...error, date: null });
     };
 
 
@@ -113,11 +163,12 @@ export function ChangeTransactionPopup({ id }: { id?: string | undefined }) {
                     <input
                         type="datetime-local"
                         value={toLocalDatetimeString(new Date(form.created_at))}
-                        onChange={(e) => setForm({ ...form, created_at: new Date(e.target.value).toISOString() })}
+                        onChange={(e) => handleChangeDate(e)}
                         id="date"
                         className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
                     />
                 </div>
+                {error.date && <p className="text-[red] text-center">{error.date}</p>}
                 <div className="flex items-center gap-5 max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
                     <label className="text-[var(--color-text)] text-[20px] font-semibold min-w-30" htmlFor="amount">
                         Amount:
@@ -145,6 +196,7 @@ export function ChangeTransactionPopup({ id }: { id?: string | undefined }) {
                         className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
                     />
                 </div>
+                {error.lat && <span className="text-[red] text-center">{error.lat}</span>}
 
                 <div className="flex items-center gap-5 max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
                     <label htmlFor="locationLng" className="text-[var(--color-text)] text-[20px] font-semibold min-w-30">
@@ -159,6 +211,8 @@ export function ChangeTransactionPopup({ id }: { id?: string | undefined }) {
                         className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
                     />
                 </div>
+                {error.lng && <span className="text-[red] text-center">{error.lng}</span>}
+
 
                 <div className="flex gap-7 items-center justify-center max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
                     <label className="text-[var(--color-text)] text-[20px] font-semibold">
@@ -187,7 +241,7 @@ export function ChangeTransactionPopup({ id }: { id?: string | undefined }) {
                     type="submit"
                     className="bg-[var(--color-hover)] text-[var(--color-fixed)] rounded-[10px] p-[10px] w-full hover:bg-[var(--color-hover-reverse)] hover:text-[var(--color-hover)] transitioned cursor-pointer"
                 >
-                    Change
+                    {id ? "Change transaction" : "Create transaction"}
                 </button>
             </form>
         </div>
