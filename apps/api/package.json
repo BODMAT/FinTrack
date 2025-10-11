@@ -9,9 +9,11 @@
 		"prestart": "npm run build",
 		"start": "dotenv -e ../../.env -- node dist/server.js",
 		"predev": "npm run build",
-		"dev": "dotenv -e ../../.env -- concurrently \"npx tsc -w\" \"dotenv -e ../../.env -- nodemon dist/server.js\"",
+		"dev": "dotenv -e ../../.env -- concurrently \"npx tsc -w\" \"dotenv -e ../../.env -- nodemon --ext js,yml dist/server.js\"",
+		"prod": "dotenv -e ../../.env.production.local -- concurrently \"npx tsc -w\" \"dotenv -e ../../.env.production.local -- nodemon dist/server.js\"",
 		"prisma": "dotenv -e ../../.env -- prisma",
-		"prisma:migrate": "npm run prisma -- migrate dev",
+		"prisma:migrate:dev": "npm run prisma -- migrate dev",
+		"prisma:migrate:deploy": "npm run prisma -- migrate deploy",
 		"prisma:generate": "npm run prisma -- generate",
 		"prisma:studio": "npm run prisma -- studio",
 		"prisma:seed": "dotenv -e ../../.env -- tsx src/prisma/seed.ts"
@@ -29,22 +31,31 @@
 		"dashboard"
 	],
 	"author": "Makar Dzhehur",
-	"license": "ISC",
+	"license": "MIT",
 	"bugs": {
 		"url": "https://github.com/BODMAT/FinTrack/issues"
 	},
 	"homepage": "https://github.com/BODMAT/FinTrack#readme",
 	"dependencies": {
 		"@prisma/client": "^6.14.0",
+		"bcrypt": "^6.0.0",
 		"cors": "^2.8.5",
+		"dotenv": "^16.6.1",
 		"express": "^5.1.0",
+		"jsonwebtoken": "^9.0.2",
 		"openai": "^5.18.1",
+		"swagger-jsdoc": "^6.2.8",
+		"swagger-ui-express": "^5.0.1",
 		"zod": "^4.1.3"
 	},
 	"devDependencies": {
+		"@types/bcrypt": "^6.0.0",
 		"@types/cors": "^2.8.19",
 		"@types/express": "^5.0.3",
+		"@types/jsonwebtoken": "^9.0.10",
 		"@types/node": "^24.3.0",
+		"@types/swagger-jsdoc": "^6.0.4",
+		"@types/swagger-ui-express": "^4.1.8",
 		"concurrently": "^9.2.1",
 		"dotenv-cli": "^10.0.0",
 		"nodemon": "^3.1.10",

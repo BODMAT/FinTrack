@@ -18,15 +18,21 @@ enum TransactionType {
     EXPENSE
 }
 
+enum AuthType {
+    EMAIL
+    TELEGRAM
+}
+
 model Transaction {
     id         String          @id @default(uuid())
     title      String          @db.VarChar(50)
     type       TransactionType
     amount     Decimal         @default(0)
     created_at DateTime        @default(now())
+    updated_at DateTime        @updatedAt
     // relations
     location   Location?
-    user       User            @relation(fields: [userId], references: [id])
+    user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId     String
 }
 
@@ -34,15 +40,39 @@ model Location {
     id            String      @id @default(uuid())
     latitude      Float
     longitude     Float
+    // relations
     transaction   Transaction @relation(fields: [transactionId], references: [id], onDelete: Cascade)
     transactionId String      @unique
 }
 
 model User {
-    id           String        @id @default(uuid())
-    tg_id        String        @unique
-    tg_nickname  String        @db.VarChar(50)
-    name         String        @db.VarChar(50)
+    id           String         @id @default(uuid())
+    name         String         @db.VarChar(200)
     photo_url    String?
+    created_at   DateTime       @default(now())
+    updated_at   DateTime       @updatedAt
+    // relations
+    authMethods  AuthMethod[]
+    refreshToken RefreshToken[]
     transactions Transaction[]
+}
+
+model AuthMethod {
+    id            String   @id @default(uuid())
+    type          AuthType
+    email         String?  @unique @db.VarChar(200)
+    password_hash String?
+    telegram_id   String?  @unique
+    // relations
+    user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId        String
+}
+
+model RefreshToken {
+    id        String   @id @default(uuid())
+    token     String   @unique
+    expiresAt DateTime
+    // relations
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId    String
 }

@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import { prisma } from "../prisma/client.js";
+import { prisma } from "../../prisma/client.js";
 
 export async function getAllTransactions(userId: string, page: number, perPage: number) {
 	const [transactions, total] = await Promise.all([
@@ -7,7 +7,17 @@ export async function getAllTransactions(userId: string, page: number, perPage: 
 			where: { userId },
 			skip: (page - 1) * perPage,
 			take: perPage,
-			include: { location: true }
+			omit: { userId: true },
+			include: {
+				location: {
+					omit: {
+						transactionId: true
+					}
+				}
+			},
+			orderBy: {
+				created_at: "desc"
+			}
 		}),
 		prisma.transaction.count({ where: { userId } })
 	]);
@@ -23,28 +33,34 @@ export async function getAllTransactions(userId: string, page: number, perPage: 
 	};
 }
 
-export async function getTransaction(transactionId: string, userId?: string) {
-	if (userId) {
-		return await prisma.transaction.findFirst({
-			where: {
-				id: transactionId,
-				userId,
-			},
-			include: { location: true }
-		});
-	}
-	return await prisma.transaction.findUnique({
+export async function getTransaction(transactionId: string, userId: string) {
+	return await prisma.transaction.findFirst({
 		where: {
 			id: transactionId,
+			userId,
 		},
-		include: { location: true }
+		omit: { userId: true },
+		include: {
+			location: {
+				omit: {
+					transactionId: true
+				}
+			}
+		},
 	});
 }
 
 export async function createTransaction(transaction: Prisma.TransactionCreateInput) {
 	return prisma.transaction.create({
 		data: transaction,
-		include: { location: true }
+		omit: { userId: true },
+		include: {
+			location: {
+				omit: {
+					transactionId: true
+				}
+			}
+		},
 	});
 }
 
@@ -54,7 +70,14 @@ export async function updateTransaction(transactionId: string, transaction: Pris
 			id: transactionId,
 		},
 		data: transaction,
-		include: { location: true }
+		omit: { userId: true },
+		include: {
+			location: {
+				omit: {
+					transactionId: true
+				}
+			}
+		},
 	});
 }
 

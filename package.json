@@ -1,5 +1,14 @@
 {
 	"name": "fintrack",
+	"contributors": [
+		{
+			"name": "Makar Dzhehur"
+		},
+		{
+			"name": "Bohdan Matula"
+		}
+	],
+	"license": "MIT",
 	"private": true,
 	"scripts": {
 		"dev": "turbo run dev",

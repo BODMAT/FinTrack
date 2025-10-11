@@ -1,0 +1,153 @@
+# ==================================
+#         COMPONENTS — AUTH
+# ==================================
+components:
+  schemas:
+    # --- Schemas for Request Bodies ---
+    LoginInput:
+      type: object
+      description: User credentials for login via email and password.
+      properties:
+        email:
+          type: string
+          description: Email address of the user.
+          format: email
+        password:
+          type: string
+          description: User's password (minimum 8 characters).
+          format: password
+          writeOnly: true
+          minLength: 8
+      required:
+        - email
+        - password
+      example:
+        email: "ivan@gmail.com"
+        password: "password1234"
+
+    RefreshTokenInput:
+      type: object
+      description: Request body containing a valid refresh token.
+      properties:
+        token:
+          type: string
+          description: Refresh token used to obtain a new access token.
+      required:
+        - token
+      example:
+        token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    LogoutInput:
+      type: object
+      description: Request body containing a refresh token to invalidate.
+      properties:
+        token:
+          type: string
+          description: Refresh token to be revoked.
+      required:
+        - token
+      example:
+        token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    # --- Schemas for Responses ---
+    Tokens:
+      type: object
+      description: Pair of access and refresh tokens returned after login.
+      properties:
+        accessToken:
+          type: string
+          description: Access token (valid for 30 minutes).
+        refreshToken:
+          type: string
+          description: Refresh token (valid for 7 days).
+      example:
+        accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    AccessToken:
+      type: object
+      description: A new access token obtained via refresh token.
+      properties:
+        accessToken:
+          type: string
+          description: A new access token (valid for 30 minutes).
+      example:
+        accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+# ==================================
+#         PATHS — AUTH
+# ==================================
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: Log in using email and password
+      description: Authenticates a user and returns access and refresh tokens.
+        This endpoint is **public** and does not require authentication.
+      security: [] # Public endpoint
+      requestBody:
+        required: true
+        description: Email and password credentials for login.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginInput"
+      responses:
+        "200":
+          description: Login successful — tokens returned.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Tokens"
+        "400":
+          description: Invalid credentials or validation error.
+        "404":
+          description: User with specified email not found.
+
+  /auth/token:
+    post:
+      tags:
+        - Auth
+      summary: Refresh access token
+      description: Accepts a valid refresh token and returns a new access token.
+        This endpoint is **public** and does not require authentication.
+      security: []
+      requestBody:
+        required: true
+        description: Refresh token payload.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshTokenInput"
+      responses:
+        "200":
+          description: Access token refreshed successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccessToken"
+        "401":
+          description: Invalid or expired refresh token.
+
+  /auth/logout:
+    delete:
+      tags:
+        - Auth
+      summary: Log out user and invalidate refresh token
+      description:
+        Removes the specified refresh token from the database, logging out the user.
+        This endpoint is **public** and does not require authentication.
+      security: []
+      requestBody:
+        required: true
+        description: The refresh token to revoke.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LogoutInput"
+      responses:
+        "204":
+          description: Logout successful (no content).
+        "401":
+          description: Invalid or missing refresh token.
