@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import type { IUser, IData, CustomDate, MoneyType } from "../types/custom";
+import type { IUser, IData, CustomDate } from "../types/custom";
 import { getUserByNickAndPass, getTransaction, changeTransaction, deleteTransaction } from "../api/userData";
-import { getUserDataWithStats } from "../utils/data.helpers";
+import { memoizedGroupData } from "../utils/data.helpers";
 
 export function useUser() {
     const queryClient = useQueryClient();
@@ -74,10 +74,10 @@ export function useUser() {
         },
     });
 
-    const getStats = (range: CustomDate, title: MoneyType) => {
+    const getCurrentRangeForChart = (range: CustomDate) => {
         if (!transactionsQuery.data) return null;
-        return getUserDataWithStats(transactionsQuery.data, range, title);
-    };
+        return memoizedGroupData(transactionsQuery.data, range);
+    }
 
     return {
         user: currentUser,
@@ -90,7 +90,9 @@ export function useUser() {
         changeDataByIdAsync: transactionMutation.mutateAsync,
         deleteDataById: deleteTransactionMutation.mutate,
         deleteDataByIdAsync: deleteTransactionMutation.mutateAsync,
-        getStats,
+
+        getCurrentRangeForChart,
+
         error: loginMutation.error,
     };
 }

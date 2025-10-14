@@ -1,4 +1,5 @@
 import type { FC, SVGProps } from "react";
+import type { IDataStats } from "../utils/stats";
 
 export interface IUser {
     nickname: string | null;
@@ -8,6 +9,8 @@ export interface IUser {
     userPhoto: string | null;
 
     data: IData[] | null;
+
+    stats: IDataStats;
 }
 
 export interface IData {
@@ -17,7 +20,7 @@ export interface IData {
     title: string;
     amount: string;
     type: "INCOME" | "EXPENSE";
-    created_at: string;
+    created_at: string; //timestamp ex "2025-09-11T17:17:42.627Z"
 
     location?: {
         latitude: number;
@@ -32,8 +35,8 @@ export type MoneyType = "income" | "outcome" | "saving" | "balance";
 export interface DashboardCardProps {
     myImg: string | FC<SVGProps<SVGSVGElement>>;
     title: MoneyType;
-    reversedPercentage?: boolean;
 
+    reversedPercentage?: boolean;
     inPopup?: boolean;
     dataForPopupChart?: {
         income: number[];

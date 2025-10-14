@@ -3,6 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L, { type LatLngTuple } from "leaflet";
 import { useUser } from "../../hooks/useUser";
 import { ColoredMarker } from "./ColoredMarker";
+import { NoData } from "../Helpers";
 
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -13,12 +14,11 @@ L.Icon.Default.mergeOptions({
 });
 
 export function IncomeOutcomeMap() {
-    const { transactions, getStats } = useUser();
+    const { transactions, user } = useUser();
 
-    if (!transactions || !transactions.length) return null;
+    if (!transactions || !transactions.length || !user || !user.stats) return <NoData />;
 
-    const { minNegativeTransaction, maxNegativeTransaction } = getStats("all", "outcome") ?? {};
-    const { minPositiveTransaction, maxPositiveTransaction } = getStats("all", "income") ?? {};
+    const { minNegativeTransaction, maxNegativeTransaction, minPositiveTransaction, maxPositiveTransaction } = user.stats.topTransaction
 
     const center: LatLngTuple = [51.505, -0.09];
     const markers = transactions.filter((item) => item.location);
@@ -47,8 +47,8 @@ export function IncomeOutcomeMap() {
                             icon={ColoredMarker(
                                 item.amount,
                                 isIncome ? "income" : "outcome",
-                                isIncome ? (minPositiveTransaction ?? 0) : (minNegativeTransaction ?? 0),
-                                isIncome ? (maxPositiveTransaction ?? 0) : (maxNegativeTransaction ?? 0)
+                                Number(isIncome ? minPositiveTransaction : minNegativeTransaction) || 0,
+                                Number(isIncome ? maxPositiveTransaction : maxNegativeTransaction) || 0
                             )}
                         >
                             <Popup>

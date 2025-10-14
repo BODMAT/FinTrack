@@ -20,17 +20,16 @@ const selectDateOptions: Array<{ label: string; value: CustomDate }> = [
 
 export function IncomeOutcomeAnalitics() {
     const { period: range, setPeriod: setRange } = usePeriodStore();
-    const { transactions, isLoading, error, getStats } = useUser();
+    const { transactions, isLoading, error, getCurrentRangeForChart } = useUser();
 
     if (isLoading) return <Spinner />;
     if (error) return <ErrorCustom />;
     if (!transactions || !transactions.length) return <NoData />;
 
-    const stats = getStats(range, "income");
-    if (!stats) return <NoData />;
+    const currentRangeForChart = getCurrentRangeForChart(range);
+    if (!currentRangeForChart) return <NoData />;
 
-    const { currentRangeForChart } = stats;
-    const { income, outcome, labels } = currentRangeForChart;
+    const { labels, income, outcome } = currentRangeForChart;
 
     const chartOptions = {
         responsive: true,
@@ -109,10 +108,8 @@ export function IncomeOutcomeAnalitics() {
                     ) : (
                         <Spinner />
                     )}
-
                 </div>
             </div>
-
         </div>
     );
 }

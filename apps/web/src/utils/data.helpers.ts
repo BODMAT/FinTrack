@@ -1,4 +1,4 @@
-import type { CustomDate, IData, MoneyType } from "../types/custom";
+import type { CustomDate, IData } from "../types/custom";
 import { simpleMemoize3 } from "./other";
 
 export function groupData(data: IData[], range: CustomDate, nowDate?: Date) {
@@ -86,107 +86,10 @@ export function groupData(data: IData[], range: CustomDate, nowDate?: Date) {
     return { labels, income, outcome };
 }
 
-export function getTotalOfRange(data: IData[], range: CustomDate, title: MoneyType, nowDate?: Date): number {
-    if (title === "balance") {
-        const totalIncome = data.filter((item) => item.type === "INCOME").reduce((acc, cur) => acc + Number(cur.amount), 0);
-        const totalOutcome = data.filter((item) => item.type !== "INCOME").reduce((acc, cur) => acc + Number(cur.amount), 0);
-        return totalIncome - totalOutcome;
-    }
-
-    const { income, outcome } = groupData(data, range, nowDate);
-
-    if (title === "income") return income.reduce((acc, cur) => acc + cur, 0);
-    if (title === "outcome") return outcome.reduce((acc, cur) => acc + cur, 0);
-    if (title === "saving") return income.reduce((acc, cur) => acc + cur, 0) - outcome.reduce((acc, cur) => acc + cur, 0);
-
-    return 0;
-}
-
-export function getPreviousDateByRange(range: CustomDate): Date {
-    const now = new Date();
-    let prevDate: Date;
-
-    switch (range) {
-        case "day":
-            prevDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-            break;
-        case "week":
-            prevDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
-            break;
-        case "month":
-            prevDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-            break;
-        case "year":
-            prevDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-            break;
-        case "all":
-            prevDate = new Date(0);
-            break;
-        default:
-            prevDate = now;
-            break;
-    }
-
-    // console.log("Now:", now.toString());
-    // console.log(`Previous date for range "${range}":`, prevDate.toString());
-
-    return prevDate;
-}
-
-export function getPercentageOfRangeIncrease(
-    data: IData[],
-    range: CustomDate,
-    title: MoneyType
-): number {
-    const currentTotal = getTotalOfRange(data, range, title);
-    const previousTotal = getTotalOfRange(data, range, title, getPreviousDateByRange(range));
-
-    if (previousTotal === 0) {
-        if (currentTotal === 0) return 0;
-        return 100;
-    }
-
-    return Math.round(((currentTotal - previousTotal) / previousTotal) * 100);
-}
-
 export function generateId(): string {
     const now = new Date().getTime();
     const random = Math.floor(Math.random() * 1000000);
     return `${now}_${random}`;
 }
 
-const memoizedGroupData = simpleMemoize3(groupData);
-const memoizedGetTotalOfRange = simpleMemoize3(getTotalOfRange);
-const memoizedGetPercentage = simpleMemoize3(getPercentageOfRangeIncrease);
-
-export function getUserDataWithStats(data: IData[], range: CustomDate, title: MoneyType) {
-    const currentRangeForChart = memoizedGroupData(data, range);
-    const total = memoizedGetTotalOfRange(data, range, title);
-    const percentage = memoizedGetPercentage(data, range, title);
-    const balance = memoizedGetTotalOfRange(data, range, "balance");
-
-    const maxPositiveTransaction = data
-        .filter((item) => item.type === "INCOME")
-        .sort((a, b) => Number(b.amount) - Number(a.amount))[0]?.amount || 0;
-    const maxNegativeTransaction = data
-        .filter((item) => item.type !== "INCOME")
-        .sort((a, b) => Number(b.amount) - Number(a.amount))[0]?.amount || 0;
-
-    const minPositiveTransaction = data
-        .filter((item) => item.type === "INCOME")
-        .sort((a, b) => Number(a.amount) - Number(b.amount))[0]?.amount || 0;
-    const minNegativeTransaction = data
-        .filter((item) => item.type !== "INCOME")
-        .sort((a, b) => Number(a.amount) - Number(b.amount))[0]?.amount || 0;
-
-    return {
-        currentRangeForChart,
-        total,
-        percentage,
-        balance,
-        maxPositiveTransaction,
-        maxNegativeTransaction,
-        minPositiveTransaction,
-        minNegativeTransaction
-    };
-}
+export const memoizedGroupData = simpleMemoize3(groupData);

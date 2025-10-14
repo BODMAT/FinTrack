@@ -9,16 +9,61 @@ import { PopupDashboardCard } from "./PopupDashboardCard";
 export function DashboardCard({ myImg, title, reversedPercentage = false, inPopup = false }: DashboardCardProps) {
     const { open } = usePopupStore();
     const { period } = usePeriodStore();
-    const { transactions, isLoading, error, getStats } = useUser();
+    const { transactions, user, isLoading, error, getCurrentRangeForChart } = useUser();
 
     if (isLoading) return <Spinner />;
     if (error) return <ErrorCustom />;
     if (!transactions || !transactions.length) return <NoData />;
+    if (!user || !user.stats) return <NoData />;
+    console.log(user + " " + title);
 
-    const stats = getStats(period, title);
-    if (!stats) return <NoData />;
 
-    const { total, percentage, currentRangeForChart } = stats;
+    const { currentBalance,
+        dataStatsPerDay,
+        dataStatsPerWeek,
+        dataStatsPerMonth,
+        dataStatsPerYear,
+        dataStatsPerAllTime } = user.stats;
+
+    const currentRangeForChart = getCurrentRangeForChart(period);
+    if (!currentRangeForChart) return <NoData />;
+
+    const statsByPeriod = {
+        all: dataStatsPerAllTime,
+        day: dataStatsPerDay,
+        week: dataStatsPerWeek,
+        month: dataStatsPerMonth,
+        year: dataStatsPerYear,
+    };
+
+    let total: number = 0;
+    let percentage: number = 0;
+
+    if (title === "balance") {
+        total = currentBalance;
+        percentage = 0;
+    } else {
+        const relevantStats = statsByPeriod[period];
+        if (relevantStats) {
+            const totalsMap = {
+                income: relevantStats.totalIncomePerRange,
+                outcome: relevantStats.totalOutcomePerRange,
+                saving: relevantStats.totalSavingPerRange,
+            };
+            const percentagesMap = {
+                income: relevantStats.percentageIncomePerRange,
+                outcome: relevantStats.percentageOutcomePerRange,
+                saving: relevantStats.percentageSavingPerRange,
+            };
+            total = totalsMap[title] || 0;
+            percentage = percentagesMap[title] || 0;
+            if (!totalsMap.hasOwnProperty(title)) {
+                console.error("Invalid title:", title);
+            }
+        } else {
+            console.error("Invalid period:", period);
+        }
+    }
 
     const handleOpenPopup = () => {
         open(
