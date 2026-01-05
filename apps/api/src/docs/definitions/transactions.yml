@@ -134,7 +134,7 @@ components:
 
     TransactionList:
       type: object
-      description: Paginated list of transactions.
+      description: Paginated list of transactions (when page/perPage provided).
       properties:
         data:
           type: array
@@ -172,6 +172,38 @@ components:
           total: 42
           totalPages: 5
 
+    TransactionListAll:
+      type: object
+      description: List of all transactions (when page/perPage not provided).
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transaction"
+      example:
+        data:
+          - id: "ae13c501-b0e9-4a7a-97ff-91c9f177e9cb"
+            title: "Groceries"
+            type: "EXPENSE"
+            amount: 54.20
+            created_at: "2025-09-01T12:30:00.000Z"
+            updated_at: "2025-09-27T15:33:24.979Z"
+            location:
+              id: "9a857bfa-1ef2-478d-bd1e-53a40e19db99"
+              latitude: 50.45
+              longitude: 30.52
+
+    # --- Schemas for Errors ---
+    Error:
+      type: object
+      description: Standard error response.
+      properties:
+        error:
+          type: string
+          description: Error message.
+      example:
+        error: "Something went wrong"
+
 # ==================================
 #         PATHS — TRANSACTION
 # ==================================
@@ -180,28 +212,41 @@ paths:
     get:
       tags:
         - Transaction
-      summary: Get all transactions (paginated)
-      description: Returns a paginated list of transactions for the authenticated user.
+      summary: Get transactions
+      description: |
+        Returns transactions for the authenticated user.
+
+        **With pagination** (when `page` and `perPage` are provided):
+        - Returns paginated list with metadata (total, totalPages)
+
+        **Without pagination** (when `page` and `perPage` are omitted):
+        - Returns all transactions as a simple list
+
+        Note: Both `page` and `perPage` must be provided together, or neither.
       parameters:
         - in: query
           name: page
           schema:
             type: integer
-            default: 1
-          description: Page number for pagination.
+            minimum: 1
+          description: Page number for pagination (optional, requires perPage).
         - in: query
           name: perPage
           schema:
             type: integer
-            default: 10
-          description: Number of transactions per page.
+            minimum: 1
+          description: Number of transactions per page (optional, requires page).
       responses:
         "200":
-          description: Paginated list of user's transactions.
+          description: List of user's transactions.
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/TransactionList"
+                oneOf:
+                  - $ref: "#/components/schemas/TransactionList"
+                  - $ref: "#/components/schemas/TransactionListAll"
+        "400":
+          description: Invalid pagination params (e.g., only one of page/perPage provided).
         "401":
           description: Unauthorized.
 
@@ -226,8 +271,20 @@ paths:
                 $ref: "#/components/schemas/Transaction"
         "400":
           description: Invalid request body.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Invalid request body"
         "401":
           description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Unauthorized"
 
   /transactions/{id}:
     get:
@@ -251,8 +308,20 @@ paths:
                 $ref: "#/components/schemas/Transaction"
         "401":
           description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Unauthorized"
         "404":
           description: Transaction not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Transaction not found"
 
     patch:
       tags:
@@ -282,10 +351,28 @@ paths:
                 $ref: "#/components/schemas/Transaction"
         "400":
           description: Invalid request body.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Invalid request body"
         "401":
           description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Unauthorized"
         "404":
           description: Transaction not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Transaction not found"
 
     delete:
       tags:
@@ -304,5 +391,17 @@ paths:
           description: Transaction deleted successfully.
         "401":
           description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Unauthorized"
         "404":
           description: Transaction not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Transaction not found"

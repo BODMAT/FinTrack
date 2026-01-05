@@ -34,11 +34,25 @@ export async function getAllTransactions(req: Request, res: Response, next: Next
 		const userId = req.user?.id;
 		if (!userId) throw new AppError("Unauthorized", 401);
 
-		const page = req.query.page ? Number(req.query.page) : 1;
-		const perPage = req.query.perPage ? Number(req.query.perPage) : 10;
-		if (Number.isNaN(page) || Number.isNaN(perPage)) throw new AppError("Invalid pagination params");
+		const hasPage = req.query.page !== undefined;
+		const hasPerPage = req.query.perPage !== undefined;
 
-		const transactions = await transactionService.getAllTransactions(userId, page, perPage);
+		if (hasPage !== hasPerPage) {
+			throw new AppError("Both 'page' and 'perPage' are required for pagination");
+		}
+
+		if (hasPage && hasPerPage) {
+			const page = Number(req.query.page);
+			const perPage = Number(req.query.perPage);
+			if (Number.isNaN(page) || Number.isNaN(perPage) || page < 1 || perPage < 1) {
+				throw new AppError("Invalid pagination params");
+			}
+			const transactions = await transactionService.getTransactionsPerPage(userId, page, perPage);
+			res.status(200).json(transactions);
+			return;
+		}
+		
+		const transactions = await transactionService.getAllTransactions(userId);
 		res.status(200).json(transactions);
 	} catch (err) {
 		next(err);

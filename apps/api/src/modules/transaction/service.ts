@@ -1,7 +1,29 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../../prisma/client.js";
 
-export async function getAllTransactions(userId: string, page: number, perPage: number) {
+export async function getAllTransactions(userId: string) {
+	const transactions = await 
+		prisma.transaction.findMany({
+			where: { userId },
+			omit: { userId: true },
+			include: {
+				location: {
+					omit: {
+						transactionId: true
+					}
+				}
+			},
+			orderBy: {
+				created_at: "desc"
+			}
+		});
+
+	return {
+		data: transactions
+	};
+}
+
+export async function getTransactionsPerPage(userId: string, page: number, perPage: number) {
 	const [transactions, total] = await Promise.all([
 		prisma.transaction.findMany({
 			where: { userId },

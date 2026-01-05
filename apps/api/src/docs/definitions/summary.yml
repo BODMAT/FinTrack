@@ -1,0 +1,244 @@
+# ==================================
+#         COMPONENTS — SUMMARY
+# ==================================
+components:
+  schemas:
+    # --- Schemas for Responses ---
+    StatsPerRange:
+      type: object
+      description: |
+        Statistics for a specific time range.
+        Percentage values compare current period to the previous equivalent period:
+        - day: today vs yesterday
+        - week: this week vs last week
+        - month: this month vs last month
+        - year: this year vs last year
+        - all: always 0% (no previous period)
+      properties:
+        totalIncomePerRange:
+          type: number
+          description: Total income for this range.
+          example: 5000
+        percentageIncomePerRange:
+          type: integer
+          description: Percentage change in income compared to previous period.
+          example: 15
+        totalOutcomePerRange:
+          type: number
+          description: Total expenses for this range.
+          example: 3500
+        percentageOutcomePerRange:
+          type: integer
+          description: Percentage change in expenses compared to previous period.
+          example: -10
+        totalSavingPerRange:
+          type: number
+          description: Total savings (income - expenses) for this range.
+          example: 1500
+        percentageSavingPerRange:
+          type: integer
+          description: Percentage change in savings compared to previous period.
+          example: 25
+
+    TopTransaction:
+      type: object
+      description: Extreme transaction values.
+      properties:
+        maxPositiveTransaction:
+          type: string
+          description: Largest income transaction amount.
+          example: "5000"
+        maxNegativeTransaction:
+          type: string
+          description: Largest expense transaction amount.
+          example: "2000"
+        minPositiveTransaction:
+          type: string
+          description: Smallest income transaction amount.
+          example: "10"
+        minNegativeTransaction:
+          type: string
+          description: Smallest expense transaction amount.
+          example: "5"
+
+    Summary:
+      type: object
+      description: Complete financial summary with statistics for all time ranges.
+      properties:
+        currentBalance:
+          type: number
+          description: Current total balance (all income - all expenses).
+          example: 1500
+        dataStatsPerDay:
+          $ref: "#/components/schemas/StatsPerRange"
+        dataStatsPerWeek:
+          $ref: "#/components/schemas/StatsPerRange"
+        dataStatsPerMonth:
+          $ref: "#/components/schemas/StatsPerRange"
+        dataStatsPerYear:
+          $ref: "#/components/schemas/StatsPerRange"
+        dataStatsPerAllTime:
+          $ref: "#/components/schemas/StatsPerRange"
+        topTransaction:
+          $ref: "#/components/schemas/TopTransaction"
+
+    ChartData:
+      type: object
+      description: Data for rendering income/expense charts.
+      properties:
+        labels:
+          type: array
+          description: Labels for chart X-axis (time periods).
+          items:
+            type: string
+          example: ["Mon 30 Dec", "Tue 31 Dec", "Wed 01 Jan"]
+        income:
+          type: array
+          description: Income values corresponding to each label.
+          items:
+            type: number
+          example: [100, 200, 150]
+        outcome:
+          type: array
+          description: Expense values corresponding to each label.
+          items:
+            type: number
+          example: [50, 80, 120]
+
+    # --- Schemas for Errors ---
+    Error:
+      type: object
+      description: Standard error response.
+      properties:
+        error:
+          type: string
+          description: Error message.
+      example:
+        error: "Something went wrong"
+
+# ==================================
+#         PATHS — SUMMARY
+# ==================================
+paths:
+  /summary:
+    get:
+      tags:
+        - Summary
+      summary: Get financial summary
+      description: |
+        Returns complete financial statistics including:
+        - Current balance
+        - Income, expenses, and savings totals for each time range (day, week, month, year, all)
+        - Percentage changes compared to previous periods
+        - Top transaction values
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Summary data returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Summary"
+              example:
+                currentBalance: 1500
+                dataStatsPerDay:
+                  totalIncomePerRange: 100
+                  percentageIncomePerRange: 25
+                  totalOutcomePerRange: 50
+                  percentageOutcomePerRange: -10
+                  totalSavingPerRange: 50
+                  percentageSavingPerRange: 100
+                dataStatsPerWeek:
+                  totalIncomePerRange: 800
+                  percentageIncomePerRange: 15
+                  totalOutcomePerRange: 400
+                  percentageOutcomePerRange: 5
+                  totalSavingPerRange: 400
+                  percentageSavingPerRange: 30
+                dataStatsPerMonth:
+                  totalIncomePerRange: 3500
+                  percentageIncomePerRange: 10
+                  totalOutcomePerRange: 2000
+                  percentageOutcomePerRange: -5
+                  totalSavingPerRange: 1500
+                  percentageSavingPerRange: 25
+                dataStatsPerYear:
+                  totalIncomePerRange: 45000
+                  percentageIncomePerRange: 20
+                  totalOutcomePerRange: 30000
+                  percentageOutcomePerRange: 15
+                  totalSavingPerRange: 15000
+                  percentageSavingPerRange: 35
+                dataStatsPerAllTime:
+                  totalIncomePerRange: 120000
+                  percentageIncomePerRange: 0
+                  totalOutcomePerRange: 80000
+                  percentageOutcomePerRange: 0
+                  totalSavingPerRange: 40000
+                  percentageSavingPerRange: 0
+                topTransaction:
+                  maxPositiveTransaction: "5000"
+                  maxNegativeTransaction: "2000"
+                  minPositiveTransaction: "10"
+                  minNegativeTransaction: "5"
+        "401":
+          description: Unauthorized — missing or invalid access token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "Unauthorized"
+
+  /summary/chart:
+    get:
+      tags:
+        - Summary
+      summary: Get chart data for a specific time range
+      description: |
+        Returns grouped income and expense data for rendering charts.
+        Labels are formatted based on the selected range:
+        - `day`: Hours (e.g., "14:00")
+        - `week`: Weekday + date (e.g., "Mon 30 Dec")
+        - `month`: Week number (e.g., "Week 1 of Jan")
+        - `year`: Month (e.g., "Jan")
+        - `all`: Month + year (e.g., "Jan 2025")
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: range
+          in: query
+          required: true
+          description: Time range for chart data.
+          schema:
+            type: string
+            enum: [day, week, month, year, all]
+          example: week
+      responses:
+        "200":
+          description: Chart data returned successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ChartData"
+              example:
+                labels: ["Mon 30 Dec", "Tue 31 Dec", "Wed 01 Jan"]
+                income: [100, 200, 150]
+                outcome: [50, 80, 120]
+        "400":
+          description: Invalid range parameter.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "Invalid range. Must be: day, week, month, year, all"
+        "401":
+          description: Unauthorized — missing or invalid access token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "Unauthorized"

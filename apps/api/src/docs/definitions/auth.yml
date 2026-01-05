@@ -74,6 +74,17 @@ components:
       example:
         accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
 
+    # --- Schemas for Errors ---
+    Error:
+      type: object
+      description: Standard error response.
+      properties:
+        error:
+          type: string
+          description: Error message.
+      example:
+        error: "Something went wrong"
+
 # ==================================
 #         PATHS — AUTH
 # ==================================
@@ -102,8 +113,20 @@ paths:
                 $ref: "#/components/schemas/Tokens"
         "400":
           description: Invalid credentials or validation error.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "Invalid credentials"
         "404":
           description: User with specified email not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "Not found"
 
   /auth/token:
     post:
@@ -129,6 +152,12 @@ paths:
                 $ref: "#/components/schemas/AccessToken"
         "401":
           description: Invalid or expired refresh token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "Invalid or expired refresh token"
 
   /auth/logout:
     delete:
@@ -151,3 +180,9 @@ paths:
           description: Logout successful (no content).
         "401":
           description: Invalid or missing refresh token.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "Invalid or missing refresh token"

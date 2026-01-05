@@ -45,6 +45,17 @@ components:
           description: The AI-generated text result.
           example: "You spent 40% of your income on food and transportation last month."
 
+    # --- Schemas for Errors ---
+    Error:
+      type: object
+      description: Standard error response.
+      properties:
+        error:
+          type: string
+          description: Error message.
+      example:
+        error: "Something went wrong"
+
 # ==================================
 #         PATHS — AI
 # ==================================
@@ -73,7 +84,25 @@ paths:
                 $ref: "#/components/schemas/AIResponse"
         "400":
           description: Invalid input data or prompt.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "Invalid input data or prompt"
         "401":
           description: Unauthorized (missing or invalid token).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "Unauthorized"
         "500":
           description: AI service unavailable or all Hugging Face tokens failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "AI service unavailable"
