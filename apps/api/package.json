@@ -6,17 +6,16 @@
 	"type": "module",
 	"scripts": {
 		"build": "rimraf dist && npx tsc",
-		"prestart": "npm run build",
-		"start": "dotenv -e ../../.env -- node dist/server.js",
+		"start": "node dist/server.js",
 		"predev": "npm run build",
-		"dev": "dotenv -e ../../.env -- concurrently \"npx tsc -w\" \"dotenv -e ../../.env -- nodemon --ext js,yml dist/server.js\"",
-		"prod": "dotenv -e ../../.env.production.local -- concurrently \"npx tsc -w\" \"dotenv -e ../../.env.production.local -- nodemon dist/server.js\"",
-		"prisma": "dotenv -e ../../.env -- prisma",
+		"dev": "concurrently \"npx tsc -w\" \"nodemon --ext js,yml dist/server.js\"",
+		"prod": "dotenv -e .env.production.local -- concurrently \"npx tsc -w\" \"nodemon dist/server.js\"",
+		"prisma": "prisma",
 		"prisma:migrate:dev": "npm run prisma -- migrate dev",
 		"prisma:migrate:deploy": "npm run prisma -- migrate deploy",
 		"prisma:generate": "npm run prisma -- generate",
 		"prisma:studio": "npm run prisma -- studio",
-		"prisma:seed": "dotenv -e ../../.env -- tsx src/prisma/seed.ts"
+		"prisma:seed": "tsx src/prisma/seed.ts"
 	},
 	"repository": {
 		"type": "git",

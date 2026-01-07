@@ -13,6 +13,8 @@ let server: ReturnType<typeof app.listen>;
 
 		server = app.listen(PORT, () => {
 			console.log(`🚀 Server is running on http://${HOST}:${PORT}`);
+			console.log(`📡 API: http://${HOST}:${PORT}/api`);
+			console.log(`📚 API Docs: http://${HOST}:${PORT}/api-docs`);
 		});
 	} catch (err) {
 		console.error("❌ Error while starting the app:", err);

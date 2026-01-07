@@ -6,8 +6,7 @@ dotenv.config();
 const requiredEnvVars = [
 	"DATABASE_URL",
 	"REFRESH_TOKEN_SECRET",
-	"ACCESS_TOKEN_SECRET",
-	"BOT_TOKEN"
+	"ACCESS_TOKEN_SECRET"
 ];
 
 for (const key of requiredEnvVars) {
@@ -26,14 +25,13 @@ if (HF_API_TOKENS.length === 0) {
 }
 
 export const ENV = {
+	NODE_ENV: process.env.NODE_ENV ?? "development",
 	HOST: process.env.HOST ?? "localhost",
 	PORT: process.env.PORT ? Number(process.env.PORT) : 8000,
 	DATABASE_URL: process.env.DATABASE_URL as string,
 	REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET as string,
 	ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET as string,
 	HF_API_TOKENS,
-	BOT_TOKEN: process.env.BOT_TOKEN as string,
-	NODE_ENV: process.env.NODE_ENV ?? "development",
 } as const;
 
 export type EnvConfig = typeof ENV;

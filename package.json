@@ -1,5 +1,7 @@
 {
 	"name": "fintrack",
+	"version": "0.1.0",
+	"description": "Personal finance tracking application.",
 	"contributors": [
 		{
 			"name": "Makar Dzhehur"
@@ -10,23 +12,7 @@
 	],
 	"license": "MIT",
 	"private": true,
-	"scripts": {
-		"dev": "turbo run dev",
-		"dev:web": "turbo run dev --filter=fintrack-web",
-		"dev:api": "turbo run dev --filter=fintrack-api",
-		"dev:bot": "turbo run dev --filter=fintrack-bot",
-		"start:api:production": "npm --prefix apps/api run start",
-		"build": "turbo run build",
-		"lint": "turbo run lint",
-		"format": "prettier --write \"**/*.{ts,tsx,md}\"",
-		"check-types": "turbo run check-types"
-	},
-	"devDependencies": {
-		"eslint": "^9.30.1",
-		"prettier": "^3.6.2",
-		"turbo": "^2.5.6",
-		"typescript": "5.9.2"
-	},
+	"type": "module",
 	"engines": {
 		"node": ">=18"
 	},
@@ -34,5 +20,28 @@
 	"workspaces": [
 		"apps/*",
 		"packages/*"
-	]
+	],
+	"scripts": {
+		"dev": "turbo run dev",
+		"dev:web": "turbo run dev --filter=fintrack-web",
+		"dev:api": "turbo run dev --filter=fintrack-api",
+		"dev:bot": "turbo run dev --filter=fintrack-bot",
+		"test:api:prod": "npm --prefix apps/api run prod",
+		"build": "turbo run build",
+		"format": "prettier --write .",
+		"format:check": "prettier --check .",
+		"lint": "eslint .",
+		"check": "npm run format:check && npm run lint",
+		"check-types": "turbo run check-types"
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.39.2",
+		"eslint": "^9.30.1",
+		"eslint-config-prettier": "^10.1.8",
+		"globals": "^17.0.0",
+		"prettier": "^3.6.2",
+		"turbo": "^2.5.6",
+		"typescript": "5.9.2",
+		"typescript-eslint": "^8.52.0"
+	}
 }
