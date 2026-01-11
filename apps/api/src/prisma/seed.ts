@@ -1,4 +1,5 @@
-import { TransactionType } from "@prisma/client";
+import bcrypt from "bcrypt";
+import { AuthType, TransactionType } from "@prisma/client";
 import { prisma } from "./client.js";
 
 (async () => {
@@ -7,21 +8,33 @@ import { prisma } from "./client.js";
 
 		console.log("🌱 Seeding database...");
 
+		const password = "11111111";
+		const saltRounds = 10;
+
 		const user1 = await prisma.user.create({
 			data: {
-				tg_id: "10001",
-				tg_nickname: "makar_backend",
 				name: "Макар",
 				photo_url: "https://picsum.photos/200/200?1",
+				authMethods: {
+					create: {
+						type: AuthType.EMAIL,
+						email: "makar@gmail.com",
+						password_hash: await bcrypt.hash(password, saltRounds)
+					}
+				},
 			},
 		});
 
 		const user2 = await prisma.user.create({
 			data: {
-				tg_id: "10002",
-				tg_nickname: "bogdan_frontend",
 				name: "Богдан",
 				photo_url: "https://picsum.photos/200/200?2",
+				authMethods: {
+					create: {
+						type: AuthType.TELEGRAM,
+						telegram_id: "1234567890"
+					}
+				},
 			},
 		});
 
@@ -73,7 +86,7 @@ import { prisma } from "./client.js";
 			},
 		});
 
-		console.log("✅ Seeding finished!");
+		console.log("✅ Seeding finished successfully!");
 	} catch (err) {
 		console.error("❌ Error while seeding database:", err);
 		process.exit(1);

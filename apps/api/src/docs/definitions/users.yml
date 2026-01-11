@@ -1,0 +1,358 @@
+# ==================================
+#         COMPONENTS — USER
+# ==================================
+components:
+  schemas:
+    # --- Schemas for Request Bodies ---
+    CreateAuthMethodEmailInput:
+      type: object
+      description: Email authentication method details for user creation.
+      properties:
+        type:
+          type: string
+          enum: [EMAIL]
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          writeOnly: true
+          minLength: 8
+      required:
+        - type
+        - email
+        - password
+      example:
+        type: "EMAIL"
+        email: "ivan@gmail.com"
+        password: "password1234"
+
+    CreateAuthMethodTelegramInput:
+      type: object
+      description: Telegram authentication method details for user creation.
+      properties:
+        type:
+          type: string
+          enum: [TELEGRAM]
+        telegram_id:
+          type: string
+          description: Telegram user ID.
+      required:
+        - type
+        - telegram_id
+      example:
+        type: "TELEGRAM"
+        telegram_id: "123456789"
+
+    CreateAuthMethodInput:
+      oneOf:
+        - $ref: "#/components/schemas/CreateAuthMethodEmailInput"
+        - $ref: "#/components/schemas/CreateAuthMethodTelegramInput"
+
+    UpdateAuthMethodEmailInput:
+      type: object
+      description: Email authentication method update payload.
+      properties:
+        type:
+          type: string
+          enum: [EMAIL]
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          writeOnly: true
+          minLength: 8
+      required:
+        - type
+      example:
+        type: "EMAIL"
+        email: "ivan@gmail.com"
+        password: "password1234"
+
+    UpdateAuthMethodTelegramInput:
+      type: object
+      description: Telegram authentication method update payload.
+      properties:
+        type:
+          type: string
+          enum: [TELEGRAM]
+        telegram_id:
+          type: string
+          description: Telegram user ID.
+      required:
+        - type
+      example:
+        type: "TELEGRAM"
+        telegram_id: "123456789"
+
+    UpdateAuthMethodInput:
+      oneOf:
+        - $ref: "#/components/schemas/UpdateAuthMethodEmailInput"
+        - $ref: "#/components/schemas/UpdateAuthMethodTelegramInput"
+
+    CreateUserInput:
+      type: object
+      description: Payload for creating a new user account.
+      properties:
+        name:
+          type: string
+        photo_url:
+          type: ["string", "null"]
+        authMethods:
+          type: array
+          items:
+            $ref: "#/components/schemas/CreateAuthMethodInput"
+      required:
+        - name
+        - authMethods
+      example:
+        name: "Ivan Petrov"
+        authMethods:
+          - type: "EMAIL"
+            email: "ivan@gmail.com"
+            password: "password1234"
+          - type: "TELEGRAM"
+            telegram_id: "123456789"
+
+    UpdateUserInput:
+      type: object
+      description: Payload for updating current user profile.
+      properties:
+        name:
+          type: string
+        photo_url:
+          type: ["string", "null"]
+        authMethods:
+          type: array
+          items:
+            $ref: "#/components/schemas/UpdateAuthMethodInput"
+      example:
+        name: "Ivan Petrov"
+        authMethods:
+          - type: "EMAIL"
+            email: "ivan@gmail.com"
+            password: "password1234"
+          - type: "TELEGRAM"
+            telegram_id: "123456789"
+
+    # --- Schemas for Responses ---
+    AuthMethod:
+      type: object
+      description: Authentication method associated with a user.
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum: [EMAIL, TELEGRAM]
+        email:
+          type: ["string", "null"]
+        telegram_id:
+          type: ["string", "null"]
+      example:
+        id: "52d8706f-776e-47c8-ab50-50876940c4c7"
+        type: "EMAIL"
+        email: "ivan@gmail.com"
+        telegram_id: null
+
+    User:
+      type: object
+      description: Full user entity returned by the API.
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        photo_url:
+          type: ["string", "null"]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        authMethods:
+          type: array
+          items:
+            $ref: "#/components/schemas/AuthMethod"
+      example:
+        id: "d5adc858-2ffc-4a69-972b-540af8a3b563"
+        name: "Ivan Petrov"
+        photo_url: null
+        created_at: "2025-09-01T12:30:00.000Z"
+        updated_at: "2025-09-27T15:33:24.979Z"
+        authMethods:
+          - id: "52d8706f-776e-47c8-ab50-50876940c4c7"
+            type: "EMAIL"
+            email: "ivan@gmail.com"
+            telegram_id: null
+          - id: "075065ea-c5e7-454a-9738-77704c4f2504"
+            type: "TELEGRAM"
+            email: null
+            telegram_id: "123456789"
+
+    # --- Schemas for Errors ---
+    Error:
+      type: object
+      description: Error response returned by the API.
+      properties:
+        message:
+          type: string
+          description: Human-readable error message.
+      required:
+        - message
+
+# ==================================
+#         PATHS — USER
+# ==================================
+paths:
+  /users:
+    post:
+      tags:
+        - User
+      summary: Create a new user
+      description:
+        Creates a new user profile with one or more authentication methods.
+        This endpoint is **public** and does not require authentication.
+      security: []
+      requestBody:
+        required: true
+        description: New user registration payload.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateUserInput"
+      responses:
+        "201":
+          description: User created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+
+  /users/me:
+    get:
+      tags:
+        - User
+      summary: Get current authenticated user
+      description: Returns data of the currently logged-in user.
+      responses:
+        "200":
+          description: Current user information.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Unauthorized"
+        "404":
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "User not found"
+
+    patch:
+      tags:
+        - User
+      summary: Update current authenticated user
+      description: Updates user profile and authentication methods.
+      requestBody:
+        required: true
+        description: Updated user profile data.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateUserInput"
+      responses:
+        "200":
+          description: User updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "401":
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Unauthorized"
+        "404":
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "User not found"
+
+    delete:
+      tags:
+        - User
+      summary: Delete current authenticated user
+      description: Deletes the profile of the currently authenticated user.
+      responses:
+        "204":
+          description: User deleted successfully.
+        "401":
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Unauthorized"
+        "404":
+          description: User not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "User not found"
+
+  /users/me/auth-methods/{authMethodId}:
+    delete:
+      tags:
+        - User
+      summary: Delete an authentication method for current user
+      description: Removes a specific authentication method linked to the logged-in user.
+      parameters:
+        - in: path
+          name: authMethodId
+          required: true
+          schema:
+            type: string
+          description: UUID of the authentication method to delete.
+      responses:
+        "204":
+          description: Authentication method deleted successfully.
+        "400":
+          description: Cannot delete last authentication method.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Cannot delete last authentication method"
+        "401":
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Unauthorized"

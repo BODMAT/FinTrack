@@ -1,0 +1,108 @@
+# ==================================
+#         COMPONENTS — AI
+# ==================================
+components:
+  schemas:
+    # --- Schemas for Request Bodies ---
+    AIRequestInput:
+      type: object
+      description: Input data for AI-powered transaction analysis or insight generation.
+      properties:
+        model:
+          type: string
+          description: Optional model identifier to use for inference. Defaults to `openai/gpt-oss-120b:cerebras`.
+          example: "openai/gpt-oss-120b:cerebras"
+        prompt:
+          type: string
+          description: Instruction or question for the AI model.
+          example: "Analyze the following transaction history and summarize spending habits."
+        data:
+          type: object
+          description: Additional structured data (such as transactions) to provide context for the AI model.
+          example:
+            transactions:
+              - title: "Groceries"
+                amount: 54.20
+                type: "EXPENSE"
+              - title: "Salary"
+                amount: 1200.00
+                type: "INCOME"
+      required:
+        - prompt
+        - data
+
+    # --- Schemas for Responses ---
+    AIResponse:
+      type: object
+      description: AI model response containing analytical text or generated insight.
+      properties:
+        model:
+          type: string
+          description: The model used to generate the response.
+          example: "openai/gpt-oss-120b:cerebras"
+        result:
+          type: string
+          description: The AI-generated text result.
+          example: "You spent 40% of your income on food and transportation last month."
+
+    # --- Schemas for Errors ---
+    Error:
+      type: object
+      description: Standard error response.
+      properties:
+        error:
+          type: string
+          description: Error message.
+      example:
+        error: "Something went wrong"
+
+# ==================================
+#         PATHS — AI
+# ==================================
+paths:
+  /ai:
+    post:
+      tags:
+        - AI
+      summary: Analyze financial data with AI
+      description:
+        Sends structured transaction data and an instruction prompt to the AI model for automated insights or recommendations.
+        This endpoint requires authentication and may return text-based analysis.
+      requestBody:
+        required: true
+        description: Input data and analysis request for the AI model.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AIRequestInput"
+      responses:
+        "200":
+          description: Successful AI-generated response.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AIResponse"
+        "400":
+          description: Invalid input data or prompt.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "Invalid input data or prompt"
+        "401":
+          description: Unauthorized (missing or invalid token).
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "Unauthorized"
+        "500":
+          description: AI service unavailable or all Hugging Face tokens failed.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                error: "AI service unavailable"
