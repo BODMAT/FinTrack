@@ -6,8 +6,8 @@ import { AppError } from "../../middleware/errorHandler.js";
 export async function login(email: string, password: string) {
 	const authMethod = await prisma.authMethod.findUnique({
 		where: {
-			email
-		}
+			email,
+		},
 	});
 
 	if (!authMethod) throw new AppError("Not found", 404);
@@ -19,28 +19,32 @@ export async function login(email: string, password: string) {
 	throw new AppError("Password is incorrect", 400);
 }
 
-export async function addRefreshToken(refreshToken: string, refreshTokenExpirationDate: Date, userId: string) {
+export async function addRefreshToken(
+	refreshToken: string,
+	refreshTokenExpirationDate: Date,
+	userId: string,
+) {
 	await prisma.refreshToken.create({
 		data: {
 			token: refreshToken,
 			expiresAt: refreshTokenExpirationDate,
-			userId
-		}
+			userId,
+		},
 	});
 }
 
 export async function refreshTokenExists(refreshToken: string) {
 	return await prisma.refreshToken.findUnique({
 		where: {
-			token: refreshToken
-		}
+			token: refreshToken,
+		},
 	});
 }
 
 export async function logout(refreshToken: string) {
 	return await prisma.refreshToken.delete({
 		where: {
-			token: refreshToken
-		}
+			token: refreshToken,
+		},
 	});
 }

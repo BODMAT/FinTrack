@@ -19,8 +19,8 @@ import { prisma } from "./client.js";
 					create: {
 						type: AuthType.EMAIL,
 						email: "makar@gmail.com",
-						password_hash: await bcrypt.hash(password, saltRounds)
-					}
+						password_hash: await bcrypt.hash(password, saltRounds),
+					},
 				},
 			},
 		});
@@ -32,8 +32,8 @@ import { prisma } from "./client.js";
 				authMethods: {
 					create: {
 						type: AuthType.TELEGRAM,
-						telegram_id: "1234567890"
-					}
+						telegram_id: "1234567890",
+					},
 				},
 			},
 		});

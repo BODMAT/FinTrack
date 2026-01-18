@@ -8,7 +8,9 @@ import swaggerUi from "swagger-ui-express";
 const HOST = ENV.HOST;
 const PORT = ENV.PORT;
 
-const { version } = JSON.parse(fs.readFileSync(path.resolve("./package.json"), "utf-8"));
+const { version } = JSON.parse(
+	fs.readFileSync(path.resolve("./package.json"), "utf-8"),
+);
 
 const options: swaggerJsdoc.Options = {
 	definition: {
@@ -16,32 +18,37 @@ const options: swaggerJsdoc.Options = {
 		info: {
 			title: "FinTrack API Docs",
 			version,
-			description: "API for Telegram bot and web dashboard of financial accounting"
+			description:
+				"API for Telegram bot and web dashboard of financial accounting",
 		},
 		servers: [
-			{ url: `http://${HOST}:${PORT}/api`, description: "FinTrack REST API" },
+			{
+				url: `http://${HOST}:${PORT}/api`,
+				description: "FinTrack REST API",
+			},
 		],
 		tags: [
 			{
 				name: "Auth",
-				description: "Authentication and operations with JWT tokens"
+				description: "Authentication and operations with JWT tokens",
 			},
 			{
 				name: "User",
-				description: "User-related operations"
+				description: "User-related operations",
 			},
 			{
 				name: "Transaction",
-				description: "Financial transaction management"
+				description: "Financial transaction management",
 			},
 			{
 				name: "Summary",
-				description: "Receiving financial reports and summaries"
+				description: "Receiving financial reports and summaries",
 			},
 			{
 				name: "AI",
-				description: "Integration with artificial intelligence for analysis"
-			}
+				description:
+					"Integration with artificial intelligence for analysis",
+			},
 		],
 		components: {
 			securitySchemes: {
@@ -58,10 +65,7 @@ const options: swaggerJsdoc.Options = {
 			},
 		],
 	},
-	apis: [
-		"./src/docs/definitions/**/*.yml",
-		"./src/modules/**/*.ts"
-	]
+	apis: ["./src/docs/definitions/**/*.yml", "./src/modules/**/*.ts"],
 };
 
 const swaggerSpec = swaggerJsdoc(options);
@@ -92,10 +96,13 @@ export function swaggerDocs(app: Express) {
 					const pathA = (a?.get?.("path") as string) ?? "";
 					const pathB = (b?.get?.("path") as string) ?? "";
 
-					return (order[methodA] ?? 99) - (order[methodB] ?? 99) || pathA.localeCompare(pathB);
+					return (
+						(order[methodA] ?? 99) - (order[methodB] ?? 99) ||
+						pathA.localeCompare(pathB)
+					);
 				},
 			},
-		})
+		}),
 	);
 
 	// Docs in JSON format

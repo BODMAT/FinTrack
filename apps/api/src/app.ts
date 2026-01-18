@@ -10,7 +10,7 @@ export const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use('/api', apiRouter);
+app.use("/api", apiRouter);
 swaggerDocs(app);
 
 app.use((req: Request, res: Response, next: NextFunction) => {

@@ -6,22 +6,27 @@ dotenv.config();
 const requiredEnvVars = [
 	"DATABASE_URL",
 	"REFRESH_TOKEN_SECRET",
-	"ACCESS_TOKEN_SECRET"
+	"ACCESS_TOKEN_SECRET",
 ];
 
 for (const key of requiredEnvVars) {
 	if (!process.env[key]) {
-		throw new AppError(`Missing required environment variable: ${key}`, 500);
+		throw new AppError(
+			`Missing required environment variable: ${key}`,
+			500,
+		);
 	}
 }
 
 const HF_API_TOKENS = Object.keys(process.env)
-	.filter(key => key.startsWith("HF_API_TOKEN"))
-	.map(key => process.env[key])
+	.filter((key) => key.startsWith("HF_API_TOKEN"))
+	.map((key) => process.env[key])
 	.filter((token): token is string => Boolean(token));
 
 if (HF_API_TOKENS.length === 0) {
-	console.warn("⚠️ Warning: No Hugging Face API tokens (HF_API_TOKEN_x) found in .env");
+	console.warn(
+		"⚠️ Warning: No Hugging Face API tokens (HF_API_TOKEN_x) found in .env",
+	);
 }
 
 export const ENV = {

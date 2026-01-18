@@ -2,10 +2,27 @@ import js from "@eslint/js";
 import globals from "globals";
 import tseslint from "typescript-eslint";
 import eslintConfigPrettier from "eslint-config-prettier";
+
+import reactPlugin from "eslint-plugin-react";
+import reactHooksPlugin from "eslint-plugin-react-hooks";
+
 import { defineConfig, globalIgnores } from "eslint/config";
 
 export default defineConfig([
 	globalIgnores(["dist", "node_modules"]),
+	{
+		ignores: [
+			"**/dist/**",
+			"**/node_modules/**",
+			"**/build/**",
+			"**/.turbo/**",
+			"**/temp/**",
+			"apps/api/dist/**",
+			"apps/web/dist/**",
+			//!===========================================================================================================
+			"apps/api/src/**",
+		],
+	},
 	// API (Node.js, TypeScript)
 	{
 		files: ["apps/api/**/*.ts"],
@@ -27,5 +44,32 @@ export default defineConfig([
 			"no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
 		},
 	},
-	// Here you can add separate blocks for web (React) and bot
+	// WEB (React / TypeScript)
+	{
+		files: ["apps/web/**/*.{ts,tsx}"],
+		plugins: {
+			react: reactPlugin,
+			"react-hooks": reactHooksPlugin,
+		},
+		extends: [
+			js.configs.recommended,
+			...tseslint.configs.recommended,
+			eslintConfigPrettier,
+		],
+		languageOptions: {
+			ecmaVersion: 2020,
+			sourceType: "module",
+			globals: {
+				...globals.browser,
+			},
+			parserOptions: {
+				ecmaFeatures: { jsx: true },
+			},
+		},
+		rules: {
+			...reactHooksPlugin.configs.recommended.rules,
+			"react/react-in-jsx-scope": "off",
+			semi: ["error", "always"],
+		},
+	},
 ]);

@@ -23,7 +23,7 @@ export function errorHandler(
 	err: unknown,
 	req: Request,
 	res: Response,
-	next: NextFunction
+	next: NextFunction,
 ) {
 	console.error(err instanceof Error ? err.stack : err);
 
@@ -35,8 +35,14 @@ export function errorHandler(
 		response = { error: "Validation failed", details: err.issues };
 	} else if (err instanceof Prisma.PrismaClientKnownRequestError) {
 		switch (err.code) {
-			case "P2002": statusCode = 409; response = { error: "Item already exists", details: err.meta }; break;
-			case "P2025": statusCode = 404; response = { error: "Not found", details: err.meta }; break;
+			case "P2002":
+				statusCode = 409;
+				response = { error: "Item already exists", details: err.meta };
+				break;
+			case "P2025":
+				statusCode = 404;
+				response = { error: "Not found", details: err.meta };
+				break;
 		}
 	} else if (err instanceof Prisma.PrismaClientValidationError) {
 		statusCode = 400;

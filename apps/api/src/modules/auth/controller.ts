@@ -26,16 +26,27 @@ export async function login(req: Request, res: Response, next: NextFunction) {
 
 		const payload: JwtPayload = {
 			id: user.id,
-			email: user.authMethods.find(m => m.type === "EMAIL")?.email ?? null,
-			telegram_id: user.authMethods.find(m => m.type === "TELEGRAM")?.telegram_id ?? null,
+			email:
+				user.authMethods.find((m) => m.type === "EMAIL")?.email ?? null,
+			telegram_id:
+				user.authMethods.find((m) => m.type === "TELEGRAM")
+					?.telegram_id ?? null,
 		};
 
 		const accessToken = generateAccessToken(payload);
 		const expiresIn = 7;
-		const refreshToken = jwt.sign(payload, REFRESH_TOKEN_SECRET, { expiresIn: `${expiresIn}d` });
+		const refreshToken = jwt.sign(payload, REFRESH_TOKEN_SECRET, {
+			expiresIn: `${expiresIn}d`,
+		});
 
-		const refreshTokenExpirationDate = new Date(Date.now() + expiresIn * 24 * 60 * 60 * 1000);
-		await authService.addRefreshToken(refreshToken, refreshTokenExpirationDate, user.id);
+		const refreshTokenExpirationDate = new Date(
+			Date.now() + expiresIn * 24 * 60 * 60 * 1000,
+		);
+		await authService.addRefreshToken(
+			refreshToken,
+			refreshTokenExpirationDate,
+			user.id,
+		);
 
 		res.status(200).json({ refreshToken, accessToken });
 	} catch (err) {
@@ -43,7 +54,11 @@ export async function login(req: Request, res: Response, next: NextFunction) {
 	}
 }
 
-export function authenticateToken(req: Request, res: Response, next: NextFunction) {
+export function authenticateToken(
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) {
 	try {
 		const authHeader = req.headers.authorization;
 		const token = authHeader?.split(" ")[1];
@@ -70,8 +85,7 @@ export function authenticateToken(req: Request, res: Response, next: NextFunctio
 			req.user = payload;
 			next();
 		});
-	}
-	catch (err) {
+	} catch (err) {
 		next(err);
 	}
 }
@@ -81,7 +95,8 @@ export async function token(req: Request, res: Response, next: NextFunction) {
 		const refreshToken = req.body.token;
 		if (!refreshToken) throw new AppError("Missing refresh token", 401);
 
-		const existingToken = await authService.refreshTokenExists(refreshToken);
+		const existingToken =
+			await authService.refreshTokenExists(refreshToken);
 		if (!existingToken) throw new AppError("Invalid refresh token", 401);
 
 		if (existingToken.expiresAt < new Date()) {
@@ -92,9 +107,10 @@ export async function token(req: Request, res: Response, next: NextFunction) {
 		try {
 			const decoded = jwt.verify(refreshToken, REFRESH_TOKEN_SECRET);
 			const refreshTokenPayloadSchema = z.object({
-				id: z.uuid()
+				id: z.uuid(),
 			});
-			const refreshTokenPayload = refreshTokenPayloadSchema.parse(decoded);
+			const refreshTokenPayload =
+				refreshTokenPayloadSchema.parse(decoded);
 
 			const accessToken = generateAccessToken({
 				id: refreshTokenPayload.id,
@@ -115,8 +131,10 @@ export async function logout(req: Request, res: Response, next: NextFunction) {
 	try {
 		const refreshToken = req.body.token;
 		if (!refreshToken) throw new AppError("Missing refresh token", 401);
-		const existingToken = await authService.refreshTokenExists(refreshToken);
-		if (!existingToken) throw new AppError("Invalid refresh token signature", 401);
+		const existingToken =
+			await authService.refreshTokenExists(refreshToken);
+		if (!existingToken)
+			throw new AppError("Invalid refresh token signature", 401);
 
 		await authService.logout(refreshToken);
 		res.sendStatus(204);

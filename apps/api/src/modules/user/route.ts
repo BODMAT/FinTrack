@@ -1,6 +1,17 @@
 import express from "express";
 import { authenticateToken } from "../auth/controller.js";
-import { getAllUsers, getUser, getCurrentUser, createUser, updateUser, updateCurrentUser, deleteUser, deleteCurrentUser, deleteAuthMethod, deleteAuthMethodForCurrentUser } from "./controller.js";
+import {
+	getAllUsers,
+	getUser,
+	getCurrentUser,
+	createUser,
+	updateUser,
+	updateCurrentUser,
+	deleteUser,
+	deleteCurrentUser,
+	deleteAuthMethod,
+	deleteAuthMethodForCurrentUser,
+} from "./controller.js";
 
 export const userRouter = express.Router();
 
@@ -15,4 +26,8 @@ userRouter.patch("/me", authenticateToken, updateCurrentUser);
 // userRouter.delete("/:id", authenticateToken, deleteUser);
 userRouter.delete("/me", authenticateToken, deleteCurrentUser);
 // userRouter.delete("/:userId/auth-methods/:authMethodId", authenticateToken, deleteAuthMethod);
-userRouter.delete("/me/auth-methods/:authMethodId", authenticateToken, deleteAuthMethodForCurrentUser);
+userRouter.delete(
+	"/me/auth-methods/:authMethodId",
+	authenticateToken,
+	deleteAuthMethodForCurrentUser,
+);

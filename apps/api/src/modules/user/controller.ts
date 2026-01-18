@@ -16,7 +16,7 @@ const createAuthMethodSchema = z.discriminatedUnion("type", [
 	z.object({
 		type: z.literal("TELEGRAM"),
 		telegram_id: z.string().min(1),
-	})
+	}),
 ]);
 
 const updateAuthMethodSchema = z.discriminatedUnion("type", [
@@ -28,7 +28,7 @@ const updateAuthMethodSchema = z.discriminatedUnion("type", [
 	z.object({
 		type: z.literal("TELEGRAM"),
 		telegram_id: z.string().min(1),
-	})
+	}),
 ]);
 
 const createUserSchema = z.object({
@@ -36,14 +36,23 @@ const createUserSchema = z.object({
 	photo_url: z.url().nullish(),
 	created_at: z.coerce.date().optional(),
 	updated_at: z.coerce.date().optional(),
-	authMethods: z.array(createAuthMethodSchema)
+	authMethods: z
+		.array(createAuthMethodSchema)
 		.min(1)
 		.max(2)
-		.refine((methods) => {
-			const types = methods.map(m => m.type);
-			return types.filter(t => t === "EMAIL").length <= 1 &&
-				types.filter(t => t === "TELEGRAM").length <= 1;
-		}, { message: "You can add a maximum of one EMAIL and one TELEGRAM authentication method" })
+		.refine(
+			(methods) => {
+				const types = methods.map((m) => m.type);
+				return (
+					types.filter((t) => t === "EMAIL").length <= 1 &&
+					types.filter((t) => t === "TELEGRAM").length <= 1
+				);
+			},
+			{
+				message:
+					"You can add a maximum of one EMAIL and one TELEGRAM authentication method",
+			},
+		),
 });
 
 const updateUserSchema = z.object({
@@ -51,14 +60,23 @@ const updateUserSchema = z.object({
 	photo_url: z.url().nullish(),
 	created_at: z.coerce.date().optional(),
 	updated_at: z.coerce.date().optional(),
-	authMethods: z.array(updateAuthMethodSchema)
+	authMethods: z
+		.array(updateAuthMethodSchema)
 		.max(2)
-		.refine((methods) => {
-			const types = methods.map(m => m.type);
-			return types.filter(t => t === "EMAIL").length <= 1 &&
-				types.filter(t => t === "TELEGRAM").length <= 1;
-		}, { message: "You can add a maximum of one EMAIL and one TELEGRAM authentication method" })
-		.optional()
+		.refine(
+			(methods) => {
+				const types = methods.map((m) => m.type);
+				return (
+					types.filter((t) => t === "EMAIL").length <= 1 &&
+					types.filter((t) => t === "TELEGRAM").length <= 1
+				);
+			},
+			{
+				message:
+					"You can add a maximum of one EMAIL and one TELEGRAM authentication method",
+			},
+		)
+		.optional(),
 });
 
 // Controllers
@@ -81,7 +99,11 @@ export async function getUser(req: Request, res: Response, next: NextFunction) {
 	}
 }
 
-export async function getCurrentUser(req: Request, res: Response, next: NextFunction) {
+export async function getCurrentUser(
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) {
 	try {
 		const id = req.user?.id;
 		if (!id) throw new AppError("Unauthorized", 401);
@@ -95,7 +117,11 @@ export async function getCurrentUser(req: Request, res: Response, next: NextFunc
 	}
 }
 
-export async function createUser(req: Request, res: Response, next: NextFunction) {
+export async function createUser(
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) {
 	try {
 		const validatedBody = createUserSchema.parse(req.body);
 		const saltRounds = 10;
@@ -106,8 +132,11 @@ export async function createUser(req: Request, res: Response, next: NextFunction
 					return {
 						type: "EMAIL" as const,
 						email: method.email,
-						password_hash: await bcrypt.hash(method.password, saltRounds),
-						telegram_id: null
+						password_hash: await bcrypt.hash(
+							method.password,
+							saltRounds,
+						),
+						telegram_id: null,
 					};
 				}
 
@@ -115,16 +144,20 @@ export async function createUser(req: Request, res: Response, next: NextFunction
 					type: "TELEGRAM" as const,
 					email: null,
 					password_hash: null,
-					telegram_id: method.telegram_id
+					telegram_id: method.telegram_id,
 				};
-			})
+			}),
 		);
 
 		const prismaData: Prisma.UserCreateInput = {
 			name: validatedBody.name,
 			photo_url: validatedBody.photo_url ?? null,
-			...(validatedBody.created_at ? { created_at: validatedBody.created_at } : {}),
-			...(validatedBody.updated_at ? { updated_at: validatedBody.updated_at } : {}),
+			...(validatedBody.created_at
+				? { created_at: validatedBody.created_at }
+				: {}),
+			...(validatedBody.updated_at
+				? { updated_at: validatedBody.updated_at }
+				: {}),
 			authMethods: {
 				create: authMethodsWithHash,
 			},
@@ -137,7 +170,11 @@ export async function createUser(req: Request, res: Response, next: NextFunction
 	}
 }
 
-export async function updateUser(req: Request, res: Response, next: NextFunction) {
+export async function updateUser(
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) {
 	try {
 		const { id } = req.params;
 		if (!id) throw new AppError("User ID is required");
@@ -145,39 +182,46 @@ export async function updateUser(req: Request, res: Response, next: NextFunction
 		const validatedBody = updateUserSchema.parse(req.body);
 
 		const prismaData: Prisma.UserUpdateInput = {};
-		if (validatedBody.name !== undefined) prismaData.name = validatedBody.name;
-		if (validatedBody.photo_url !== undefined) prismaData.photo_url = validatedBody.photo_url;
-		if (validatedBody.created_at !== undefined) prismaData.created_at = validatedBody.created_at;
-		if (validatedBody.updated_at !== undefined) prismaData.updated_at = validatedBody.updated_at;
+		if (validatedBody.name !== undefined)
+			prismaData.name = validatedBody.name;
+		if (validatedBody.photo_url !== undefined)
+			prismaData.photo_url = validatedBody.photo_url;
+		if (validatedBody.created_at !== undefined)
+			prismaData.created_at = validatedBody.created_at;
+		if (validatedBody.updated_at !== undefined)
+			prismaData.updated_at = validatedBody.updated_at;
 
 		const validatedAuthMethods: {
 			type: "EMAIL" | "TELEGRAM";
 			email?: string;
 			password?: string;
 			telegram_id?: string;
-		}[] = validatedBody.authMethods?.map(m => {
-			if (m.type === "EMAIL") {
-				return {
-					type: "EMAIL" as const,
-					...(m.email && { email: m.email }),
-					...(m.password && { password: m.password }),
-				};
-			}
-			return {
-				type: "TELEGRAM" as const,
-				telegram_id: m.telegram_id
-			};
-		}) ?? [];
-
-		await prisma.$transaction(
-			async (tx) => {
-				await userService.updateUser(tx, id, prismaData);
-
-				if (validatedBody.authMethods) {
-					await userService.updateUserAuthMethods(tx, id, validatedAuthMethods);
+		}[] =
+			validatedBody.authMethods?.map((m) => {
+				if (m.type === "EMAIL") {
+					return {
+						type: "EMAIL" as const,
+						...(m.email && { email: m.email }),
+						...(m.password && { password: m.password }),
+					};
 				}
+				return {
+					type: "TELEGRAM" as const,
+					telegram_id: m.telegram_id,
+				};
+			}) ?? [];
+
+		await prisma.$transaction(async (tx) => {
+			await userService.updateUser(tx, id, prismaData);
+
+			if (validatedBody.authMethods) {
+				await userService.updateUserAuthMethods(
+					tx,
+					id,
+					validatedAuthMethods,
+				);
 			}
-		);
+		});
 
 		const updatedUser = await userService.getUser(id);
 		res.status(200).json(updatedUser);
@@ -186,7 +230,11 @@ export async function updateUser(req: Request, res: Response, next: NextFunction
 	}
 }
 
-export async function updateCurrentUser(req: Request, res: Response, next: NextFunction) {
+export async function updateCurrentUser(
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) {
 	try {
 		const id = req.user?.id;
 		if (!id) throw new AppError("Unauthorized", 401);
@@ -194,39 +242,46 @@ export async function updateCurrentUser(req: Request, res: Response, next: NextF
 		const validatedBody = updateUserSchema.parse(req.body);
 
 		const prismaData: Prisma.UserUpdateInput = {};
-		if (validatedBody.name !== undefined) prismaData.name = validatedBody.name;
-		if (validatedBody.photo_url !== undefined) prismaData.photo_url = validatedBody.photo_url;
-		if (validatedBody.created_at !== undefined) prismaData.created_at = validatedBody.created_at;
-		if (validatedBody.updated_at !== undefined) prismaData.updated_at = validatedBody.updated_at;
+		if (validatedBody.name !== undefined)
+			prismaData.name = validatedBody.name;
+		if (validatedBody.photo_url !== undefined)
+			prismaData.photo_url = validatedBody.photo_url;
+		if (validatedBody.created_at !== undefined)
+			prismaData.created_at = validatedBody.created_at;
+		if (validatedBody.updated_at !== undefined)
+			prismaData.updated_at = validatedBody.updated_at;
 
 		const validatedAuthMethods: {
 			type: "EMAIL" | "TELEGRAM";
 			email?: string;
 			password?: string;
 			telegram_id?: string;
-		}[] = validatedBody.authMethods?.map(m => {
-			if (m.type === "EMAIL") {
-				return {
-					type: "EMAIL" as const,
-					...(m.email && { email: m.email }),
-					...(m.password && { password: m.password }),
-				};
-			}
-			return {
-				type: "TELEGRAM" as const,
-				telegram_id: m.telegram_id
-			};
-		}) ?? [];
-
-		await prisma.$transaction(
-			async (tx) => {
-				await userService.updateUser(tx, id, prismaData);
-
-				if (validatedBody.authMethods) {
-					await userService.updateUserAuthMethods(tx, id, validatedAuthMethods);
+		}[] =
+			validatedBody.authMethods?.map((m) => {
+				if (m.type === "EMAIL") {
+					return {
+						type: "EMAIL" as const,
+						...(m.email && { email: m.email }),
+						...(m.password && { password: m.password }),
+					};
 				}
+				return {
+					type: "TELEGRAM" as const,
+					telegram_id: m.telegram_id,
+				};
+			}) ?? [];
+
+		await prisma.$transaction(async (tx) => {
+			await userService.updateUser(tx, id, prismaData);
+
+			if (validatedBody.authMethods) {
+				await userService.updateUserAuthMethods(
+					tx,
+					id,
+					validatedAuthMethods,
+				);
 			}
-		);
+		});
 
 		const updatedUser = await userService.getUser(id);
 		res.status(200).json(updatedUser);
@@ -235,7 +290,11 @@ export async function updateCurrentUser(req: Request, res: Response, next: NextF
 	}
 }
 
-export async function deleteUser(req: Request, res: Response, next: NextFunction) {
+export async function deleteUser(
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) {
 	try {
 		const { id } = req.params;
 		if (!id) throw new AppError("User ID is required");
@@ -247,7 +306,11 @@ export async function deleteUser(req: Request, res: Response, next: NextFunction
 	}
 }
 
-export async function deleteCurrentUser(req: Request, res: Response, next: NextFunction) {
+export async function deleteCurrentUser(
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) {
 	try {
 		const id = req.user?.id;
 		if (!id) throw new AppError("Unauthorized", 401);
@@ -259,7 +322,11 @@ export async function deleteCurrentUser(req: Request, res: Response, next: NextF
 	}
 }
 
-export async function deleteAuthMethod(req: Request, res: Response, next: NextFunction) {
+export async function deleteAuthMethod(
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) {
 	try {
 		const { userId, authMethodId } = req.params;
 		if (!userId) throw new AppError("User ID is required");
@@ -272,7 +339,11 @@ export async function deleteAuthMethod(req: Request, res: Response, next: NextFu
 	}
 }
 
-export async function deleteAuthMethodForCurrentUser(req: Request, res: Response, next: NextFunction) {
+export async function deleteAuthMethodForCurrentUser(
+	req: Request,
+	res: Response,
+	next: NextFunction,
+) {
 	try {
 		const userId = req.user?.id;
 		const { authMethodId } = req.params;
