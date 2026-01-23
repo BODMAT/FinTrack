@@ -1,7 +1,12 @@
-import type { CustomDate, IData } from "../types/custom";
+import type { CustomDate } from "../types/custom";
+import type { TransactionsListResponse } from "../types/transaction";
 import { simpleMemoize3 } from "./other";
 
-export function groupData(data: IData[], range: CustomDate, nowDate?: Date) {
+export function groupData(
+	data: TransactionsListResponse,
+	range: CustomDate,
+	nowDate?: Date,
+) {
 	const now = nowDate || new Date();
 
 	function getStartOfWeek(date: Date): Date {
@@ -18,8 +23,10 @@ export function groupData(data: IData[], range: CustomDate, nowDate?: Date) {
 		{ income: number; outcome: number; rawDate: Date }
 	>();
 
-	const filtered = data.filter((item) => {
-		const date = new Date(item.created_at);
+	const filtered = data.data.filter((item) => {
+		const date = item.created_at;
+
+		if (!date) return false;
 
 		if (range === "day") {
 			return date.toDateString() === now.toDateString();
@@ -48,7 +55,9 @@ export function groupData(data: IData[], range: CustomDate, nowDate?: Date) {
 	});
 
 	for (const item of filtered) {
-		const date = new Date(item.created_at);
+		if (!item.created_at) continue;
+
+		const date = item.created_at;
 		let key = "";
 		let rawDate = new Date(date);
 

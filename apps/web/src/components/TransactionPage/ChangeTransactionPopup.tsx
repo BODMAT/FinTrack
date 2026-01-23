@@ -1,252 +1,305 @@
-// import { useEffect, useState } from "react";
-// import { sanitizeAmountInput, toLocalDatetimeString } from "../../utils/components";
-// import type { IData, IDataForm, IErrorState } from "../../types/custom";
-// import { generateId } from "../../utils/data.helpers";
-// import { usePopupStore } from "../../store/popup";
-// import { CustomMessage } from "../Helpers";
-// import { useUser } from "../../hooks/useAuth";
+import { useState } from "react";
+import { toLocalDatetimeString } from "../../utils/components";
+import { usePopupStore } from "../../store/popup";
+import { CustomMessage } from "../Helpers";
+import {
+	useTransaction,
+	useTransactionMutations,
+} from "../../hooks/useTransactions";
+import type {
+	CreateTransaction,
+	FormTransaction,
+	UpdateTransaction,
+	ResponseTransaction,
+} from "../../types/transaction";
+import { useNumericValidator } from "../../hooks/useNumericValidator";
 
-// export function ChangeTransactionPopup({ id }: { id?: string | undefined }) {
-//     const { changeDataByIdAsync, getUserDataById } = useUser();
-//     const { data: currentData } = getUserDataById(id ?? "", {
-//         enabled: !!id
-//     });
+export function ChangeTransactionPopup({ id }: { id?: string }) {
+	const { data: transaction, isLoading } = useTransaction({
+		id,
+		enabled: !!id,
+	});
 
-//     const { open, close } = usePopupStore();
-//     const [form, setForm] = useState<IDataForm>({
-//         userId: "97e72bd8-96c2-4150-a98e-852de2ab46e8",
-//         id: generateId(),
-//         created_at: new Date().toISOString(),
-//         title: "",
-//         amount: "0",
-//         location: { latitude: "0", longitude: "0" },
-//         type: "INCOME",
-//     });
+	if (id && isLoading) return <div>Loading...</div>;
 
-//     useEffect(() => {
-//         if (currentData) {
-//             setForm({
-//                 userId: currentData.userId,
-//                 id: currentData.id,
-//                 created_at: currentData.created_at,
-//                 title: currentData.title,
-//                 amount: String(currentData.amount),
-//                 location: {
-//                     latitude: String(currentData.location?.latitude ?? 0),
-//                     longitude: String(currentData.location?.longitude ?? 0),
-//                 },
-//                 type: currentData.type,
-//             });
-//         }
-//     }, [currentData]);
+	return <TransactionFormContent id={id} initialData={transaction} />;
+}
 
-//     const handleChangeTransaction = async (e: React.FormEvent<HTMLFormElement>) => {
-//         try {
-//             e.preventDefault();
-//             const numericAmount = Number(form.amount.replace(",", "."));
-//             const numericLocationLat = Number(form.location?.latitude.replace(",", "."));
-//             const numericLocationLng = Number(form.location?.longitude.replace(",", "."));
-//             if (isNaN(numericAmount) || isNaN(numericLocationLat) || isNaN(numericLocationLng)) {
-//                 console.error("Invalid numeric values:", numericAmount, numericLocationLat, numericLocationLng);
-//                 return;
-//             }
+function TransactionFormContent({
+	id,
+	initialData,
+}: {
+	id?: string;
+	initialData?: ResponseTransaction;
+}) {
+	const {
+		updateTx,
+		isUpdating,
+		createTx,
+		isCreating,
+		createTxErrorMessage,
+		updateTxErrorMessage,
+	} = useTransactionMutations();
 
-//             const data: IData = {
-//                 userId: form.userId,
-//                 id: form.id,
-//                 title: form.title,
-//                 amount: String(numericAmount),
-//                 created_at: form.created_at,
-//                 type: form.type,
-//                 ...(numericLocationLat !== 0 && numericLocationLng !== 0
-//                     ? { location: { latitude: numericLocationLat, longitude: numericLocationLng } }
-//                     : {}),
-//             };
+	const { open, close } = usePopupStore();
+	const [form, setForm] = useState<FormTransaction>({
+		created_at: initialData?.created_at,
+		amount: initialData?.amount?.toString() || "",
+		title: initialData?.title || "",
+		latitude: initialData?.location?.latitude.toString(),
+		longitude: initialData?.location?.longitude.toString(),
+		type: initialData?.type || "INCOME",
+	});
 
-//             if (id) {
-//                 await changeDataByIdAsync({ dataId: data.id, newData: data });
-//                 close();
-//                 setTimeout(() => open("Notification", <CustomMessage message="Transaction changed successfully!" />), 300);
-//             } else {
-//                 await changeDataByIdAsync({ dataId: data.id, newData: data, isNewOrChange: true });
-//                 close();
-//                 setTimeout(() => open("Notification", <CustomMessage message="Transaction added successfully!" />), 300);
-//             }
+	const { formError, validateNumericInput } = useNumericValidator();
 
-//         } catch (error) {
-//             open("Error", <CustomMessage message={`Something went wrong! ${error}`} />);
-//         }
-//     }
+	const handleNumericChange = (
+		field: "amount" | "latitude" | "longitude",
+		value: string,
+		min?: number,
+		max?: number,
+	) => {
+		setForm((prev) => ({
+			...prev,
+			[field]: validateNumericInput(prev[field] || "", value, min, max),
+		}));
+	};
 
-//     const [error, setError] = useState<IErrorState>({
-//         date: null,
-//         lat: null,
-//         lng: null
-//     });
+	const handleChangeTransaction = async (
+		e: React.FormEvent<HTMLFormElement>,
+	) => {
+		try {
+			e.preventDefault();
+			const data: CreateTransaction = {
+				title: form.title,
+				type: form.type,
+				created_at: form.created_at,
+				updated_at: new Date(),
+				amount: +form.amount,
+			};
+			if (form.latitude && form.longitude) {
+				data.location = {
+					latitude: +form.latitude,
+					longitude: +form.longitude,
+				};
+			}
+			if (id) {
+				await updateTx({
+					id,
+					payload: data satisfies UpdateTransaction,
+				});
+				close();
+				setTimeout(
+					() =>
+						open(
+							"Notification",
+							<CustomMessage message="Transaction changed successfully!" />,
+						),
+					300,
+				);
+			} else {
+				await createTx(data satisfies CreateTransaction);
+				close();
+				setTimeout(
+					() =>
+						open(
+							"Notification",
+							<CustomMessage message="Transaction added successfully!" />,
+						),
+					300,
+				);
+			}
+		} catch (error) {
+			open(
+				"Error",
+				<CustomMessage
+					message={`Something went wrong! ${createTxErrorMessage || updateTxErrorMessage || error || ""}`}
+				/>,
+			);
+		}
+	};
 
-//     useEffect(() => {
-//         if (error.date || error.lat || error.lng) {
-//             setTimeout(() => {
-//                 setError({
-//                     date: null,
-//                     lat: null,
-//                     lng: null
-//                 });
-//             }, 3000);
-//         }
-//     }, [error]);
+	const isLocationIncomplete = !!form.latitude !== !!form.longitude;
+	const isInvalid =
+		!!formError || isLocationIncomplete || !form.amount || !form.title;
 
-//     const handleLocationChange = (key: "lat" | "lng", value: string) => {
-//         const sanitized = value.replace(/[^0-9.]/g, "").replace(/(\..*)\./g, "$1");
+	return (
+		<div className="bg-[var(--color-card)] rounded-[10px] p-[20px] mx-auto">
+			<form
+				className="flex flex-col gap-5"
+				onSubmit={handleChangeTransaction}
+			>
+				<div className="flex items-center gap-5 max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
+					<label
+						className="text-[var(--color-text)] text-[20px] font-semibold min-w-30"
+						htmlFor="location"
+					>
+						Title:
+					</label>
+					<input
+						required
+						type="text"
+						id="title"
+						placeholder="Title..."
+						value={form.title}
+						onChange={(e) =>
+							setForm({ ...form, title: e.target.value })
+						}
+						className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
+					/>
+				</div>
+				<div className="flex items-center gap-5 max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
+					<label
+						className="text-[var(--color-text)] text-[20px] font-semibold min-w-30"
+						htmlFor="date"
+					>
+						Date:
+					</label>
+					<input
+						required
+						type="datetime-local"
+						max={toLocalDatetimeString(new Date())}
+						value={toLocalDatetimeString(
+							form.created_at || new Date(),
+						)}
+						onChange={(e) =>
+							setForm({
+								...form,
+								created_at: new Date(e.target.value),
+							})
+						}
+						id="date"
+						className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
+					/>
+				</div>
+				<div className="flex items-center gap-5 max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
+					<label
+						className="text-[var(--color-text)] text-[20px] font-semibold min-w-30"
+						htmlFor="amount"
+					>
+						Amount:
+					</label>
+					<input
+						required
+						type="text"
+						inputMode="decimal"
+						id="amount"
+						min={1}
+						placeholder="Amount..."
+						value={form.amount}
+						onChange={(e) =>
+							handleNumericChange("amount", e.target.value, 1)
+						}
+						className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
+					/>
+				</div>
 
-//         if (key === "lat" && (Number(sanitized) > 90 || Number(sanitized) < -90)) {
-//             setError({
-//                 ...error,
-//                 lat: "Latitude must be between -90 and 90",
-//             });
-//             return;
-//         };
-//         if (key === "lng" && (Number(sanitized) > 180 || Number(sanitized) < -180)) {
-//             setError({
-//                 ...error,
-//                 lng: "Longitude must be between -180 and 180",
-//             });
-//             return;
-//         };
+				{/* Location */}
+				<div className="flex items-center gap-5 max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
+					<label
+						htmlFor="locationLat"
+						className="text-[var(--color-text)] text-[20px] font-semibold min-w-30"
+					>
+						Latitude:
+					</label>
+					<input
+						type="text"
+						inputMode="decimal"
+						id="locationLat"
+						placeholder="23,456"
+						min={-90}
+						max={90}
+						value={form.latitude}
+						onChange={(e) =>
+							handleNumericChange(
+								"latitude",
+								e.target.value,
+								-90,
+								90,
+							)
+						}
+						className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
+					/>
+				</div>
 
-//         setForm({
-//             ...form,
-//             location: {
-//                 latitude: key === "lat" ? sanitized : form.location?.latitude ?? "",
-//                 longitude: key === "lng" ? sanitized : form.location?.longitude ?? "",
-//             },
-//         });
-//     };
+				<div className="flex items-center gap-5 max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
+					<label
+						htmlFor="locationLng"
+						className="text-[var(--color-text)] text-[20px] font-semibold min-w-30"
+					>
+						Longitude:
+					</label>
+					<input
+						type="text"
+						inputMode="decimal"
+						id="locationLng"
+						placeholder="23,456"
+						min={-180}
+						max={180}
+						value={form.longitude}
+						onChange={(e) =>
+							handleNumericChange(
+								"longitude",
+								e.target.value,
+								-180,
+								180,
+							)
+						}
+						className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
+					/>
+				</div>
+				<div className="flex gap-7 items-center justify-center max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
+					<label className="text-[var(--color-text)] text-[20px] font-semibold">
+						<input
+							className="mr-3"
+							type="radio"
+							name="transactionType"
+							checked={form.type === "INCOME"}
+							onChange={() =>
+								setForm({ ...form, type: "INCOME" })
+							}
+						/>
+						Income
+					</label>
+					<label className="text-[var(--color-text)] text-[20px] font-semibold">
+						<input
+							className="mr-3"
+							type="radio"
+							name="transactionType"
+							checked={form.type === "EXPENSE"}
+							onChange={() =>
+								setForm({ ...form, type: "EXPENSE" })
+							}
+						/>
+						Outcome
+					</label>
+				</div>
 
-//     const handleChangeDate = (e: React.ChangeEvent<HTMLInputElement>) => {
-//         const selectedDate = new Date(e.target.value);
-//         const today = new Date();
-//         today.setHours(0, 0, 0, 0);
+				<div className="min-h-[24px]">
+					{formError && (
+						<p className="text-red-500 text-sm animate-pulse">
+							⚠️ {formError}
+						</p>
+					)}
+					{isLocationIncomplete && (
+						<p className="text-red-500 text-sm animate-pulse">
+							⚠️ Fill both location fields or leave them empty
+						</p>
+					)}
+				</div>
 
-//         if (selectedDate > today) {
-//             setError({
-//                 ...error,
-//                 date: "Invalid date. Please enter today or earlier.",
-//             });
-//             return;
-//         }
-
-//         setForm({ ...form, created_at: selectedDate.toISOString() });
-//         setError({ ...error, date: null });
-//     };
-
-//     return (
-//         <div className="bg-[var(--color-card)] rounded-[10px] p-[20px] mx-auto">
-//             <form className="flex flex-col gap-5" onSubmit={handleChangeTransaction}>
-//                 <div className="flex items-center gap-5 max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
-//                     <label className="text-[var(--color-text)] text-[20px] font-semibold min-w-30" htmlFor="location">
-//                         Title:
-//                     </label>
-//                     <input
-//                         type="text"
-//                         id="title"
-//                         value={form.title}
-//                         onChange={(e) => setForm({ ...form, title: e.target.value })}
-//                         className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
-//                     />
-//                 </div>
-//                 <div className="flex items-center gap-5 max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
-//                     <label className="text-[var(--color-text)] text-[20px] font-semibold min-w-30" htmlFor="date">
-//                         Date:
-//                     </label>
-//                     <input
-//                         type="datetime-local"
-//                         value={toLocalDatetimeString(new Date(form.created_at))}
-//                         onChange={(e) => handleChangeDate(e)}
-//                         id="date"
-//                         className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
-//                     />
-//                 </div>
-//                 {error.date && <p className="text-[red] text-center">{error.date}</p>}
-//                 <div className="flex items-center gap-5 max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
-//                     <label className="text-[var(--color-text)] text-[20px] font-semibold min-w-30" htmlFor="amount">
-//                         Amount:
-//                     </label>
-//                     <input
-//                         type="text"
-//                         id="amount"
-//                         value={form.amount}
-//                         onChange={(e) => setForm({ ...form, amount: sanitizeAmountInput(e.target.value) })}
-//                         className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
-//                     />
-//                 </div>
-
-//                 {/* Location */}
-//                 <div className="flex items-center gap-5 max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
-//                     <label htmlFor="locationLat" className="text-[var(--color-text)] text-[20px] font-semibold min-w-30">
-//                         Latitude:
-//                     </label>
-//                     <input
-//                         type="text"
-//                         id="locationLat"
-//                         placeholder="23.456"
-//                         value={form.location?.latitude}
-//                         onChange={(e) => handleLocationChange("lat", e.target.value)}
-//                         className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
-//                     />
-//                 </div>
-//                 {error.lat && <span className="text-[red] text-center">{error.lat}</span>}
-
-//                 <div className="flex items-center gap-5 max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
-//                     <label htmlFor="locationLng" className="text-[var(--color-text)] text-[20px] font-semibold min-w-30">
-//                         Longitude:
-//                     </label>
-//                     <input
-//                         type="text"
-//                         id="locationLng"
-//                         placeholder="23.456"
-//                         value={form.location?.longitude}
-//                         onChange={(e) => handleLocationChange("lng", e.target.value)}
-//                         className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
-//                     />
-//                 </div>
-//                 {error.lng && <span className="text-[red] text-center">{error.lng}</span>}
-
-//                 <div className="flex gap-7 items-center justify-center max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
-//                     <label className="text-[var(--color-text)] text-[20px] font-semibold">
-//                         <input
-//                             className="mr-3"
-//                             type="radio"
-//                             name="transactionType"
-//                             checked={form.type === "INCOME"}
-//                             onChange={() => setForm({ ...form, type: "INCOME" })}
-//                         />
-//                         Income
-//                     </label>
-//                     <label className="text-[var(--color-text)] text-[20px] font-semibold">
-//                         <input
-//                             className="mr-3"
-//                             type="radio"
-//                             name="transactionType"
-//                             checked={form.type === "EXPENSE"}
-//                             onChange={() => setForm({ ...form, type: "EXPENSE" })}
-//                         />
-//                         Outcome
-//                     </label>
-//                 </div>
-
-//                 <button
-//                     type="submit"
-//                     className="bg-[var(--color-hover)] text-[var(--color-fixed)] rounded-[10px] p-[10px] w-full hover:bg-[var(--color-hover-reverse)] hover:text-[var(--color-hover)] transitioned cursor-pointer"
-//                 >
-//                     {id ? "Change transaction" : "Create transaction"}
-//                 </button>
-//             </form>
-//         </div>
-//     );
-// }
-
-export function ChangeTransactionPopup({ id }: { id?: string | undefined }) {
-	console.log(id);
-	return null;
+				<button
+					disabled={isCreating || isUpdating || isInvalid}
+					type="submit"
+					className="bg-[var(--color-hover)] text-[var(--color-fixed)] rounded-[10px] p-[10px] w-full not-disabled:hover:bg-[var(--color-hover-reverse)] not-disabled:hover:text-[var(--color-hover)] transitioned cursor-pointer disabled:cursor-not-allowed"
+				>
+					{isCreating || isUpdating
+						? "Processing..."
+						: id
+							? "Save Changes"
+							: "Create Transaction"}
+				</button>
+			</form>
+		</div>
+	);
 }

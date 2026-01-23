@@ -1,15 +1,15 @@
-import type { IData } from "../../types/custom";
 import DeleteIcon from "../../assets/transactions/delete-icon.svg?react";
 import ChangeIcon from "../../assets/transactions/edit-box-icon.svg?react";
 import { usePopupStore } from "../../store/popup";
+import type { ResponseTransaction } from "../../types/transaction";
 import { ChangeTransactionPopup } from "./ChangeTransactionPopup";
 import { DeleteTransactionPopup } from "./DeleteTransactionPopup";
 
-export function TransactionsCard({ data }: { data: IData }) {
+export function TransactionsCard({ data }: { data: ResponseTransaction }) {
 	const { open } = usePopupStore();
 
 	const handleOpenChange = (id: string) => () =>
-		open("Change transaction", <ChangeTransactionPopup id={id} />);
+		open("Change transaction", <ChangeTransactionPopup id={id} key={id} />);
 	const handleOpenDelete = (id: string) => () =>
 		open("Delete transaction", <DeleteTransactionPopup id={id} />);
 	return (
@@ -26,14 +26,17 @@ export function TransactionsCard({ data }: { data: IData }) {
 				{data.type === "INCOME" ? "Income" : "Outcome"}
 			</span>
 			<span className="col-span-2 max-[1000px]:col-span-1 justify-self-center px-2 break-words whitespace-normal text-center">
-				{`${new Date(data.created_at).toLocaleDateString("en-GB", {
+				{`${new Date(data.created_at || 0).toLocaleDateString("en-GB", {
 					day: "2-digit",
 					month: "short",
 					year: "numeric",
-				})} ${new Date(data.created_at).toLocaleTimeString("en-GB", {
-					hour: "2-digit",
-					minute: "2-digit",
-				})}`}
+				})} ${new Date(data.created_at || 0).toLocaleTimeString(
+					"en-GB",
+					{
+						hour: "2-digit",
+						minute: "2-digit",
+					},
+				)}`}
 			</span>
 			<span className="text-center col-span-2 max-[1300px]:col-span-1 justify-self-center px-2 break-words whitespace-normal">
 				{data.location

@@ -1,50 +1,74 @@
-import type { IData } from "../types/custom";
+import type {
+	ResponseTransaction,
+	TransactionsListResponse,
+} from "../types/transaction";
 
 export const getFilteredData = (
-	data: IData[] | undefined,
+	data: TransactionsListResponse | undefined,
 	searchQuery: string,
-): IData[] | undefined => {
-	searchQuery = searchQuery.trim().toLowerCase();
-	if (!searchQuery) return data;
+): TransactionsListResponse | undefined => {
+	const query = searchQuery.trim().toLowerCase();
+	if (!query || !data) return data;
 
-	const words = searchQuery.split(/\s+/);
+	const words = query.split(/\s+/);
 
-	return data?.filter((item) => {
-		const dateObj = new Date(item.created_at);
-		const dateVariants = [
-			dateObj.toLocaleDateString("uk-UA"),
-			dateObj.toLocaleDateString("en-GB"),
-			dateObj.toLocaleDateString("en-US", {
-				month: "short",
-				day: "numeric",
-				year: "numeric",
-			}),
-			dateObj.toLocaleTimeString("uk-UA", {
-				hour: "2-digit",
-				minute: "2-digit",
-			}),
-			dateObj.toLocaleTimeString("en-US", {
-				hour: "numeric",
-				minute: "2-digit",
-				hour12: true,
-			}),
-			item.created_at,
-		].map((str) => str.toLowerCase());
+	const scoredData = data.data
+		.map((item) => {
+			const title = item.title.toLowerCase();
+			const amount = item.amount.toString().toLowerCase();
+			const type = (
+				item.type === "INCOME" ? "income" : "outcome"
+			).toLowerCase();
 
-		const title = item.title.toLowerCase();
-		const sum = item.amount.toString().toLowerCase();
-		const type = (
-			item.type === "INCOME" ? "income" : "outcome"
-		).toLowerCase();
+			let dateVariants: string[] = [];
+			if (item.created_at) {
+				const dateObj = new Date(item.created_at);
+				dateVariants = [
+					dateObj.toLocaleDateString("uk-UA"),
+					dateObj.toLocaleDateString("en-GB"),
+					dateObj.toLocaleTimeString("uk-UA", {
+						hour: "2-digit",
+						minute: "2-digit",
+					}),
+					dateObj.toDateString(),
+				].map((d) => d.toLowerCase());
+			}
 
-		return words.every(
-			(word) =>
-				title.includes(word) ||
-				sum.includes(word) ||
-				type.includes(word) ||
-				dateVariants.some((dateVariant) => dateVariant.includes(word)),
+			const matchesAllWords = words.every(
+				(word) =>
+					title.includes(word) ||
+					amount.includes(word) ||
+					type.includes(word) ||
+					dateVariants.some((v) => v.includes(word)),
+			);
+
+			if (!matchesAllWords) return null;
+
+			let score = 0;
+			words.forEach((word) => {
+				if (title.includes(word)) {
+					score += 10;
+					if (title.startsWith(word)) score += 5;
+				}
+				if (amount.includes(word)) score += 1;
+				if (type.includes(word)) score += 1;
+				if (dateVariants.some((v) => v.includes(word))) score += 1;
+			});
+
+			return { item, score };
+		})
+		.filter(
+			(entry): entry is { item: ResponseTransaction; score: number } =>
+				entry !== null,
 		);
-	});
+
+	if (scoredData.length === 0) return undefined;
+
+	const finalData = scoredData
+		.sort((a, b) => b.score - a.score)
+		.map((entry) => entry.item);
+
+	return { ...data, data: finalData };
 };
 
 export function toLocalDatetimeString(date: Date, isPrettier = false) {
