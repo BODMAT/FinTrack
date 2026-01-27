@@ -27,10 +27,39 @@ api.interceptors.request.use(
 
 api.interceptors.response.use(
 	(response) => response,
-	(error) => {
-		if (error.response?.status === 401) {
-			useAuthStore.getState().logout();
+	async (error) => {
+		const originalRequest = error.config;
+
+		if (error.response?.status === 401 && !originalRequest._retry) {
+			originalRequest._retry = true;
+
+			try {
+				const refreshToken = useAuthStore.getState().refreshToken;
+
+				if (!refreshToken) {
+					useAuthStore.getState().logout();
+					return Promise.reject(error);
+				}
+
+				const { data } = await axios.post(
+					`${api.defaults.baseURL}/auth/refresh`,
+					{
+						refreshToken: refreshToken,
+					},
+				);
+
+				useAuthStore
+					.getState()
+					.setTokens(data.accessToken, data.refreshToken);
+
+				originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+				return api(originalRequest);
+			} catch (refreshError) {
+				useAuthStore.getState().logout();
+				return Promise.reject(refreshError);
+			}
 		}
+
 		return Promise.reject(error);
 	},
 );

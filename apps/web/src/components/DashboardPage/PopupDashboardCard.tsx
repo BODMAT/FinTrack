@@ -1,4 +1,4 @@
-import type { DashboardCardProps } from "../../types/custom";
+import type { DashboardCardProps } from "../../types/summary";
 import { DashboardCard } from "./DashboardCard";
 import { Line } from "react-chartjs-2";
 import {
@@ -34,6 +34,7 @@ export function PopupDashboardCard({
 }: DashboardCardProps) {
 	if (!dataForPopupChart) return <NoData />;
 	const { income, outcome, labels } = dataForPopupChart;
+	console.log(dataForPopupChart);
 
 	let datasets: ChartDataset<"line">[] = [];
 	switch (title) {

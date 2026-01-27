@@ -1,4 +1,4 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import {
 	getMe,
 	updateMe,
@@ -11,9 +11,9 @@ import { useAuthStore } from "../store/useAuthStore";
 import type { CreateUserBody, UserResponse } from "../types/user";
 import type { LoginUserBody, LoginUserResponse } from "../types/auth";
 import type { ApiError } from "../types/custom";
+import { queryClient } from "../api/queryClient";
 
 export const useAuth = () => {
-	const queryClient = useQueryClient();
 	const {
 		token,
 		refreshToken,

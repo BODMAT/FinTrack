@@ -1,13 +1,13 @@
 import axios from "axios";
 import { z } from "zod";
-import type { IData } from "../types/custom";
+import type { TransactionsListResponse } from "../types/transaction";
 
 const AnalyzeResponseSchema = z.object({
 	result: z.string(),
 });
 
 export async function analyzeData(
-	data: IData[],
+	data: TransactionsListResponse,
 	prompt: string,
 	model?: string,
 ): Promise<string> {

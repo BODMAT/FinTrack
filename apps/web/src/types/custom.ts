@@ -1,5 +1,3 @@
-import type { FC, SVGProps } from "react";
-
 export type ApiResponse<T> =
 	| { data: T; error?: never }
 	| {
@@ -17,46 +15,7 @@ export interface ApiError {
 	code: number;
 }
 
-export type CustomDate = "day" | "week" | "month" | "year" | "all";
-export type MoneyType = "income" | "outcome" | "saving" | "balance";
-
 //====================================================================
-
-// export interface IData {
-// 	userId: string;
-// 	id: string;
-
-// 	title: string;
-// 	amount: string;
-// 	type: "INCOME" | "EXPENSE";
-// 	created_at: string; //timestamp ex "2025-09-11T17:17:42.627Z"
-
-// 	location?: {
-// 		latitude: number;
-// 		longitude: number;
-// 	};
-// }
-
-export interface DashboardCardProps {
-	myImg: string | FC<SVGProps<SVGSVGElement>>;
-	title: MoneyType;
-
-	reversedPercentage?: boolean;
-	inPopup?: boolean;
-	dataForPopupChart?: {
-		income: number[];
-		outcome: number[];
-		labels: string[];
-	};
-}
-
-// export interface IDataForm extends Omit<IData, "amount" | "location"> {
-// 	amount: string;
-// 	location?: {
-// 		latitude: string;
-// 		longitude: string;
-// 	};
-// }
 
 export interface AIState {
 	prompt: string;
@@ -70,15 +29,3 @@ export interface Response {
 	content: string;
 	date: string;
 }
-
-export interface IProfileInfoState {
-	nickname: string | null;
-	password: string | null;
-	submitted: boolean;
-}
-
-// export interface IErrorState {
-// 	date: string | null;
-// 	lat: string | null;
-// 	lng: string | null;
-// }
