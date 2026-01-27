@@ -71,9 +71,11 @@ export const getFilteredData = (
 	return { ...data, data: finalData };
 };
 
-export function toLocalDatetimeString(date: Date, isPrettier = false) {
+export function toLocalDatetimeString(dateInput: Date, isPrettier = false) {
+	const date = new Date(dateInput);
 	const pad = (n: number) => n.toString().padStart(2, "0");
 
+	if (isNaN(date.getTime())) return "Invalid Date";
 	return (
 		date.getFullYear() +
 		"-" +

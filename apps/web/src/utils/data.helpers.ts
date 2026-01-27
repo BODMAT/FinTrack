@@ -1,10 +1,10 @@
-import type { CustomDate } from "../types/custom";
+import type { Range } from "../types/summary";
 import type { TransactionsListResponse } from "../types/transaction";
 import { simpleMemoize3 } from "./other";
 
 export function groupData(
 	data: TransactionsListResponse,
-	range: CustomDate,
+	range: Range,
 	nowDate?: Date,
 ) {
 	const now = nowDate || new Date();
