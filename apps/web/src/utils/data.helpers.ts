@@ -1,5 +1,4 @@
-import type { Range } from "../types/summary";
-import type { TransactionsListResponse } from "../types/transaction";
+import type { Range, TransactionsListResponse } from "@fintrack/types";
 import { simpleMemoize3 } from "./other";
 
 export function groupData(

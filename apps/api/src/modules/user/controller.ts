@@ -5,79 +5,10 @@ import { z } from "zod";
 import bcrypt from "bcrypt";
 import * as userService from "./service.js";
 import { AppError } from "../../middleware/errorHandler.js";
-
-// Data validation
-const createAuthMethodSchema = z.discriminatedUnion("type", [
-	z.object({
-		type: z.literal("EMAIL"),
-		email: z.email().max(200),
-		password: z.string().min(8),
-	}),
-	z.object({
-		type: z.literal("TELEGRAM"),
-		telegram_id: z.string().min(1),
-	}),
-]);
-
-const updateAuthMethodSchema = z.discriminatedUnion("type", [
-	z.object({
-		type: z.literal("EMAIL"),
-		email: z.email().max(200).optional(),
-		password: z.string().min(8).optional(),
-	}),
-	z.object({
-		type: z.literal("TELEGRAM"),
-		telegram_id: z.string().min(1),
-	}),
-]);
-
-const createUserSchema = z.object({
-	name: z.string().min(1).max(200),
-	photo_url: z.url().nullish(),
-	created_at: z.coerce.date().optional(),
-	updated_at: z.coerce.date().optional(),
-	authMethods: z
-		.array(createAuthMethodSchema)
-		.min(1)
-		.max(2)
-		.refine(
-			(methods) => {
-				const types = methods.map((m) => m.type);
-				return (
-					types.filter((t) => t === "EMAIL").length <= 1 &&
-					types.filter((t) => t === "TELEGRAM").length <= 1
-				);
-			},
-			{
-				message:
-					"You can add a maximum of one EMAIL and one TELEGRAM authentication method",
-			},
-		),
-});
-
-const updateUserSchema = z.object({
-	name: z.string().min(1).max(200).optional(),
-	photo_url: z.url().nullish(),
-	created_at: z.coerce.date().optional(),
-	updated_at: z.coerce.date().optional(),
-	authMethods: z
-		.array(updateAuthMethodSchema)
-		.max(2)
-		.refine(
-			(methods) => {
-				const types = methods.map((m) => m.type);
-				return (
-					types.filter((t) => t === "EMAIL").length <= 1 &&
-					types.filter((t) => t === "TELEGRAM").length <= 1
-				);
-			},
-			{
-				message:
-					"You can add a maximum of one EMAIL and one TELEGRAM authentication method",
-			},
-		)
-		.optional(),
-});
+import {
+	СreateUserSchema as createUserSchema,
+	UpdateUserSchema as updateUserSchema,
+} from "@fintrack/types";
 
 // Controllers
 export async function getAllUsers(req: Request, res: Response) {

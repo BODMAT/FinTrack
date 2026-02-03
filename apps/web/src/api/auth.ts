@@ -5,7 +5,7 @@ import {
 	TokenUserResponseSchema,
 	type TokenUserResponse,
 	type LoginUserResponse,
-} from "../types/auth";
+} from "@fintrack/types";
 import { handleRequest } from "../utils/api";
 import api from "./api";
 

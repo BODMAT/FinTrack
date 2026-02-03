@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import type { IChartData, ISummary, Range } from "../types/summary";
+import type { IChartData, ISummary, Range } from "@fintrack/types";
 import type { ApiError } from "../types/api";
 import { getChartData, getSummary } from "../api/summary";
 export const useSummary = (range: Range = "all") => {

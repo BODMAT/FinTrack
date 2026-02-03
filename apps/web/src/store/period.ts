@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { Range } from "../types/summary";
+import type { Range } from "@fintrack/types";
 
 interface PeriodState {
 	period: Range;

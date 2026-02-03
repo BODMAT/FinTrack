@@ -37,6 +37,16 @@
 		"isolatedModules": true,
 		"noUncheckedSideEffectImports": true,
 		"moduleDetection": "force",
-		"skipLibCheck": true
-	}
+		"skipLibCheck": true,
+		"baseUrl": ".",
+		"paths": {
+			"@fintrack/types": ["../../packages/types/src/index.ts"]
+		}
+	},
+	"references": [
+		{
+			"path": "../../packages/types"
+		}
+	],
+	"include": ["src/**/*"]
 }

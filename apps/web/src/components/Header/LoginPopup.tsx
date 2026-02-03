@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { LoginUserBody } from "../../types/auth";
+import type { LoginUserBody } from "@fintrack/types";
 import { useAuth } from "../../hooks/useAuth";
 import { useAuthStore } from "../../store/useAuthStore";
 import { RegisterPopup } from "./RegisterPopup";

@@ -3,32 +3,11 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 import * as transactionService from "./service.js";
 import { AppError } from "../../middleware/errorHandler.js";
+import {
+	createTransactionSchema,
+	updateTransactionSchema,
+} from "@fintrack/types";
 
-// Data validation
-const locationSchema = z.object({
-	latitude: z.coerce.number().min(-90).max(90),
-	longitude: z.coerce.number().min(-180).max(180),
-});
-
-const createTransactionSchema = z.object({
-	title: z.string().min(1).max(50),
-	type: z.enum(["INCOME", "EXPENSE"]),
-	amount: z.coerce.number().positive(),
-	created_at: z.coerce.date().optional(),
-	updated_at: z.coerce.date().optional(),
-	location: locationSchema.nullish(),
-});
-
-const updateTransactionSchema = z.object({
-	title: z.string().min(1).max(50).optional(),
-	type: z.enum(["INCOME", "EXPENSE"]).optional(),
-	amount: z.coerce.number().positive().optional(),
-	created_at: z.coerce.date().optional(),
-	updated_at: z.coerce.date().optional(),
-	location: locationSchema.nullish(),
-});
-
-// Controllers
 export async function getAllTransactions(
 	req: Request,
 	res: Response,

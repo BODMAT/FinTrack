@@ -1,7 +1,7 @@
 import type {
 	ResponseTransaction,
 	TransactionsListResponse,
-} from "../types/transaction";
+} from "@fintrack/types";
 
 export const getFilteredData = (
 	data: TransactionsListResponse | undefined,

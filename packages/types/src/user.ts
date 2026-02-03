@@ -1,6 +1,6 @@
 import z from "zod";
 
-const CreateAuthMethodSchema = z.discriminatedUnion("type", [
+export const CreateAuthMethodSchema = z.discriminatedUnion("type", [
 	z.object({
 		type: z.literal("EMAIL"),
 		email: z.string().email().max(200),
@@ -24,7 +24,7 @@ export const UpdateAuthMethodSchema = z.discriminatedUnion("type", [
 	}),
 ]);
 
-const AuthMethodResponseSchema = z.object({
+export const AuthMethodResponseSchema = z.object({
 	id: z.string().uuid(),
 	type: z.enum(["EMAIL", "TELEGRAM"]),
 	email: z.string().email().nullable(),
@@ -54,6 +54,8 @@ export const СreateUserSchema = z.object({
 			},
 		),
 });
+
+export const UpdateUserSchema = СreateUserSchema.partial();
 
 export const UserResponseSchema = z.object({
 	id: z.string().uuid(),

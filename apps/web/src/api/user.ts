@@ -3,7 +3,7 @@ import {
 	UserResponseSchema,
 	type CreateUserBody,
 	type UserResponse,
-} from "../types/user";
+} from "@fintrack/types";
 import api from "./api";
 
 export const getMe = async (): Promise<UserResponse> => {

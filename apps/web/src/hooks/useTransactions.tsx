@@ -10,7 +10,7 @@ import type {
 	CreateTransaction,
 	TransactionsListResponse,
 	UpdateTransaction,
-} from "../types/transaction";
+} from "@fintrack/types";
 import { queryClient } from "../api/queryClient";
 
 interface UseTransactionsProps {
@@ -45,7 +45,7 @@ interface UseTransactionsAllProps {
 export const useTransactionsAll = ({ userId }: UseTransactionsAllProps) => {
 	return useQuery({
 		queryKey: ["transactions", "all", userId],
-		queryFn: () => getTransactions({}),
+		queryFn: ({ signal }) => getTransactions({}, signal),
 		enabled: !!userId,
 		staleTime: 1000 * 60 * 5,
 	});
@@ -54,14 +54,14 @@ export const useTransactionsAll = ({ userId }: UseTransactionsAllProps) => {
 export const useTransactionMutations = () => {
 	const createMutation = useMutation({
 		mutationFn: (payload: CreateTransaction) => createTransaction(payload),
-		onSuccess: () => {
+		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: ["transactions"] });
 		},
 	});
 
 	const deleteMutation = useMutation({
 		mutationFn: (id: string) => deleteTransaction(id),
-		onSuccess: () => {
+		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: ["transactions"] });
 		},
 	});
@@ -74,7 +74,7 @@ export const useTransactionMutations = () => {
 			id: string;
 			payload: UpdateTransaction;
 		}) => updateTransaction(id, payload),
-		onSuccess: () => {
+		onSettled: () => {
 			queryClient.invalidateQueries({ queryKey: ["transactions"] });
 		},
 	});

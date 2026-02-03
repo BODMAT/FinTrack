@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAuth } from "./useAuth";
-import type { AIRequest, AIResponseWithDiff } from "../types/ai";
+import type { AIResponseWithDiff } from "../types/ai";
+import type { AIRequest } from "@fintrack/types";
 import { getAIResponse } from "../api/ai";
 import { queryClient } from "../api/queryClient";
 

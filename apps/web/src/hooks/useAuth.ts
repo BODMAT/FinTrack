@@ -8,8 +8,12 @@ import {
 } from "../api/user";
 import { loginUser, logoutUser } from "../api/auth";
 import { useAuthStore } from "../store/useAuthStore";
-import type { CreateUserBody, UserResponse } from "../types/user";
-import type { LoginUserBody, LoginUserResponse } from "../types/auth";
+import type {
+	CreateUserBody,
+	UserResponse,
+	LoginUserBody,
+	LoginUserResponse,
+} from "@fintrack/types";
 import type { ApiError } from "../types/api";
 import { queryClient } from "../api/queryClient";
 

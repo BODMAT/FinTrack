@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { useAuthStore } from "../../store/useAuthStore";
-import type { CreateUserBody as User } from "../../types/user";
+import type { CreateUserBody as User } from "@fintrack/types";
 import { usePopupStore } from "../../store/popup";
 import { LoginPopup } from "./LoginPopup";
 

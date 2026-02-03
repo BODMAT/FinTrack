@@ -1,6 +1,10 @@
 import api from "./api";
-import { AIResponseSchema, type AIRequest, type AIResponse } from "../types/ai";
 import { handleRequest } from "../utils/api";
+import {
+	type AIRequest,
+	type AIResponse,
+	AIResponseSchema,
+} from "@fintrack/types";
 
 export const getAIResponse = async ({
 	data,

@@ -36,6 +36,7 @@
 	},
 	"homepage": "https://github.com/BODMAT/FinTrack#readme",
 	"dependencies": {
+		"@fintrack/types": "*",
 		"@prisma/client": "^6.14.0",
 		"bcrypt": "^6.0.0",
 		"cors": "^2.8.5",

@@ -4,7 +4,7 @@ import {
 	type IChartData,
 	type ISummary,
 	type Range,
-} from "../types/summary";
+} from "@fintrack/types";
 import { handleRequest } from "../utils/api";
 import api from "./api";
 

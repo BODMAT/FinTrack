@@ -11,7 +11,7 @@ import {
 	useTransactionsAll,
 	useTransactionsInfinite,
 } from "../../hooks/useTransactions";
-import type { ResponseTransaction } from "../../types/transaction";
+import type { ResponseTransaction } from "@fintrack/types";
 
 export function Transactions() {
 	const { user } = useAuth();

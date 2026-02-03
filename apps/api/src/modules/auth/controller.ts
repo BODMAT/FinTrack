@@ -5,6 +5,7 @@ import jwt from "jsonwebtoken";
 import type { JwtPayload } from "../../types/jwt.js";
 import { AppError } from "../../middleware/errorHandler.js";
 import * as authService from "./service.js";
+import { LoginUserBodySchema } from "@fintrack/types";
 
 // Controllers
 const { REFRESH_TOKEN_SECRET, ACCESS_TOKEN_SECRET } = ENV;
@@ -15,11 +16,7 @@ export function generateAccessToken(payload: JwtPayload): string {
 
 export async function login(req: Request, res: Response, next: NextFunction) {
 	try {
-		const LoginSchema = z.object({
-			email: z.email(),
-			password: z.string().min(8),
-		});
-		const { email, password } = LoginSchema.parse(req.body);
+		const { email, password } = LoginUserBodySchema.parse(req.body);
 
 		const user = await authService.login(email, password);
 		if (!user) throw new AppError("Not found", 404);

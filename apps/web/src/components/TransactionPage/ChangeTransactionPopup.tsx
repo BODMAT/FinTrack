@@ -8,10 +8,10 @@ import {
 } from "../../hooks/useTransactions";
 import type {
 	CreateTransaction,
-	FormTransaction,
 	UpdateTransaction,
 	ResponseTransaction,
-} from "../../types/transaction";
+} from "@fintrack/types";
+import type { FormTransaction } from "../../types/transaction";
 import { useNumericValidator } from "../../hooks/useNumericValidator";
 
 export function ChangeTransactionPopup({ id }: { id?: string }) {

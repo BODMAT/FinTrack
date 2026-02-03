@@ -1,10 +1,10 @@
 import type {
-	CustomDate,
+	Range as CustomDate,
 	MoneyType,
-	IData,
-	IDataStatsPerRange,
-	IDataStats,
-} from "./types.js";
+	ResponseTransaction as IData,
+	ISummaryPerRange as IDataStatsPerRange,
+	ISummary as IDataStats,
+} from "@fintrack/types";
 
 export function groupData(data: IData[], range: CustomDate, nowDate?: Date) {
 	const now = nowDate || new Date();
@@ -24,7 +24,8 @@ export function groupData(data: IData[], range: CustomDate, nowDate?: Date) {
 	>();
 
 	const filtered = data.filter((item) => {
-		const date = new Date(item.created_at);
+		const date = item.created_at;
+		if (!date) return false;
 
 		if (range === "day") {
 			return date.toDateString() === now.toDateString();
@@ -53,7 +54,9 @@ export function groupData(data: IData[], range: CustomDate, nowDate?: Date) {
 	});
 
 	for (const item of filtered) {
-		const date = new Date(item.created_at);
+		if (!item.created_at) continue;
+		const date = item.created_at;
+
 		let key = "";
 		let rawDate = new Date(date);
 
@@ -248,26 +251,26 @@ export function getFullStats(data: IData[]): IDataStats {
 	const maxPositiveTransaction =
 		data
 			.filter((item) => item.type === "INCOME")
-			.sort((a, b) => Number(b.amount) - Number(a.amount))[0]?.amount ||
-		"0";
+			.sort((a, b) => Number(b.amount) - Number(a.amount))[0]
+			?.amount.toString() || "0";
 
 	const maxNegativeTransaction =
 		data
 			.filter((item) => item.type !== "INCOME")
-			.sort((a, b) => Number(b.amount) - Number(a.amount))[0]?.amount ||
-		"0";
+			.sort((a, b) => Number(b.amount) - Number(a.amount))[0]
+			?.amount.toString() || "0";
 
 	const minPositiveTransaction =
 		data
 			.filter((item) => item.type === "INCOME")
-			.sort((a, b) => Number(a.amount) - Number(b.amount))[0]?.amount ||
-		"0";
+			.sort((a, b) => Number(a.amount) - Number(b.amount))[0]
+			?.amount.toString() || "0";
 
 	const minNegativeTransaction =
 		data
 			.filter((item) => item.type !== "INCOME")
-			.sort((a, b) => Number(a.amount) - Number(b.amount))[0]?.amount ||
-		"0";
+			.sort((a, b) => Number(a.amount) - Number(b.amount))[0]
+			?.amount.toString() || "0";
 
 	const topTransaction = {
 		maxPositiveTransaction,

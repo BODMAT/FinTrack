@@ -4,17 +4,19 @@ import {
 	responseTransactionSchema,
 	transactionsListResponseSchema,
 	type CreateTransaction,
-	type Pagination,
 	type ResponseTransaction,
 	type TransactionsListResponse,
 	type UpdateTransaction,
-} from "../types/transaction";
+} from "@fintrack/types";
+
+import type { Pagination } from "../types/transaction";
 
 export const getTransactions = async (
 	payload: Pagination,
+	signal?: AbortSignal,
 ): Promise<TransactionsListResponse> => {
 	return handleRequest(
-		api.get("/transactions", { params: payload }),
+		api.get("/transactions", { params: payload, signal }),
 		transactionsListResponseSchema,
 	);
 };

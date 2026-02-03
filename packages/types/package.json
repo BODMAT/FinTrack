@@ -1,0 +1,12 @@
+{
+	"name": "@fintrack/types",
+	"version": "1.0.0",
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"build": "tsc",
+		"clean": "rimraf dist"
+	}
+}

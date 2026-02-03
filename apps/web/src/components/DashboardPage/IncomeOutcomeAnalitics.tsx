@@ -10,7 +10,7 @@ import {
 import Select from "react-select";
 import { usePeriodStore } from "../../store/period";
 import { ErrorCustom, NoData, Spinner } from "../Helpers";
-import type { Range } from "../../types/summary";
+import type { Range } from "@fintrack/types";
 import { useSummary } from "../../hooks/useSummary";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);

@@ -16,3 +16,6 @@ dist/
 
 # Other
 .turbo
+*.tsbuildinfo
+.next/
+out/

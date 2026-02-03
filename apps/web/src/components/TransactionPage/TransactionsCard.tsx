@@ -1,7 +1,7 @@
 import DeleteIcon from "../../assets/transactions/delete-icon.svg?react";
 import ChangeIcon from "../../assets/transactions/edit-box-icon.svg?react";
 import { usePopupStore } from "../../store/popup";
-import type { ResponseTransaction } from "../../types/transaction";
+import type { ResponseTransaction } from "@fintrack/types";
 import { ChangeTransactionPopup } from "./ChangeTransactionPopup";
 import { DeleteTransactionPopup } from "./DeleteTransactionPopup";
 
