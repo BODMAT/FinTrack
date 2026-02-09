@@ -58,8 +58,9 @@ export function Transactions() {
 						setDebouncedSearchQuery={setDebouncedSearchQuery}
 					/>
 					<button
+						disabled={!user?.id}
 						onClick={handleOpenPopup()}
-						className="bg-[var(--color-card)] rounded-[10px] p-[10px] text-[var(--color-text)] border-1 border-[var(--color-fixed-text)] transitioned cursor-pointer hover:border-[var(--color-hover)] hover:text-[var(--color-hover)] hover:scale-95 text-[16px] font-bold"
+						className="bg-[var(--color-card)] rounded-[10px] p-[10px] text-[var(--color-text)] border-1 border-[var(--color-fixed-text)] transitioned not-disabled:cursor-pointer not-disabled:hover:border-[var(--color-hover)] not-disabled:hover:text-[var(--color-hover)] not-disabled:hover:scale-95 text-[16px] font-bold"
 					>
 						Add new
 					</button>

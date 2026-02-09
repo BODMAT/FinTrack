@@ -39,6 +39,7 @@ export const transactionsListResponseSchema = z.object({
 		.optional(),
 });
 
+export type Location = z.infer<typeof locationSchema>;
 export type CreateTransaction = z.infer<typeof createTransactionSchema>;
 export type UpdateTransaction = z.infer<typeof updateTransactionSchema>;
 export type ResponseTransaction = z.infer<typeof responseTransactionSchema>;

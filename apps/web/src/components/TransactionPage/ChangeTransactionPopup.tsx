@@ -13,6 +13,8 @@ import type {
 } from "@fintrack/types";
 import type { FormTransaction } from "../../types/transaction";
 import { useNumericValidator } from "../../hooks/useNumericValidator";
+import { useCurrentLocation } from "../../hooks/useCurrentLocation";
+import { MapPicker } from "./MapPicker";
 
 export function ChangeTransactionPopup({ id }: { id?: string }) {
 	const { data: transaction, isLoading } = useTransaction({
@@ -42,6 +44,8 @@ function TransactionFormContent({
 	} = useTransactionMutations();
 
 	const { open, close } = usePopupStore();
+	const { fetchLocation, loadingLocation, locationError, setLocationError } =
+		useCurrentLocation();
 	const [form, setForm] = useState<FormTransaction>({
 		created_at: initialData?.created_at,
 		amount: initialData?.amount?.toString() || "",
@@ -53,6 +57,22 @@ function TransactionFormContent({
 
 	const { formError, validateNumericInput } = useNumericValidator();
 
+	const handleGetCurrentLocation = async () => {
+		try {
+			const result = await fetchLocation();
+			setForm((prev) => ({
+				...prev,
+				latitude: result.latitude.toString(),
+				longitude: result.longitude.toString(),
+			}));
+			setLocationError(null);
+		} catch (error) {
+			console.error("Error fetching location:", error);
+			if (error instanceof Error) {
+				setLocationError(error.message);
+			}
+		}
+	};
 	const handleNumericChange = (
 		field: "amount" | "latitude" | "longitude",
 		value: string,
@@ -195,59 +215,91 @@ function TransactionFormContent({
 				</div>
 
 				{/* Location */}
-				<div className="flex items-center gap-5 max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
-					<label
-						htmlFor="locationLat"
-						className="text-[var(--color-text)] text-[20px] font-semibold min-w-30"
-					>
-						Latitude:
-					</label>
-					<input
-						type="text"
-						inputMode="decimal"
-						id="locationLat"
-						placeholder="23,456"
-						min={-90}
-						max={90}
-						value={form.latitude}
-						onChange={(e) =>
-							handleNumericChange(
-								"latitude",
-								e.target.value,
-								-90,
-								90,
-							)
-						}
-						className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
-					/>
-				</div>
+				<section className="flex gap-5 items-center	">
+					<div className="flex flex-col gap-5">
+						<div className="flex items-center gap-5 max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
+							<label
+								htmlFor="locationLat"
+								className="text-[var(--color-text)] text-[20px] font-semibold min-w-30"
+							>
+								Latitude:
+							</label>
+							<input
+								type="text"
+								inputMode="decimal"
+								id="locationLat"
+								placeholder="23,456"
+								min={-90}
+								max={90}
+								value={form.latitude}
+								onChange={(e) =>
+									handleNumericChange(
+										"latitude",
+										e.target.value,
+										-90,
+										90,
+									)
+								}
+								className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
+							/>
+						</div>
 
-				<div className="flex items-center gap-5 max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
-					<label
-						htmlFor="locationLng"
-						className="text-[var(--color-text)] text-[20px] font-semibold min-w-30"
-					>
-						Longitude:
-					</label>
-					<input
-						type="text"
-						inputMode="decimal"
-						id="locationLng"
-						placeholder="23,456"
-						min={-180}
-						max={180}
-						value={form.longitude}
-						onChange={(e) =>
-							handleNumericChange(
-								"longitude",
-								e.target.value,
-								-180,
-								180,
-							)
-						}
-						className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
-					/>
-				</div>
+						<div className="flex items-center gap-5 max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
+							<label
+								htmlFor="locationLng"
+								className="text-[var(--color-text)] text-[20px] font-semibold min-w-30"
+							>
+								Longitude:
+							</label>
+							<input
+								type="text"
+								inputMode="decimal"
+								id="locationLng"
+								placeholder="23,456"
+								min={-180}
+								max={180}
+								value={form.longitude}
+								onChange={(e) =>
+									handleNumericChange(
+										"longitude",
+										e.target.value,
+										-180,
+										180,
+									)
+								}
+								className="bg-[var(--color-input)] rounded-[10px] p-[10px] w-full border-1 border-[var(--color-fixed-text)] text-[var(--color-text)] transitioned hover:border-[var(--color-hover)]"
+							/>
+						</div>
+						<button
+							type="button"
+							disabled={loadingLocation}
+							onClick={handleGetCurrentLocation}
+							className="not-disabled:cursor-pointer bg-[var(--color-card)] rounded-[10px] p-[10px] text-[var(--color-text)] border-1 border-[var(--color-fixed-text)] transitioned not-disabled:hover:border-[var(--color-hover)] not-disabled:hover:text-[var(--color-hover)] not-disabled:hover:scale-95 text-[16px] font-bold"
+						>
+							Get current location
+						</button>
+					</div>
+					<div className="w-full h-full flex overflow-hidden">
+						<MapPicker
+							value={
+								form.longitude && form.latitude
+									? {
+											latitude: +form.latitude,
+											longitude: +form.longitude,
+										}
+									: undefined
+							}
+							onChange={(newLoc) =>
+								setForm({
+									...form,
+									longitude: newLoc.longitude.toString(),
+									latitude: newLoc.latitude.toString(),
+								})
+							}
+						/>
+					</div>
+				</section>
+
 				<div className="flex gap-7 items-center justify-center max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-3">
 					<label className="text-[var(--color-text)] text-[20px] font-semibold">
 						<input
@@ -284,6 +336,11 @@ function TransactionFormContent({
 					{isLocationIncomplete && (
 						<p className="text-red-500 text-sm animate-pulse">
 							⚠️ Fill both location fields or leave them empty
+						</p>
+					)}
+					{locationError && (
+						<p className="text-red-500 text-sm animate-pulse">
+							⚠️ {locationError}
 						</p>
 					)}
 				</div>
