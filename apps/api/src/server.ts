@@ -37,7 +37,7 @@ function gracefulShutdown(signal: string) {
 				console.error("❌ Error during shutdown:", err);
 				process.exit(1);
 			}
-		})
+		});
 	};
 }
 

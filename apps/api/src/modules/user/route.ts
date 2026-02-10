@@ -1,6 +1,6 @@
 import express from "express";
 import { authenticateToken } from "../auth/controller.js";
-import { getAllUsers, getUser, getCurrentUser, createUser, updateUser, updateCurrentUser, deleteUser, deleteCurrentUser, deleteAuthMethod, deleteAuthMethodForCurrentUser } from "./controller.js";
+import { getAllUsers, getCurrentUser, createUser, updateCurrentUser, deleteCurrentUser, deleteAuthMethodForCurrentUser } from "./controller.js";
 
 export const userRouter = express.Router();
 

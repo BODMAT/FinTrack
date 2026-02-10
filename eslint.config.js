@@ -5,7 +5,7 @@ import eslintConfigPrettier from "eslint-config-prettier";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 export default defineConfig([
-	globalIgnores(["dist", "node_modules"]),
+	globalIgnores(["dist", "node_modules", "apps/api/dist/**", "apps/web/**"]),
 	// API (Node.js, TypeScript)
 	{
 		files: ["apps/api/**/*.ts"],
@@ -21,11 +21,15 @@ export default defineConfig([
 			globals: {
 				...globals.node,
 			},
+			parserOptions: {
+				tsconfigRootDir: process.cwd(),
+				project: "./apps/api/tsconfig.json"
+			},
 		},
 		rules: {
 			semi: ["error", "always"],
-			"no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
-		},
-	},
+			"no-unused-vars": "off",
+			"@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }],
+		}, },
 	// Here you can add separate blocks for web (React) and bot
 ]);

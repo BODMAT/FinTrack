@@ -15,7 +15,7 @@ export async function ai(req: Request, res: Response, next: NextFunction) {
 		const { model, prompt, data } = req.body;
 		const modelToUse = model ?? DEFAULT_MODEL;
 
-		let errorMessages: string[] = [];
+		const errorMessages: string[] = [];
 
 		for (const token of tokens) {
 			const client = new OpenAI({

@@ -75,7 +75,7 @@ export function groupData(data: IData[], range: CustomDate, nowDate?: Date) {
 			rawDate = new Date(
 				date.getFullYear(),
 				date.getMonth(),
-				(week - 1) * 7 + 1
+				(week - 1) * 7 + 1,
 			);
 		} else if (range === "year") {
 			key = date.toLocaleString("default", { month: "short" });
@@ -96,7 +96,7 @@ export function groupData(data: IData[], range: CustomDate, nowDate?: Date) {
 	}
 
 	const sortedEntries = Array.from(map.entries()).sort(
-		(a, b) => a[1].rawDate.getTime() - b[1].rawDate.getTime()
+		(a, b) => a[1].rawDate.getTime() - b[1].rawDate.getTime(),
 	);
 
 	const income = sortedEntries.map(([_, val]) => val.income);
@@ -115,28 +115,28 @@ function getPreviousDateByRange(range: CustomDate): Date {
 			prevDate = new Date(
 				now.getFullYear(),
 				now.getMonth(),
-				now.getDate() - 1
+				now.getDate() - 1,
 			);
 			break;
 		case "week":
 			prevDate = new Date(
 				now.getFullYear(),
 				now.getMonth(),
-				now.getDate() - 7
+				now.getDate() - 7,
 			);
 			break;
 		case "month":
 			prevDate = new Date(
 				now.getFullYear(),
 				now.getMonth() - 1,
-				now.getDate()
+				now.getDate(),
 			);
 			break;
 		case "year":
 			prevDate = new Date(
 				now.getFullYear() - 1,
 				now.getMonth(),
-				now.getDate()
+				now.getDate(),
 			);
 			break;
 		case "all":
@@ -157,7 +157,7 @@ function getTotalOfRange(
 	data: IData[],
 	range: CustomDate,
 	title: MoneyType,
-	nowDate?: Date
+	nowDate?: Date,
 ): number {
 	if (title === "balance") {
 		const totalIncome = data
@@ -185,14 +185,14 @@ function getTotalOfRange(
 function getPercentageOfRangeIncrease(
 	data: IData[],
 	range: CustomDate,
-	title: MoneyType
+	title: MoneyType,
 ): number {
 	const currentTotal = getTotalOfRange(data, range, title);
 	const previousTotal = getTotalOfRange(
 		data,
 		range,
 		title,
-		getPreviousDateByRange(range)
+		getPreviousDateByRange(range),
 	);
 
 	if (previousTotal === 0) {
@@ -205,25 +205,25 @@ function getPercentageOfRangeIncrease(
 
 function getStatsPerRange(
 	data: IData[],
-	range: CustomDate
+	range: CustomDate,
 ): IDataStatsPerRange {
 	const totalIncomePerRange = getTotalOfRange(data, range, "income");
 	const percentageIncomePerRange = getPercentageOfRangeIncrease(
 		data,
 		range,
-		"income"
+		"income",
 	);
 	const totalOutcomePerRange = getTotalOfRange(data, range, "outcome");
 	const percentageOutcomePerRange = getPercentageOfRangeIncrease(
 		data,
 		range,
-		"outcome"
+		"outcome",
 	);
 	const totalSavingPerRange = getTotalOfRange(data, range, "saving");
 	const percentageSavingPerRange = getPercentageOfRangeIncrease(
 		data,
 		range,
-		"saving"
+		"saving",
 	);
 
 	return {

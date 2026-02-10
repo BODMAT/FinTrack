@@ -4,9 +4,9 @@ import { ZodError } from "zod";
 
 export class AppError extends Error {
 	statusCode: number;
-	details?: any;
+	details?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 
-	constructor(message: string, statusCode: number = 400, details?: any) {
+	constructor(message: string, statusCode: number = 400, details?: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
 		super(message);
 		this.statusCode = statusCode;
 		this.details = details;
@@ -16,14 +16,14 @@ export class AppError extends Error {
 
 interface ErrorResponse {
 	error: string;
-	details?: any;
+	details?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
 }
 
 export function errorHandler(
 	err: unknown,
 	req: Request,
 	res: Response,
-	next: NextFunction
+	_next: NextFunction
 ) {
 	console.error(err instanceof Error ? err.stack : err);
 

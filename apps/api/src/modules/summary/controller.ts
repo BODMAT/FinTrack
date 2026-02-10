@@ -8,8 +8,8 @@ import { groupData, getFullStats } from "./helpers.js";
 const rangeSchema = z.enum(["day", "week", "month", "year", "all"]);
 
 // Helpers
-function convertToIData(transactions: { data: any[] }) {
-	return transactions.data.map((t) => ({
+function convertToIData(transactionsData: Awaited<ReturnType<typeof getAllTransactions>>) {
+	return transactionsData.data.map((t) => ({
 		...t,
 		amount: t.amount.toString(),
 		created_at: t.created_at.toISOString(),
@@ -21,7 +21,7 @@ function convertToIData(transactions: { data: any[] }) {
 export async function getSummary(
 	req: Request,
 	res: Response,
-	next: NextFunction
+	next: NextFunction,
 ) {
 	try {
 		const userId = req.user?.id;
@@ -39,7 +39,7 @@ export async function getSummary(
 export async function getChartData(
 	req: Request,
 	res: Response,
-	next: NextFunction
+	next: NextFunction,
 ) {
 	try {
 		const userId = req.user?.id;
@@ -48,7 +48,7 @@ export async function getChartData(
 		const parsed = rangeSchema.safeParse(req.query.range);
 		if (!parsed.success) {
 			throw new AppError(
-				"Invalid range. Must be: day, week, month, year, all"
+				"Invalid range. Must be: day, week, month, year, all",
 			);
 		}
 		const range = parsed.data;
