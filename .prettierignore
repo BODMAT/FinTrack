@@ -1,0 +1,15 @@
+.github
+.turbo
+.vscode
+.DS_Store
+*.log
+*.yml
+*.yaml
+node_modules
+dist
+build
+coverage
+*.min.js
+pnpm-lock.yaml
+package-lock.json
+apps/api/prisma/migrations

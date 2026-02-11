@@ -2,48 +2,49 @@ import type { Request, Response, NextFunction } from "express";
 import { Prisma } from "@prisma/client";
 import { ZodError } from "zod";
 
+export class AppError extends Error {
+	statusCode: number;
+	details?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+
+	constructor(message: string, statusCode: number = 400, details?: any) { // eslint-disable-line @typescript-eslint/no-explicit-any
+		super(message);
+		this.statusCode = statusCode;
+		this.details = details;
+		Error.captureStackTrace?.(this, this.constructor);
+	}
+}
+
+interface ErrorResponse {
+	error: string;
+	details?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+}
+
 export function errorHandler(
 	err: unknown,
 	req: Request,
 	res: Response,
-	next: NextFunction
+	_next: NextFunction
 ) {
-	console.error(err);
+	console.error(err instanceof Error ? err.stack : err);
 
-	// Zod (валідація)
+	let statusCode: number = 500;
+	let response: ErrorResponse = { error: "Internal Server Error" };
+
 	if (err instanceof ZodError) {
-		return res.status(400).json({ error: "Validation failed", details: err.issues });
+		statusCode = 400;
+		response = { error: "Validation failed", details: err.issues };
+	} else if (err instanceof Prisma.PrismaClientKnownRequestError) {
+		switch (err.code) {
+			case "P2002": statusCode = 409; response = { error: "Item already exists", details: err.meta }; break;
+			case "P2025": statusCode = 404; response = { error: "Not found", details: err.meta }; break;
+		}
+	} else if (err instanceof Prisma.PrismaClientValidationError) {
+		statusCode = 400;
+		response = { error: "Invalid Prisma query", details: err.message };
+	} else if (err instanceof AppError) {
+		statusCode = err.statusCode;
+		response = { error: err.message, details: err.details };
 	}
 
-	// Prisma
-	if (err instanceof Prisma.PrismaClientValidationError) {
-		return res.status(400).json({ error: "Invalid Prisma query", details: err.message });
-	}
-
-	if (err instanceof Prisma.PrismaClientKnownRequestError) {
-		if (err.code === "P2002") return res.status(409).json({ error: "Item already exists" });
-		if (err.code === "P2025") return res.status(404).json({ error: "Not found" });
-	}
-
-	// Кастомні помилки
-	if (err instanceof Error) {
-		if (err.message === "user_id is required") {
-			return res.status(400).json({ error: "user_id is required" });
-		}
-		if (err.message === "Invalid pagination params") {
-			return res.status(400).json({ error: "Invalid pagination params" });
-		}
-		if (err.message === "Not found") {
-			return res.status(404).json({ error: "Not Found" });
-		}
-		if (err.message.includes("No tokens found in HF_API_TOKEN")) {
-			return res.status(500).json({ error: "Misconfiguration: missing HuggingFace tokens" });
-		}
-		if (err.message.includes("All tokens failed")) {
-			return res.status(500).json({ error: err.message });
-		}
-	}
-
-	// Fallback
-	return res.status(500).json({ error: "Internal Server Error" });
+	return res.status(statusCode).json(response);
 }

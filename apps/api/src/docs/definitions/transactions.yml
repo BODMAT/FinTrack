@@ -1,0 +1,407 @@
+# ==================================
+#         COMPONENTS — TRANSACTION
+# ==================================
+components:
+  schemas:
+    # --- Schemas for Request Bodies ---
+    LocationInput:
+      type: object
+      description: Optional location associated with a transaction.
+      properties:
+        latitude:
+          type: number
+          minimum: -90
+          maximum: 90
+          example: 50.4501
+        longitude:
+          type: number
+          minimum: -180
+          maximum: 180
+          example: 30.5234
+      required:
+        - latitude
+        - longitude
+
+    CreateTransactionInput:
+      type: object
+      description: Payload for creating a new financial transaction.
+      properties:
+        title:
+          type: string
+          description: Short title or description of the transaction.
+          example: "Groceries"
+        type:
+          type: string
+          enum: [INCOME, EXPENSE]
+          description: Type of transaction — income or expense.
+          example: "EXPENSE"
+        amount:
+          type: number
+          format: float
+          minimum: 0
+          description: Transaction amount.
+          example: 54.20
+        location:
+          $ref: "#/components/schemas/LocationInput"
+      required:
+        - title
+        - type
+        - amount
+
+    UpdateTransactionInput:
+      type: object
+      description: Payload for updating an existing transaction.
+      properties:
+        title:
+          type: string
+          description: New title for the transaction.
+        type:
+          type: string
+          enum: [INCOME, EXPENSE]
+          description: Updated transaction type.
+        amount:
+          type: number
+          format: float
+          description: Updated transaction amount.
+        location:
+          oneOf:
+            - $ref: "#/components/schemas/LocationInput"
+            - type: "null"
+          description: Updated location or `null` to remove.
+      example:
+        title: "Updated Groceries"
+        amount: 60.50
+        location:
+          latitude: 50.45
+          longitude: 30.52
+
+    # --- Schemas for Responses ---
+    Location:
+      type: object
+      description: Geographic location of the transaction.
+      properties:
+        id:
+          type: string
+          description: UUID of the location record.
+          example: "9a857bfa-1ef2-478d-bd1e-53a40e19db99"
+        latitude:
+          type: number
+          example: 50.4501
+        longitude:
+          type: number
+          example: 30.5234
+
+    Transaction:
+      type: object
+      description: Financial transaction data structure.
+      properties:
+        id:
+          type: string
+          description: UUID of the transaction.
+          example: "ae13c501-b0e9-4a7a-97ff-91c9f177e9cb"
+        title:
+          type: string
+          description: Title or description of the transaction.
+          example: "Groceries"
+        type:
+          type: string
+          enum: [INCOME, EXPENSE]
+          example: "EXPENSE"
+        amount:
+          type: number
+          format: float
+          example: 54.20
+        created_at:
+          type: string
+          format: date-time
+          example: "2025-09-01T12:30:00.000Z"
+        updated_at:
+          type: string
+          format: date-time
+          example: "2025-09-27T15:33:24.979Z"
+        location:
+          oneOf:
+            - $ref: "#/components/schemas/Location"
+            - type: "null"
+          description: Associated location, if available.
+      required:
+        - id
+        - title
+        - type
+        - amount
+        - created_at
+        - updated_at
+
+    TransactionList:
+      type: object
+      description: Paginated list of transactions (when page/perPage provided).
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transaction"
+        pagination:
+          type: object
+          properties:
+            page:
+              type: integer
+              example: 1
+            perPage:
+              type: integer
+              example: 10
+            total:
+              type: integer
+              example: 42
+            totalPages:
+              type: integer
+              example: 5
+      example:
+        data:
+          - id: "ae13c501-b0e9-4a7a-97ff-91c9f177e9cb"
+            title: "Groceries"
+            type: "EXPENSE"
+            amount: 54.20
+            created_at: "2025-09-01T12:30:00.000Z"
+            updated_at: "2025-09-27T15:33:24.979Z"
+            location:
+              latitude: 50.45
+              longitude: 30.52
+        pagination:
+          page: 1
+          perPage: 10
+          total: 42
+          totalPages: 5
+
+    TransactionListAll:
+      type: object
+      description: List of all transactions (when page/perPage not provided).
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/Transaction"
+      example:
+        data:
+          - id: "ae13c501-b0e9-4a7a-97ff-91c9f177e9cb"
+            title: "Groceries"
+            type: "EXPENSE"
+            amount: 54.20
+            created_at: "2025-09-01T12:30:00.000Z"
+            updated_at: "2025-09-27T15:33:24.979Z"
+            location:
+              id: "9a857bfa-1ef2-478d-bd1e-53a40e19db99"
+              latitude: 50.45
+              longitude: 30.52
+
+    # --- Schemas for Errors ---
+    Error:
+      type: object
+      description: Standard error response.
+      properties:
+        error:
+          type: string
+          description: Error message.
+      example:
+        error: "Something went wrong"
+
+# ==================================
+#         PATHS — TRANSACTION
+# ==================================
+paths:
+  /transactions:
+    get:
+      tags:
+        - Transaction
+      summary: Get transactions
+      description: |
+        Returns transactions for the authenticated user.
+
+        **With pagination** (when `page` and `perPage` are provided):
+        - Returns paginated list with metadata (total, totalPages)
+
+        **Without pagination** (when `page` and `perPage` are omitted):
+        - Returns all transactions as a simple list
+
+        Note: Both `page` and `perPage` must be provided together, or neither.
+      parameters:
+        - in: query
+          name: page
+          schema:
+            type: integer
+            minimum: 1
+          description: Page number for pagination (optional, requires perPage).
+        - in: query
+          name: perPage
+          schema:
+            type: integer
+            minimum: 1
+          description: Number of transactions per page (optional, requires page).
+      responses:
+        "200":
+          description: List of user's transactions.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/TransactionList"
+                  - $ref: "#/components/schemas/TransactionListAll"
+        "400":
+          description: Invalid pagination params (e.g., only one of page/perPage provided).
+        "401":
+          description: Unauthorized.
+
+    post:
+      tags:
+        - Transaction
+      summary: Create a new transaction
+      description: Creates a new transaction entry associated with the authenticated user.
+      requestBody:
+        required: true
+        description: Transaction data to be created.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTransactionInput"
+      responses:
+        "201":
+          description: Transaction created successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+        "400":
+          description: Invalid request body.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Invalid request body"
+        "401":
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Unauthorized"
+
+  /transactions/{id}:
+    get:
+      tags:
+        - Transaction
+      summary: Get a transaction by ID
+      description: Retrieves a specific transaction belonging to the authenticated user.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: UUID of the transaction to retrieve.
+      responses:
+        "200":
+          description: Transaction found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+        "401":
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Unauthorized"
+        "404":
+          description: Transaction not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Transaction not found"
+
+    patch:
+      tags:
+        - Transaction
+      summary: Update a transaction
+      description: Updates title, type, amount, or location of an existing transaction.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: UUID of the transaction to update.
+      requestBody:
+        required: true
+        description: Transaction data to update.
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTransactionInput"
+      responses:
+        "200":
+          description: Transaction updated successfully.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+        "400":
+          description: Invalid request body.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Invalid request body"
+        "401":
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Unauthorized"
+        "404":
+          description: Transaction not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Transaction not found"
+
+    delete:
+      tags:
+        - Transaction
+      summary: Delete a transaction
+      description: Permanently deletes a transaction by its ID.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: UUID of the transaction to delete.
+      responses:
+        "204":
+          description: Transaction deleted successfully.
+        "401":
+          description: Unauthorized.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Unauthorized"
+        "404":
+          description: Transaction not found.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+              example:
+                message: "Transaction not found"

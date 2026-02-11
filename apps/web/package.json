@@ -1,5 +1,7 @@
 {
   "name": "fintrack-web",
+  "author": "Bohdan Matula",
+  "license": "MIT",
   "private": true,
   "version": "0.0.0",
   "type": "module",

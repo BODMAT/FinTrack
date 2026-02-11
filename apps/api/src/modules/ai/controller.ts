@@ -1,23 +1,21 @@
+import { ENV } from "../../config/env.js";
 import type { Request, Response, NextFunction } from "express";
 import { OpenAI } from "openai";
+import { AppError } from "../../middleware/errorHandler.js";
 
 // Controllers
-export async function analyze(req: Request, res: Response, next: NextFunction) {
+export async function ai(req: Request, res: Response, next: NextFunction) {
 	try {
-		const tokens = Object.keys(process.env)
-			.filter(key => key.startsWith("HF_API_TOKEN"))
-			.map(key => process.env[key])
-			.filter(Boolean);
-
+		const tokens = ENV.HF_API_TOKENS;
 		if (tokens.length === 0) {
-			throw new Error("No tokens found in HF_API_TOKEN .env");
+			throw new AppError("No Hugging Face API tokens found in configuration", 500);
 		}
 
-		const DEFAULT_MODEL = "openai/gpt-oss-120b";
+		const DEFAULT_MODEL = "openai/gpt-oss-120b:cerebras";
 		const { model, prompt, data } = req.body;
 		const modelToUse = model ?? DEFAULT_MODEL;
 
-		let errorMessages: string[] = [];
+		const errorMessages: string[] = [];
 
 		for (const token of tokens) {
 			const client = new OpenAI({
@@ -43,7 +41,7 @@ export async function analyze(req: Request, res: Response, next: NextFunction) {
 			}
 		}
 
-		throw new Error(`All tokens failed:\n${errorMessages.join("\n")}`);
+		throw new AppError(`All tokens failed:\n${errorMessages.join("\n")}`, 500);
 	} catch (err) {
 		next(err);
 	}
