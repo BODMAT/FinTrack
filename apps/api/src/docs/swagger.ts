@@ -74,7 +74,7 @@ export function swaggerDocs(app: Express) {
 	// Swagger page
 	app.use(
 		"/api-docs",
-		swaggerUi.serve,
+		swaggerUi.serve as any, // eslint-disable-line @typescript-eslint/no-explicit-any
 		swaggerUi.setup(swaggerSpec, {
 			customSiteTitle: "FinTrack API Docs",
 			swaggerOptions: {
@@ -102,7 +102,7 @@ export function swaggerDocs(app: Express) {
 					);
 				},
 			},
-		}),
+		}) as any,// eslint-disable-line @typescript-eslint/no-explicit-any
 	);
 
 	// Docs in JSON format
