@@ -12,9 +12,7 @@
 		"target": "esnext",
 		"types": [],
 		// For nodejs:
-		"lib": [
-			"esnext"
-		],
+		"lib": ["esnext"],
 		"esModuleInterop": true,
 		// "types": ["node"],
 		// and npm install -D @types/node
@@ -40,5 +38,15 @@
 		"noUncheckedSideEffectImports": true,
 		"moduleDetection": "force",
 		"skipLibCheck": true,
-	}
+		"baseUrl": ".",
+		"paths": {
+			"@fintrack/types": ["../../packages/types/src/index.ts"]
+		}
+	},
+	"references": [
+		{
+			"path": "../../packages/types"
+		}
+	],
+	"include": ["src/**/*"]
 }

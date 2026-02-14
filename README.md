@@ -9,18 +9,21 @@ Track your daily expenses by messaging a bot. Visualize your data through a beau
 ## ✨ Features
 
 ### Telegram Bot
+
 - `/start` – quick setup and help
 - `/summary` – view your daily/monthly balance
 - `+500 salary` or `-120 groceries` – log income or expenses instantly
 - Automatically parses and saves your transactions
 
 ### Web Dashboard
+
 - Interactive charts (Chart.js)
 - Balance overview: total income, expenses, and net
 - Transactions table with filters, sorting, and search
 - Clean and responsive UI (React + Tailwind)
 
 ### 🚧 Planned Features
+
 - Bank card integration: display real-time top-ups and spending
 - Visualize card transactions directly on the map (Google Maps API)
 
@@ -29,12 +32,14 @@ Track your daily expenses by messaging a bot. Visualize your data through a beau
 ## 🛠 Tech Stack
 
 ### Frontend
+
 - React + TypeScript
 - Zustand for state management
 - TanStack Query
 - TailwindCSS
 
 ### Backend
+
 - Node.js + Express
 - PostgreSQL
 - Telegram Bot via Telegraf

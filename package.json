@@ -22,7 +22,8 @@
 		"packages/*"
 	],
 	"scripts": {
-		"dev": "turbo run dev",
+		"setup": "turbo run build --filter=@fintrack/types",
+		"dev": "npm run setup && turbo run dev",
 		"dev:web": "turbo run dev --filter=fintrack-web",
 		"dev:api": "turbo run dev --filter=fintrack-api",
 		"dev:bot": "turbo run dev --filter=fintrack-bot",
@@ -35,14 +36,28 @@
 		"check": "npm run format:check && npm run lint",
 		"check-types": "turbo run check-types"
 	},
+	"dependencies": {
+		"axios": "^1.11.0",
+		"zod": "^3.23.8"
+	},
 	"devDependencies": {
 		"@eslint/js": "^9.39.2",
 		"eslint": "^9.30.1",
 		"eslint-config-prettier": "^10.1.8",
+		"eslint-plugin-react": "^7.37.5",
+		"eslint-plugin-react-hooks": "^7.0.1",
 		"globals": "^17.0.0",
 		"prettier": "^3.6.2",
 		"turbo": "^2.5.6",
 		"typescript": "5.9.2",
 		"typescript-eslint": "^8.52.0"
+	},
+	"overrides": {
+		"zod": "^3.23.8",
+		"@types/express": "4.17.21",
+		"@types/express-serve-static-core": "4.19.0"
+	},
+	"optionalDependencies": {
+		"@rollup/rollup-linux-x64-gnu": "^4.57.1"
 	}
 }

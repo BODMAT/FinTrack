@@ -1,23 +1,24 @@
 import type { Request, Response, NextFunction } from "express";
-import { z } from "zod";
 import { AppError } from "../../middleware/errorHandler.js";
 import { getAllTransactions } from "../transaction/service.js";
 import { groupData, getFullStats } from "./helpers.js";
+import {
+	RangeSchema as rangeSchema,
+	type ResponseTransaction,
+} from "@fintrack/types";
 
-// Data validation
-const rangeSchema = z.enum(["day", "week", "month", "year", "all"]);
-
-// Helpers
-function convertToIData(transactionsData: Awaited<ReturnType<typeof getAllTransactions>>) {
+function convertToIData(
+	transactionsData: Awaited<ReturnType<typeof getAllTransactions>>,
+): ResponseTransaction[] {
 	return transactionsData.data.map((t) => ({
 		...t,
-		amount: t.amount.toString(),
-		created_at: t.created_at.toISOString(),
-		updated_at: t.updated_at.toISOString(),
+		amount: Number(t.amount),
+		created_at: new Date(t.created_at),
+		updated_at: new Date(t.updated_at),
+		location: t.location || undefined,
 	}));
 }
 
-// Controllers
 export async function getSummary(
 	req: Request,
 	res: Response,

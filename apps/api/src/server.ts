@@ -49,6 +49,8 @@ process.on("uncaughtException", (err) => {
 	process.exit(1);
 });
 process.on("unhandledRejection", (reason) => {
-	console.error("❌ Unhandled Rejection:", reason instanceof Error ? reason.stack : reason);
+	console.error(
+		"❌ Unhandled Rejection:",
+		reason instanceof Error ? reason.stack : reason,
+	);
 });
-
