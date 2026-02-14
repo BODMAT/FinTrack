@@ -9,20 +9,16 @@ import reactHooksPlugin from "eslint-plugin-react-hooks";
 import { defineConfig, globalIgnores } from "eslint/config";
 
 export default defineConfig([
-	globalIgnores(["dist", "node_modules"]),
-	{
-		ignores: [
-			"**/dist/**",
-			"**/node_modules/**",
-			"**/build/**",
-			"**/.turbo/**",
-			"**/temp/**",
-			"apps/api/dist/**",
-			"apps/web/dist/**",
-			//!===========================================================================================================
-			"apps/api/src/**",
-		],
-	},
+	globalIgnores([
+		"**/dist/**",
+		"**/node_modules/**",
+		"**/build/**",
+		"**/.turbo/**",
+		"**/temp/**",
+		"apps/api/dist/**",
+		"apps/web/dist/**",
+	]),
+
 	// API (Node.js, TypeScript)
 	{
 		files: ["apps/api/**/*.ts"],
@@ -38,12 +34,21 @@ export default defineConfig([
 			globals: {
 				...globals.node,
 			},
+			parserOptions: {
+				tsconfigRootDir: process.cwd(),
+				project: "./apps/api/tsconfig.json",
+			},
 		},
 		rules: {
 			semi: ["error", "always"],
-			"no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
+			"no-unused-vars": "off",
+			"@typescript-eslint/no-unused-vars": [
+				"error",
+				{ argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+			],
 		},
 	},
+
 	// WEB (React / TypeScript)
 	{
 		files: ["apps/web/**/*.{ts,tsx}"],
@@ -70,6 +75,10 @@ export default defineConfig([
 			...reactHooksPlugin.configs.recommended.rules,
 			"react/react-in-jsx-scope": "off",
 			semi: ["error", "always"],
+			"@typescript-eslint/no-unused-vars": [
+				"error",
+				{ argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+			],
 		},
 	},
 ]);

@@ -2,14 +2,10 @@ import express from "express";
 import { authenticateToken } from "../auth/controller.js";
 import {
 	getAllUsers,
-	getUser,
 	getCurrentUser,
 	createUser,
-	updateUser,
 	updateCurrentUser,
-	deleteUser,
 	deleteCurrentUser,
-	deleteAuthMethod,
 	deleteAuthMethodForCurrentUser,
 } from "./controller.js";
 

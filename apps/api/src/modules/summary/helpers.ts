@@ -24,8 +24,8 @@ export function groupData(data: IData[], range: CustomDate, nowDate?: Date) {
 	>();
 
 	const filtered = data.filter((item) => {
+		if (!item.created_at) return false;
 		const date = item.created_at;
-		if (!date) return false;
 
 		if (range === "day") {
 			return date.toDateString() === now.toDateString();
@@ -56,7 +56,6 @@ export function groupData(data: IData[], range: CustomDate, nowDate?: Date) {
 	for (const item of filtered) {
 		if (!item.created_at) continue;
 		const date = item.created_at;
-
 		let key = "";
 		let rawDate = new Date(date);
 
@@ -248,35 +247,28 @@ export function getFullStats(data: IData[]): IDataStats {
 	const dataStatsPerYear = getStatsPerRange(data, "year");
 	const dataStatsPerAllTime = getStatsPerRange(data, "all");
 
-	const maxPositiveTransaction =
-		data
-			.filter((item) => item.type === "INCOME")
-			.sort((a, b) => Number(b.amount) - Number(a.amount))[0]
-			?.amount.toString() || "0";
-
-	const maxNegativeTransaction =
-		data
-			.filter((item) => item.type !== "INCOME")
-			.sort((a, b) => Number(b.amount) - Number(a.amount))[0]
-			?.amount.toString() || "0";
-
-	const minPositiveTransaction =
-		data
-			.filter((item) => item.type === "INCOME")
-			.sort((a, b) => Number(a.amount) - Number(b.amount))[0]
-			?.amount.toString() || "0";
-
-	const minNegativeTransaction =
-		data
-			.filter((item) => item.type !== "INCOME")
-			.sort((a, b) => Number(a.amount) - Number(b.amount))[0]
-			?.amount.toString() || "0";
+	const getTopAmount = (
+		filterFn: (i: IData) => boolean,
+		sortFn: (a: IData, b: IData) => number,
+	) => data.filter(filterFn).sort(sortFn)[0]?.amount.toString() || "0";
 
 	const topTransaction = {
-		maxPositiveTransaction,
-		maxNegativeTransaction,
-		minPositiveTransaction,
-		minNegativeTransaction,
+		maxPositiveTransaction: getTopAmount(
+			(i) => i.type === "INCOME",
+			(a, b) => Number(b.amount) - Number(a.amount),
+		),
+		maxNegativeTransaction: getTopAmount(
+			(i) => i.type !== "INCOME",
+			(a, b) => Number(b.amount) - Number(a.amount),
+		),
+		minPositiveTransaction: getTopAmount(
+			(i) => i.type === "INCOME",
+			(a, b) => Number(a.amount) - Number(b.amount),
+		),
+		minNegativeTransaction: getTopAmount(
+			(i) => i.type !== "INCOME",
+			(a, b) => Number(a.amount) - Number(b.amount),
+		),
 	};
 
 	return {

@@ -38,7 +38,7 @@ import { prisma } from "./client.js";
 			},
 		});
 
-		const t1 = await prisma.transaction.create({
+		const _t1 = await prisma.transaction.create({
 			data: {
 				title: "Зарплата",
 				type: TransactionType.INCOME,
@@ -53,7 +53,7 @@ import { prisma } from "./client.js";
 			},
 		});
 
-		const t2 = await prisma.transaction.create({
+		const _t2 = await prisma.transaction.create({
 			data: {
 				title: "Кафе",
 				type: TransactionType.EXPENSE,
@@ -68,7 +68,7 @@ import { prisma } from "./client.js";
 			},
 		});
 
-		const t3 = await prisma.transaction.create({
+		const _t3 = await prisma.transaction.create({
 			data: {
 				title: "Фріланс",
 				type: TransactionType.INCOME,
@@ -77,7 +77,7 @@ import { prisma } from "./client.js";
 			},
 		});
 
-		const t4 = await prisma.transaction.create({
+		const _t4 = await prisma.transaction.create({
 			data: {
 				title: "Кіно",
 				type: TransactionType.EXPENSE,

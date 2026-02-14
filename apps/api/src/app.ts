@@ -13,7 +13,7 @@ app.use(express.json());
 app.use("/api", apiRouter);
 swaggerDocs(app);
 
-app.use((req: Request, res: Response, next: NextFunction) => {
+app.use((req: Request, res: Response, _next: NextFunction) => {
 	res.status(404).json({ error: "Endpoint not found" });
 });
 

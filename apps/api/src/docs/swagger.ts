@@ -78,7 +78,7 @@ export function swaggerDocs(app: Express) {
 		swaggerUi.setup(swaggerSpec, {
 			customSiteTitle: "FinTrack API Docs",
 			swaggerOptions: {
-				operationsSorter: (a: any, b: any) => {
+				operationsSorter: (a: any, b: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
 					const order: Record<string, number> = {
 						get: 0,
 						post: 1,

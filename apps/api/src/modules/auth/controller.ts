@@ -61,12 +61,12 @@ export function authenticateToken(
 		const token = authHeader?.split(" ")[1];
 		if (!token) throw new AppError("Missing access token", 401);
 
-		jwt.verify(token, ACCESS_TOKEN_SECRET, (err, decoded) => {
-			if (err) {
-				if (err.name === "TokenExpiredError") {
+		jwt.verify(token, ACCESS_TOKEN_SECRET, (_err, decoded) => {
+			if (_err) {
+				if (_err.name === "TokenExpiredError") {
 					return next(new AppError("Access token expired", 401));
 				}
-				if (err.name === "JsonWebTokenError") {
+				if (_err.name === "JsonWebTokenError") {
 					return next(new AppError("Invalid access token", 401));
 				}
 				return next(new AppError("Failed to authenticate token", 401));
@@ -116,7 +116,8 @@ export async function token(req: Request, res: Response, next: NextFunction) {
 			});
 
 			res.status(200).json({ accessToken });
-		} catch (err) {
+			// eslint-disable-next-line @typescript-eslint/no-unused-vars
+		} catch (_err) {
 			throw new AppError("Invalid refresh token signature", 401);
 		}
 	} catch (err) {

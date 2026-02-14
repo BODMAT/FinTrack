@@ -2,18 +2,23 @@ import type { Request, Response, NextFunction } from "express";
 import { AppError } from "../../middleware/errorHandler.js";
 import { getAllTransactions } from "../transaction/service.js";
 import { groupData, getFullStats } from "./helpers.js";
-import { RangeSchema as rangeSchema } from "@fintrack/types";
-// Helpers
-function convertToIData(transactions: { data: any[] }) {
-	return transactions.data.map((t) => ({
+import {
+	RangeSchema as rangeSchema,
+	type ResponseTransaction,
+} from "@fintrack/types";
+
+function convertToIData(
+	transactionsData: Awaited<ReturnType<typeof getAllTransactions>>,
+): ResponseTransaction[] {
+	return transactionsData.data.map((t) => ({
 		...t,
-		amount: t.amount.toString(),
+		amount: Number(t.amount),
 		created_at: new Date(t.created_at),
 		updated_at: new Date(t.updated_at),
+		location: t.location || undefined,
 	}));
 }
 
-// Controllers
 export async function getSummary(
 	req: Request,
 	res: Response,

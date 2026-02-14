@@ -28,6 +28,7 @@
 		"dev:api": "turbo run dev --filter=fintrack-api",
 		"dev:bot": "turbo run dev --filter=fintrack-bot",
 		"test:api:prod": "npm --prefix apps/api run prod",
+		"api:prisma:generate": "npm --prefix apps/api run prisma:generate",
 		"build": "turbo run build",
 		"format": "prettier --write .",
 		"format:check": "prettier --check .",
