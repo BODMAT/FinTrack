@@ -1,14 +1,12 @@
 import { create } from "zustand";
-import type { CustomDate } from "../types/custom";
+import type { Range } from "@fintrack/types";
 
 interface PeriodState {
-    period: CustomDate;
-    setPeriod: (period: CustomDate) => void
+  period: Range;
+  setPeriod: (period: Range) => void;
 }
 
-export const usePeriodStore = create<PeriodState>()(
-    (set) => ({
-        period: "all",
-        setPeriod: (period: CustomDate) => set({ period }),
-    })
-);
+export const usePeriodStore = create<PeriodState>()((set) => ({
+  period: "all",
+  setPeriod: (period: Range) => set({ period }),
+}));
