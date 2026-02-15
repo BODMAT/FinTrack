@@ -1,11 +1,11 @@
 import express from "express";
 import { authenticateToken } from "../auth/controller.js";
 import {
-	getAllTransactions,
-	getTransaction,
-	createTransaction,
-	updateTransaction,
-	deleteTransaction,
+  getAllTransactions,
+  getTransaction,
+  createTransaction,
+  updateTransaction,
+  deleteTransaction,
 } from "./controller.js";
 
 export const transactionRouter = express.Router();

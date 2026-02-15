@@ -2,18 +2,18 @@ import z from "zod";
 import { createTransactionSchema } from "./transaction.js";
 
 export const AITransactionSchema = z.object({
-	transactions: z.array(createTransactionSchema),
+  transactions: z.array(createTransactionSchema),
 });
 
 export const AIRequestSchema = z.object({
-	model: z.string().optional(),
-	prompt: z.string().min(1),
-	data: AITransactionSchema,
+  model: z.string().optional(),
+  prompt: z.string().min(1),
+  data: AITransactionSchema,
 });
 
 export const AIResponseSchema = z.object({
-	model: z.string(),
-	result: z.string(),
+  model: z.string(),
+  result: z.string(),
 });
 
 export type AITransaction = z.infer<typeof AITransactionSchema>;

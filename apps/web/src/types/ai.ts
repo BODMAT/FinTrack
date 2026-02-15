@@ -2,9 +2,9 @@ import z from "zod";
 import { AIResponseSchema } from "@fintrack/types";
 
 export const AIResponseWithDiffSchema = AIResponseSchema.extend({
-	getted_at: z.date(),
-	prompt: z.string(),
-	id: z.string(),
+  getted_at: z.date(),
+  prompt: z.string(),
+  id: z.string(),
 });
 
 export const AIHistorySchema = z.array(AIResponseWithDiffSchema);
