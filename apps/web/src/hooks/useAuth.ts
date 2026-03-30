@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   getMe,
@@ -17,13 +18,31 @@ import type {
 import type { ApiError } from "../types/api";
 import { queryClient } from "../api/queryClient";
 
+const AUTH_COOKIE_NAME = "fintrack_auth";
+const AUTH_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
+
+function setAuthCookie() {
+  if (typeof document === "undefined") return;
+  document.cookie = `${AUTH_COOKIE_NAME}=1; Path=/; Max-Age=${AUTH_COOKIE_MAX_AGE_SECONDS}; SameSite=Lax`;
+}
+
+function clearAuthCookie() {
+  if (typeof document === "undefined") return;
+  document.cookie = `${AUTH_COOKIE_NAME}=; Path=/; Max-Age=0; SameSite=Lax`;
+}
+
 export const useAuth = () => {
+  const [isClient, setIsClient] = useState(false);
   const { token, refreshToken, setTokens, logout: clearStore } = useAuthStore();
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const profile = useQuery<UserResponse, ApiError>({
     queryKey: ["user", "me"],
     queryFn: getMe,
-    enabled: !!token,
+    enabled: isClient && !!token,
     retry: false,
   });
 
@@ -35,6 +54,7 @@ export const useAuth = () => {
     mutationFn: loginUser,
     onSuccess: (data) => {
       setTokens(data.accessToken, data.refreshToken);
+      setAuthCookie();
       queryClient.invalidateQueries({ queryKey: ["user", "me"] });
     },
   });
@@ -45,6 +65,7 @@ export const useAuth = () => {
       return logoutUser({ token: refreshToken });
     },
     onSettled: () => {
+      clearAuthCookie();
       clearStore();
       queryClient.clear();
     },
@@ -60,6 +81,7 @@ export const useAuth = () => {
   const deleteAccount = useMutation<void, ApiError>({
     mutationFn: deleteMe,
     onSettled: () => {
+      clearAuthCookie();
       clearStore();
       queryClient.clear();
     },
@@ -75,7 +97,7 @@ export const useAuth = () => {
   return {
     user: profile.data,
 
-    isLoading: profile.isLoading,
+    isLoading: !isClient || profile.isLoading,
     isError: profile.isError,
     profileError: profile.error?.message,
 

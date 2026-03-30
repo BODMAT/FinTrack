@@ -3,7 +3,7 @@ import { useAuthStore } from "../store/useAuthStore";
 
 const api = axios.create({
   baseURL:
-    import.meta.env.VITE_API_URL || "https://fintrack-irxy.onrender.com/api",
+    process.env.NEXT_PUBLIC_API_URL || "https://fintrack-irxy.onrender.com/api",
   headers: {
     "Content-Type": "application/json",
   },

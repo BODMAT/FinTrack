@@ -1,10 +1,9 @@
-import { Outlet } from "react-router-dom";
 import { FixedHeader } from "../Header/FixedHeader";
 import { motion } from "framer-motion";
 import { Suspense } from "react";
-import { Spinner } from "../Helpers";
+import { Spinner } from "../../shared/ui/Helpers";
 
-export function Layout() {
+export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="wrapper inter bg-[image:var(--color-main)]">
       <div className="flex max-md:flex-col">
@@ -20,11 +19,10 @@ export function Layout() {
           animate={{ opacity: 1, x: 0 }}
           className="transitioned p-[31px] md:ml-[300px] max-md:mt-[100px] w-full"
         >
-          <Suspense fallback={<Spinner />}>
-            <Outlet />
-          </Suspense>
+          <Suspense fallback={<Spinner />}>{children}</Suspense>
         </motion.main>
       </div>
     </div>
   );
 }
+

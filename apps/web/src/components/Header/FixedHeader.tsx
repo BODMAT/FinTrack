@@ -85,7 +85,7 @@ export function FixedHeader() {
         <nav role="navigation" className="gap-10">
           <ul className="border-b-2 pb-[20px] border-[var(--color-fixed-text)]">
             <MenuLink name="dashboard" />
-            <MenuLink name="analitycs" />
+            <MenuLink name="analytics" />
             <MenuLink name="transactions" />
           </ul>
           <div className="mt-[20px] py-[12px] px-[10px] flex justify-center">
