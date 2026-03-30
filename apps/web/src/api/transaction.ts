@@ -1,54 +1,54 @@
 import { handleRequest } from "../utils/api";
 import api from "./api";
 import {
-	responseTransactionSchema,
-	transactionsListResponseSchema,
-	type CreateTransaction,
-	type ResponseTransaction,
-	type TransactionsListResponse,
-	type UpdateTransaction,
+  responseTransactionSchema,
+  transactionsListResponseSchema,
+  type CreateTransaction,
+  type ResponseTransaction,
+  type TransactionsListResponse,
+  type UpdateTransaction,
 } from "@fintrack/types";
 
 import type { Pagination } from "../types/transaction";
 
 export const getTransactions = async (
-	payload: Pagination,
-	signal?: AbortSignal,
+  payload: Pagination,
+  signal?: AbortSignal,
 ): Promise<TransactionsListResponse> => {
-	return handleRequest(
-		api.get("/transactions", { params: payload, signal }),
-		transactionsListResponseSchema,
-	);
+  return handleRequest(
+    api.get("/transactions", { params: payload, signal }),
+    transactionsListResponseSchema,
+  );
 };
 
 export const getTransactionById = async (
-	id: string,
+  id: string,
 ): Promise<ResponseTransaction> => {
-	return handleRequest(
-		api.get(`/transactions/${id}`),
-		responseTransactionSchema,
-	);
+  return handleRequest(
+    api.get(`/transactions/${id}`),
+    responseTransactionSchema,
+  );
 };
 
 export const createTransaction = async (
-	payload: CreateTransaction,
+  payload: CreateTransaction,
 ): Promise<ResponseTransaction> => {
-	return handleRequest(
-		api.post("/transactions", payload),
-		responseTransactionSchema,
-	);
+  return handleRequest(
+    api.post("/transactions", payload),
+    responseTransactionSchema,
+  );
 };
 
 export const updateTransaction = async (
-	id: string,
-	payload: UpdateTransaction,
+  id: string,
+  payload: UpdateTransaction,
 ): Promise<ResponseTransaction> => {
-	return handleRequest(
-		api.patch(`/transactions/${id}`, payload),
-		responseTransactionSchema,
-	);
+  return handleRequest(
+    api.patch(`/transactions/${id}`, payload),
+    responseTransactionSchema,
+  );
 };
 
 export const deleteTransaction = async (id: string): Promise<void> => {
-	return handleRequest(api.delete(`/transactions/${id}`));
+  return handleRequest(api.delete(`/transactions/${id}`));
 };

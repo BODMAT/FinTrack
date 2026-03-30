@@ -1,27 +1,27 @@
 import { useCallback, useRef, useEffect } from "react";
 
 export function useIntersection(onIntersect: () => void) {
-	const onIntersectRef = useRef(onIntersect);
-	useEffect(() => {
-		onIntersectRef.current = onIntersect;
-	}, [onIntersect]);
+  const onIntersectRef = useRef(onIntersect);
+  useEffect(() => {
+    onIntersectRef.current = onIntersect;
+  }, [onIntersect]);
 
-	const unsubscribe = useRef(() => {});
+  const unsubscribe = useRef(() => {});
 
-	return useCallback((el: HTMLElement | null) => {
-		unsubscribe.current();
+  return useCallback((el: HTMLElement | null) => {
+    unsubscribe.current();
 
-		if (!el) return;
+    if (!el) return;
 
-		const observer = new IntersectionObserver((entries) => {
-			entries.forEach((intersection) => {
-				if (intersection.isIntersecting) {
-					onIntersectRef.current();
-				}
-			});
-		});
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((intersection) => {
+        if (intersection.isIntersecting) {
+          onIntersectRef.current();
+        }
+      });
+    });
 
-		observer.observe(el);
-		unsubscribe.current = () => observer.disconnect();
-	}, []);
+    observer.observe(el);
+    unsubscribe.current = () => observer.disconnect();
+  }, []);
 }

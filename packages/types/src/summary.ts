@@ -2,43 +2,43 @@ import z from "zod";
 
 export const RangeSchema = z.enum(["day", "week", "month", "year", "all"]);
 export const MoneyTypeSchema = z.enum([
-	"income",
-	"outcome",
-	"saving",
-	"balance",
+  "income",
+  "outcome",
+  "saving",
+  "balance",
 ]);
 export const SummaryPerRangeSchema = z.object({
-	totalIncomePerRange: z.number().nonnegative(),
-	percentageIncomePerRange: z.number(),
+  totalIncomePerRange: z.number().nonnegative(),
+  percentageIncomePerRange: z.number(),
 
-	totalOutcomePerRange: z.number().nonnegative(),
-	percentageOutcomePerRange: z.number(),
+  totalOutcomePerRange: z.number().nonnegative(),
+  percentageOutcomePerRange: z.number(),
 
-	totalSavingPerRange: z.number(),
-	percentageSavingPerRange: z.number(),
+  totalSavingPerRange: z.number(),
+  percentageSavingPerRange: z.number(),
 });
 
 export const AllSummarySchema = z.object({
-	currentBalance: z.number(),
+  currentBalance: z.number(),
 
-	dataStatsPerDay: SummaryPerRangeSchema,
-	dataStatsPerWeek: SummaryPerRangeSchema,
-	dataStatsPerMonth: SummaryPerRangeSchema,
-	dataStatsPerYear: SummaryPerRangeSchema,
-	dataStatsPerAllTime: SummaryPerRangeSchema,
+  dataStatsPerDay: SummaryPerRangeSchema,
+  dataStatsPerWeek: SummaryPerRangeSchema,
+  dataStatsPerMonth: SummaryPerRangeSchema,
+  dataStatsPerYear: SummaryPerRangeSchema,
+  dataStatsPerAllTime: SummaryPerRangeSchema,
 
-	topTransaction: z.object({
-		maxPositiveTransaction: z.string(),
-		maxNegativeTransaction: z.string(),
-		minPositiveTransaction: z.string(),
-		minNegativeTransaction: z.string(),
-	}),
+  topTransaction: z.object({
+    maxPositiveTransaction: z.string(),
+    maxNegativeTransaction: z.string(),
+    minPositiveTransaction: z.string(),
+    minNegativeTransaction: z.string(),
+  }),
 });
 
 export const ChartDataSchema = z.object({
-	labels: z.array(z.string()),
-	income: z.array(z.number()),
-	outcome: z.array(z.number()),
+  labels: z.array(z.string()),
+  income: z.array(z.number()),
+  outcome: z.array(z.number()),
 });
 
 export type Range = z.infer<typeof RangeSchema>;

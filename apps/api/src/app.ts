@@ -14,7 +14,7 @@ app.use("/api", apiRouter);
 swaggerDocs(app);
 
 app.use((req: Request, res: Response, _next: NextFunction) => {
-	res.status(404).json({ error: "Endpoint not found" });
+  res.status(404).json({ error: "Endpoint not found" });
 });
 
 app.use(errorHandler);
