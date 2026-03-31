@@ -10,3 +10,5 @@ export const usePeriodStore = create<PeriodState>()((set) => ({
   period: "all",
   setPeriod: (period: Range) => set({ period }),
 }));
+
+

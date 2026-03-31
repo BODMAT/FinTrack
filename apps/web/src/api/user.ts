@@ -1,4 +1,4 @@
-import { handleRequest } from "../utils/api";
+import { handleRequest } from "@/utils/api";
 import {
   UserResponseSchema,
   type CreateUserBody,
@@ -31,3 +31,5 @@ export const deleteMyAuthMethod = async (
 ): Promise<void> => {
   return handleRequest(api.delete(`/users/me/auth-methods/${authMethodId}`));
 };
+
+

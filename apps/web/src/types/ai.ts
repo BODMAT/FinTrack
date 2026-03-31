@@ -11,3 +11,5 @@ export const AIHistorySchema = z.array(AIResponseWithDiffSchema);
 
 export type AIResponseWithDiff = z.infer<typeof AIResponseWithDiffSchema>;
 export type AIHistory = z.infer<typeof AIHistorySchema>;
+
+

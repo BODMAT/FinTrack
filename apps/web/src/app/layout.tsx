@@ -1,6 +1,6 @@
 import "leaflet/dist/leaflet.css";
-import "../components/Main/tailwind.css";
-import "../components/Main/style.css";
+import "../styles/tailwind.css";
+import "../styles/style.css";
 import { ClientRoot } from "./client-root";
 
 export default function RootLayout({
@@ -16,4 +16,5 @@ export default function RootLayout({
     </html>
   );
 }
+
 

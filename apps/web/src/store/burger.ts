@@ -18,3 +18,5 @@ export const useBurgerStore = create<BurgerState>((set) => ({
     ),
   closeBurger: () => set({ isBurgerOpen: false }),
 }));
+
+

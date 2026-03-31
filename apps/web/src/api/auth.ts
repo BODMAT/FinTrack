@@ -6,7 +6,7 @@ import {
   type TokenUserResponse,
   type LoginUserResponse,
 } from "@fintrack/types";
-import { handleRequest } from "../utils/api";
+import { handleRequest } from "@/utils/api";
 import api from "./api";
 
 export const loginUser = async (
@@ -30,3 +30,5 @@ export const tokenUser = async (
 export const logoutUser = async (payload: TokenUserBody): Promise<void> => {
   return handleRequest(api.delete("/auth/logout", { data: payload }));
 };
+
+

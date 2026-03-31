@@ -9,7 +9,8 @@ export function proxy(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const loginUrl = new URL("/login", request.url);
+  const basePath = request.nextUrl.basePath ?? "";
+  const loginUrl = new URL(`${basePath}/login`, request.url);
   loginUrl.searchParams.set(
     "next",
     `${request.nextUrl.pathname}${request.nextUrl.search}`,
@@ -21,7 +22,8 @@ export const config = {
   matcher: [
     "/dashboard/:path*",
     "/analytics/:path*",
-    "/analitycs/:path*",
     "/transactions/:path*",
   ],
 };
+
+

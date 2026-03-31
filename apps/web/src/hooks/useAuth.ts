@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   getMe,
@@ -6,17 +5,17 @@ import {
   deleteMe,
   deleteMyAuthMethod,
   createUser,
-} from "../api/user";
-import { loginUser, logoutUser } from "../api/auth";
-import { useAuthStore } from "../store/useAuthStore";
+} from "@/api/user";
+import { loginUser, logoutUser } from "@/api/auth";
+import { useAuthStore } from "@/store/useAuthStore";
 import type {
   CreateUserBody,
   UserResponse,
   LoginUserBody,
   LoginUserResponse,
 } from "@fintrack/types";
-import type { ApiError } from "../types/api";
-import { queryClient } from "../api/queryClient";
+import type { ApiError } from "@/types/api";
+import { queryClient } from "@/api/queryClient";
 
 const AUTH_COOKIE_NAME = "fintrack_auth";
 const AUTH_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
@@ -32,12 +31,8 @@ function clearAuthCookie() {
 }
 
 export const useAuth = () => {
-  const [isClient, setIsClient] = useState(false);
+  const isClient = typeof window !== "undefined";
   const { token, refreshToken, setTokens, logout: clearStore } = useAuthStore();
-
-  useEffect(() => {
-    setIsClient(true);
-  }, []);
 
   const profile = useQuery<UserResponse, ApiError>({
     queryKey: ["user", "me"],
@@ -124,3 +119,5 @@ export const useAuth = () => {
     },
   };
 };
+
+

@@ -1,16 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import ReactDOM from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import CrossIcon from "../../assets/cross.svg?react";
-import { usePopupStore } from "../../store/popup";
+import CrossIcon from "@/assets/cross.svg?react";
+import { usePopupStore } from "@/store/popup";
 
 export function PopUpPortal() {
   const { active, title, children, close } = usePopupStore();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     if (active) {
@@ -24,7 +19,7 @@ export function PopUpPortal() {
     };
   }, [active]);
 
-  if (!mounted) return null;
+  if (typeof document === "undefined") return null;
 
   return ReactDOM.createPortal(
     <AnimatePresence>
@@ -41,20 +36,20 @@ export function PopUpPortal() {
             animate={{ opacity: 1, y: "0px" }}
             exit={{ opacity: 0, y: "-50px" }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="bg-[var(--color-card)] rounded-lg overflow-hidden w-[90%] max-w-[800px] max-h-[95vh] shadow-lg relative !z-[99999] max-md:mt-[5vh] flex flex-col"
+            className="bg-(--color-card) rounded-lg overflow-hidden w-[90%] max-w-[800px] max-h-[95vh] shadow-lg relative !z-[99999] max-md:mt-[5vh] flex flex-col"
           >
-            <div className="bg-[var(--color-fixed)] flex justify-between items-center p-4 flex-shrink-0">
-              <h2 className="text-2xl font-bold text-[var(--color-text)]">
+            <div className="bg-(--color-fixed) flex justify-between items-center p-[16px] flex-shrink-0">
+              <h2 className="text-2xl font-bold text-(--color-text)">
                 {title}
               </h2>
               <button
                 onClick={close}
                 className="text-2xl font-bold cursor-pointer"
               >
-                <CrossIcon className="stroke-current text-[var(--color-text)] transition-all duration-500" />
+                <CrossIcon className="stroke-current text-(--color-text) transition-all duration-500" />
               </button>
             </div>
-            <div className="p-4 overflow-y-auto flex-grow">{children}</div>
+            <div className="p-[16px] overflow-y-auto flex-grow">{children}</div>
           </motion.div>
         </motion.section>
       )}
@@ -62,3 +57,5 @@ export function PopUpPortal() {
     document.body,
   );
 }
+
+

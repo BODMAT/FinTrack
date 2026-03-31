@@ -1,5 +1,5 @@
 import api from "./api";
-import { handleRequest } from "../utils/api";
+import { handleRequest } from "@/utils/api";
 import {
   type AIRequest,
   type AIResponse,
@@ -18,3 +18,5 @@ export const getAIResponse = async ({
     AIResponseSchema,
   );
 };
+
+

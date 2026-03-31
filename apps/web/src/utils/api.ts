@@ -1,5 +1,5 @@
 import type { AxiosResponse } from "axios";
-import type { ApiError } from "../types/api";
+import type { ApiError } from "@/types/api";
 import type z from "zod";
 import axios from "axios";
 
@@ -73,3 +73,5 @@ export async function handleRequest<T>(
     throw unexpectedError;
   }
 }
+
+

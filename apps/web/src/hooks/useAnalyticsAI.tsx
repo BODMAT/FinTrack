@@ -1,9 +1,9 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAuth } from "./useAuth";
-import type { AIResponseWithDiff } from "../types/ai";
+import type { AIResponseWithDiff } from "@/types/ai";
 import type { AIRequest } from "@fintrack/types";
-import { getAIResponse } from "../api/ai";
-import { queryClient } from "../api/queryClient";
+import { getAIResponse } from "@/api/ai";
+import { queryClient } from "@/api/queryClient";
 
 export function useAnalyticsAI() {
   const { user } = useAuth();
@@ -52,3 +52,5 @@ export function useAnalyticsAI() {
     getResponse: getResponse.mutate,
   };
 }
+
+

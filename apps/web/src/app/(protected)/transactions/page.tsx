@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { Spinner } from "../../../shared/ui/Helpers";
+import { Spinner } from "@/shared/ui/Helpers";
 import { TransactionsClient } from "./TransactionsClient";
 
 export default function TransactionsPage() {
@@ -9,4 +9,6 @@ export default function TransactionsPage() {
     </Suspense>
   );
 }
+
+
 

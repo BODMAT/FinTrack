@@ -1,7 +1,14 @@
 "use client";
 
-import { Transactions } from "../../../features/transactions/ui/Transactions";
+import { Transactions } from "./_components/Transactions";
+import { ProtectedClientGate } from "@/app/_components/auth/ProtectedClientGate";
 
 export function TransactionsClient() {
-  return <Transactions />;
+  return (
+    <ProtectedClientGate>
+      <Transactions />
+    </ProtectedClientGate>
+  );
 }
+
+

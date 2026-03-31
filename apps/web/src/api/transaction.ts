@@ -1,4 +1,4 @@
-import { handleRequest } from "../utils/api";
+import { handleRequest } from "@/utils/api";
 import api from "./api";
 import {
   responseTransactionSchema,
@@ -9,7 +9,7 @@ import {
   type UpdateTransaction,
 } from "@fintrack/types";
 
-import type { Pagination } from "../types/transaction";
+import type { Pagination } from "@/types/transaction";
 
 export const getTransactions = async (
   payload: Pagination,
@@ -52,3 +52,5 @@ export const updateTransaction = async (
 export const deleteTransaction = async (id: string): Promise<void> => {
   return handleRequest(api.delete(`/transactions/${id}`));
 };
+
+

@@ -2,17 +2,18 @@
 
 import dynamic from "next/dynamic";
 import { HydrationBoundary, type DehydratedState } from "@tanstack/react-query";
-import { Dashboard } from "../../../features/dashboard/ui/Dashboard";
+import { Dashboard } from "./_components/Dashboard";
+import { ProtectedClientGate } from "@/app/_components/auth/ProtectedClientGate";
 
 const IncomeOutcomeMapClientOnly = dynamic(
   () =>
-    import("../../../features/dashboard/ui/IncomeOutcomeMap").then(
+    import("./_components/IncomeOutcomeMap").then(
       (module) => module.IncomeOutcomeMap,
     ),
   {
     ssr: false,
     loading: () => (
-      <div className="min-h-[450px] rounded-[10px] border-1 border-[var(--color-fixed-text)]" />
+      <div className="min-h-[450px] rounded-[10px] border border-(--color-fixed-text)" />
     ),
   },
 );
@@ -23,8 +24,12 @@ interface DashboardClientProps {
 
 export function DashboardClient({ initialData = null }: DashboardClientProps) {
   return (
-    <HydrationBoundary state={initialData ?? undefined}>
-      <Dashboard MapComponent={IncomeOutcomeMapClientOnly} />
-    </HydrationBoundary>
+    <ProtectedClientGate>
+      <HydrationBoundary state={initialData ?? undefined}>
+        <Dashboard MapComponent={IncomeOutcomeMapClientOnly} />
+      </HydrationBoundary>
+    </ProtectedClientGate>
   );
 }
+
+

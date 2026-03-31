@@ -1,7 +1,14 @@
 "use client";
 
-import { Analytics } from "../../../features/analytics/ui/Analytics";
+import { Analytics } from "./_components/Analytics";
+import { ProtectedClientGate } from "@/app/_components/auth/ProtectedClientGate";
 
 export function AnalyticsClient() {
-  return <Analytics />;
+  return (
+    <ProtectedClientGate>
+      <Analytics />
+    </ProtectedClientGate>
+  );
 }
+
+

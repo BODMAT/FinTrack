@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { AnalyticsClient } from "./AnalyticsClient";
-import { Spinner } from "../../../shared/ui/Helpers";
+import { Spinner } from "@/shared/ui/Helpers";
 
 export default function AnalyticsPage() {
   return (
@@ -9,4 +9,6 @@ export default function AnalyticsPage() {
     </Suspense>
   );
 }
+
+
 
