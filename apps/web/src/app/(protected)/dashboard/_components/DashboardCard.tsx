@@ -7,6 +7,7 @@ import { PopupDashboardCard } from "./PopupDashboardCard";
 import { useSummary } from "@/hooks/useSummary";
 import { getStats } from "@/types/summary";
 import React from "react";
+import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
 
 export function DashboardCard({
   myImg,
@@ -14,6 +15,7 @@ export function DashboardCard({
   reversedPercentage = false,
   inPopup = false,
 }: DashboardCardProps) {
+  const { t } = useSafeTranslation();
   const { open } = usePopupStore();
   const { period } = usePeriodStore();
   const { user, isLoading, isError } = useAuth();
@@ -58,12 +60,18 @@ export function DashboardCard({
     }
   }
 
+  const titleText =
+    title === "balance"
+      ? t("dashboard.card.currentBalance")
+      : t(`dashboard.card.${title}`) +
+        " " +
+        t("dashboard.card.per") +
+        " " +
+        (period === "all" ? t("dashboard.card.allTime") : period);
+
   const handleOpenPopup = () => {
     open(
-      `Graph with ${title === "balance"
-        ? "Current balance"
-        : `${title[0].toUpperCase() + title.slice(1)} per ${period === "all" ? "all time" : period}`
-      }`,
+      `${t("dashboard.card.graphWith")} ${titleText}`,
       <PopupDashboardCard
         myImg={myImg}
         title={title}
@@ -76,8 +84,8 @@ export function DashboardCard({
   };
 
   return (
-    <div className="flex-[calc(25%-13.5px)] p-[19px] border border-(--color-fixed-text) rounded-[10px] transitioned bg-transparent">
-      <div className="flex justify-between gap-[40px] mb-[22px]">
+    <div className="flex-[calc(25%-13.5px)] p-4.75 border border-(--color-fixed-text) rounded-[10px] transitioned bg-transparent">
+      <div className="flex justify-between gap-10 mb-5.5">
         {typeof myImg === "string" && <img src={myImg} alt={myImg} />}
         {typeof myImg === "function" &&
           React.createElement(myImg, {
@@ -93,23 +101,22 @@ export function DashboardCard({
           </button>
         )}
       </div>
-      <h3 className="mb-[6px] text-(--color-fixed-text) font-medium text-[16px] tracking-[0.02em]">
-        {title === "balance"
-          ? "Current balance"
-          : `${title[0].toUpperCase() + title.slice(1)} per ${period === "all" ? "all time" : period}`}
+      <h3 className="mb-1.5 text-(--color-fixed-text) font-medium text-[16px] tracking-[0.02em]">
+        {titleText}
       </h3>
-      <div className="flex justify-between items-center gap-[8px]">
+      <div className="flex justify-between items-center gap-2">
         <h3 className="font-bold text-[25px] tracking-[0.02em] text-(--color-text)">
           ${total.toFixed(2)}
         </h3>
         {period !== "all" && title !== "balance" && (
           <h4
-            className={`py-[7px] px-[10px] rounded-[12px]xl text-[14px] ${percentage > 0
-              ? reversedPercentage
-                ? "bg-(--bg-red) text-(--text-red)"
-                : "bg-(--bg-green) text-(--text-green)"
-              : "bg-(--bg-red) text-(--text-red)"
-              }`}
+            className={`py-1.75 px-2.5 rounded-[12px]xl text-[14px] ${
+              percentage > 0
+                ? reversedPercentage
+                  ? "bg-(--bg-red) text-(--text-red)"
+                  : "bg-(--bg-green) text-(--text-green)"
+                : "bg-(--bg-red) text-(--text-red)"
+            }`}
             title={`Change: ${percentage > 0 ? "+" : ""}${percentage}%`}
             aria-label={`Percentage change: ${percentage > 0 ? "+" : ""}${percentage} percent`}
           >
@@ -121,8 +128,3 @@ export function DashboardCard({
     </div>
   );
 }
-
-
-
-
-

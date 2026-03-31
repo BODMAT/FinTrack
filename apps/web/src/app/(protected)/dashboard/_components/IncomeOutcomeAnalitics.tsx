@@ -121,7 +121,3 @@ export function IncomeOutcomeAnalitics() {
     </div>
   );
 }
-
-
-
-

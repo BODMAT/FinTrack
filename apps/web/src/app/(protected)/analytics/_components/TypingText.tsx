@@ -31,6 +31,3 @@ export function TypingText({ text, id }: { text: string; id: string }) {
 
   return <>{displayed}</>;
 }
-
-
-

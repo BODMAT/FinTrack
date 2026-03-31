@@ -45,5 +45,3 @@ export const useCurrentLocation = () => {
     setLocationError: setError,
   };
 };
-
-

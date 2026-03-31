@@ -30,5 +30,3 @@ export const tokenUser = async (
 export const logoutUser = async (payload: TokenUserBody): Promise<void> => {
   return handleRequest(api.delete("/auth/logout", { data: payload }));
 };
-
-

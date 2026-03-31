@@ -106,5 +106,3 @@ export function sanitizeText(text: string) {
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
 }
-
-

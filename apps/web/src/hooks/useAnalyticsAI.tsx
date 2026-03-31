@@ -52,5 +52,3 @@ export function useAnalyticsAI() {
     getResponse: getResponse.mutate,
   };
 }
-
-

@@ -20,5 +20,3 @@ export const getChartData = async (range: Range): Promise<IChartData> => {
     ChartDataSchema,
   );
 };
-
-

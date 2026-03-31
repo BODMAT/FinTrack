@@ -4,8 +4,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAuthStore } from "@/store/useAuthStore";
 import { RegisterPopup } from "./RegisterPopup";
 import { usePopupStore } from "@/store/popup";
+import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
 
 export function LoginPopup() {
+  const { t } = useSafeTranslation();
   const { open, close } = usePopupStore();
   const {
     user,
@@ -51,22 +53,22 @@ export function LoginPopup() {
   const handleOpenRegisterPopup = () => {
     close();
     setTimeout(() => {
-      open("Register New Profile", <RegisterPopup />);
+      open(t("auth.registerProfileTitle"), <RegisterPopup />);
     }, 300);
   };
 
   return (
-    <section className="flex items-center flex-col gap-[20px] w-full">
+    <section className="flex items-center flex-col gap-5 w-full">
       <form
         onSubmit={(e) => {
           handleLogin(e);
         }}
-        className="flex flex-col gap-[20px] w-full"
+        className="flex flex-col gap-5 w-full"
       >
         <input
           required
           type="email"
-          placeholder="Email"
+          placeholder={t("auth.email")}
           value={loginFields.email}
           onChange={(e) => {
             setLoginFields((prev) => ({
@@ -80,7 +82,7 @@ export function LoginPopup() {
           required
           minLength={8}
           type="password"
-          placeholder="Password"
+          placeholder={t("auth.password")}
           value={loginFields.password}
           onChange={(e) => {
             setLoginFields((prev) => ({
@@ -91,31 +93,28 @@ export function LoginPopup() {
           className="custom-input"
         />
         <button type="submit" disabled={isLoggingIn} className="custom-btn">
-          Login into account
+          {t("auth.loginButton")}
         </button>
 
         <div className="">
           {loginSuccess && (
-            <span className="text-green-500">User login successfully</span>
+            <span className="text-green-500">{t("auth.loginSuccess")}</span>
           )}
           {loginError && <span className="text-red-500">{loginError}</span>}
-          {isLoggingIn && <span>Loading...</span>}
+          {isLoggingIn && <span>{t("common.loading")}</span>}
         </div>
-        <span className="h-[2px] w-full bg-(--color-background) rounded" />
+        <span className="h-0.5 w-full bg-(--color-background) rounded" />
       </form>
-      <div className="w-full flex gap-[20px] justify-space-between">
+      <div className="w-full flex gap-5 justify-space-between">
         {user && (
           <button onClick={handleLogout} className="custom-btn">
-            Log out
+            {t("auth.logout")}
           </button>
         )}
         <button onClick={handleOpenRegisterPopup} className="custom-btn">
-          Register new
+          {t("auth.registerNew")}
         </button>
       </div>
     </section>
   );
 }
-
-
-

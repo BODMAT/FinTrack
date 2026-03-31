@@ -1,4 +1,5 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useSyncExternalStore } from "react";
 import {
   getMe,
   updateMe,
@@ -31,13 +32,17 @@ function clearAuthCookie() {
 }
 
 export const useAuth = () => {
-  const isClient = typeof window !== "undefined";
+  const isHydrated = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
   const { token, refreshToken, setTokens, logout: clearStore } = useAuthStore();
 
   const profile = useQuery<UserResponse, ApiError>({
     queryKey: ["user", "me"],
     queryFn: getMe,
-    enabled: isClient && !!token,
+    enabled: isHydrated && !!token,
     retry: false,
   });
 
@@ -92,7 +97,7 @@ export const useAuth = () => {
   return {
     user: profile.data,
 
-    isLoading: !isClient || profile.isLoading,
+    isLoading: !isHydrated || profile.isLoading,
     isError: profile.isError,
     profileError: profile.error?.message,
 
@@ -119,5 +124,3 @@ export const useAuth = () => {
     },
   };
 };
-
-

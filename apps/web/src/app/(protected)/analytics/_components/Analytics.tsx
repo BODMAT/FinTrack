@@ -8,8 +8,10 @@ import { FixedPanel } from "@/shared/portals/FixedPanel";
 import { useAnalyticsAI } from "@/hooks/useAnalyticsAI";
 import { useTransactionsAll } from "@/hooks/useTransactions";
 import type { AIResponseWithDiff } from "@/types/ai";
+import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
 
 export function Analytics() {
+  const { t } = useSafeTranslation();
   const [prompt, setPrompt] = useState<string>("");
   const { user, isLoading } = useAuth();
 
@@ -44,15 +46,15 @@ export function Analytics() {
   }, [handleAnalyze]);
 
   if (isLoading || isLoadingTransactions) return <Spinner />;
-  if (!user) return <CustomMessage message="You are not logged in..." />;
-  if (error) return <CustomMessage message="Something went wrong..." />;
+  if (!user) return <CustomMessage message={t("analytics.notLoggedIn")} />;
+  if (error) return <CustomMessage message={t("common.unexpected")} />;
   if (!transactionData) return <NoData />;
 
   return (
     <section className="w-full">
       <div className="relative">
         <h1 className="text-(--color-title) transitioned text-[32px] font-semibold mb-[24px]">
-          Analytics
+          {t("analytics.title")}
         </h1>
 
         {isLoadingAI && (
@@ -116,7 +118,7 @@ export function Analytics() {
                 name="prompt"
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Ask me anything..."
+                placeholder={t("analytics.askPlaceholder")}
                 id="prompt"
                 className="w-full max-h-[192px] h-[48px] rounded-[5px] p-[12px] placeholder:text-(--color-placeholder)
                                 text-(--color-text) scrollable resize-none transitioned text-[16px] font-semibold
@@ -132,7 +134,7 @@ export function Analytics() {
                                 hover:bg-(--color-fixed-text) hover:text-(--color-card)
                                 text-[16px] font-semibold"
               >
-                Analyze
+                {t("analytics.analyze")}
               </button>
             </div>
           </motion.div>
@@ -141,8 +143,3 @@ export function Analytics() {
     </section>
   );
 }
-
-
-
-
-

@@ -25,5 +25,3 @@ export function useIntersection(onIntersect: () => void) {
     unsubscribe.current = () => observer.disconnect();
   }, []);
 }
-
-

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { MenuLink } from "./MenuLink";
 import { SwitchTheme } from "./SwitchTheme";
+import { SwitchLanguage } from "./SwitchLanguage";
 import Logo from "@/assets/finance-icon.svg?react";
 import { useBurgerStore } from "@/store/burger";
 import { ProfileInfo } from "./ProfileInfo";
@@ -40,26 +41,26 @@ export function FixedHeader() {
 
   return (
     <header
-      className={`bg-(--color-fixed) fixed z-10 top-[0px] left-[0px] transitioned p-[31px] 
-        ${isMobile && !isBurgerOpen ? "h-[100px]" : ""} 
-        ${isMobile ? "w-full" : "w-[300px] h-screen"} 
+      className={`bg-(--color-fixed) fixed z-10 top-0 left-0 transitioned p-7.75 
+        ${isMobile && !isBurgerOpen ? "h-25" : ""} 
+        ${isMobile ? "w-full" : "w-75 h-screen"} 
         ${isMobile && isBurgerOpen ? " h-screen" : ""}`}
     >
       {isMobile && (
         <div
           className={`flex border-b-2 justify-between items-center 
-                ${isBurgerOpen ? "pb-[30px] border-(--color-text)" : "border-transparent"}`}
+                ${isBurgerOpen ? "pb-7.5 border-(--color-text)" : "border-transparent"}`}
         >
-          <h2 className="roboto font-bold text-3xl flex items-center gap-[8px]">
-            <Logo className="fill-(--color-text) w-[40px] h-[40px]" />
+          <h2 className="roboto font-bold text-3xl flex items-center gap-2">
+            <Logo className="fill-(--color-text) w-10 h-10" />
             <span className="text-(--color-text)">FinTrack</span>
           </h2>
           <button
             aria-label="Toggle menu"
             onClick={toggleBurger}
-            className="group w-[36px] rounded-lg border-0 cursor-pointer"
+            className="group w-9 rounded-lg border-0 cursor-pointer"
           >
-            <div className="grid justify-items-center gap-[6px]">
+            <div className="grid justify-items-center gap-1.5">
               {[
                 "rotate-45 translate-y-[10px]",
                 "scale-x-0",
@@ -67,8 +68,9 @@ export function FixedHeader() {
               ].map((cls, i) => (
                 <span
                   key={i}
-                  className={`h-[4px] w-[36px] bg-(--color-text) rounded-full transition-all duration-500 ${isBurgerOpen ? cls : ""
-                    }`}
+                  className={`h-1 w-9 bg-(--color-text) rounded-full transition-all duration-500 ${
+                    isBurgerOpen ? cls : ""
+                  }`}
                 ></span>
               ))}
             </div>
@@ -77,27 +79,27 @@ export function FixedHeader() {
       )}
 
       <div
-        className={`flex flex-col md:justify-between max-md:gap-[40px] max-md:my-[20px] h-full transitioned 
+        className={`flex flex-col md:justify-between max-md:gap-10 max-md:my-5 h-full transitioned 
                 ${isMobile && !isBurgerOpen ? "-top-full opacity-0 invisible" : ""} 
-                ${isMobile && isBurgerOpen ? "top-[0px] opacity-100 visible" : ""}`}
+                ${isMobile && isBurgerOpen ? "top-0 opacity-100 visible" : ""}`}
       >
-        <nav role="navigation" className="gap-[40px]">
-          <ul className="border-b-2 pb-[20px] border-(--color-fixed-text)">
+        <nav role="navigation" className="gap-10">
+          <ul className="border-b-2 pb-5 border-(--color-fixed-text)">
             <MenuLink name="dashboard" />
             <MenuLink name="analytics" />
             <MenuLink name="transactions" />
           </ul>
-          <div className="mt-[20px] py-[12px] px-[10px] flex justify-center">
-            <SwitchTheme />
+          <div className="mt-3 py-3 px-2.5 flex justify-center">
+            <div className="w-auto max-w-55">
+              <SwitchTheme />
+              <SwitchLanguage />
+            </div>
           </div>
         </nav>
-        <div className="py-[12px] w-full">
+        <div className="py-3 w-full">
           <ProfileInfo />
         </div>
       </div>
     </header>
   );
 }
-
-
-

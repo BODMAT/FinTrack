@@ -31,5 +31,3 @@ export const deleteMyAuthMethod = async (
 ): Promise<void> => {
   return handleRequest(api.delete(`/users/me/auth-methods/${authMethodId}`));
 };
-
-

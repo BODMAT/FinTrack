@@ -31,5 +31,3 @@ export function DashboardClient({ initialData = null }: DashboardClientProps) {
     </ProtectedClientGate>
   );
 }
-
-

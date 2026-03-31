@@ -26,6 +26,3 @@ export function ColoredMarker(
     iconSize: [20, 20],
   });
 }
-
-
-

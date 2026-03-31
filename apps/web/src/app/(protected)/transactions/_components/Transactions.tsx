@@ -12,8 +12,10 @@ import {
   useTransactionsInfinite,
 } from "@/hooks/useTransactions";
 import type { ResponseTransaction } from "@fintrack/types";
+import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
 
 export function Transactions() {
+  const { t } = useSafeTranslation();
   const { user } = useAuth();
   const [searchInput] = useState("");
   const [debouncedSearchQuery, setDebouncedSearchQuery] = useState("");
@@ -38,19 +40,18 @@ export function Transactions() {
   const filteredData = getFilteredData(allTransactions, debouncedSearchQuery);
   const { open } = usePopupStore();
   const handleOpenPopup = () => {
-    return () => open("Add transaction", <ChangeTransactionPopup />);
+    return () =>
+      open(t("transactions.addTransactionTitle"), <ChangeTransactionPopup />);
   };
 
   if (user?.id === null) {
-    return (
-      <CustomMessage message="You are not logged in. Please log in to see your transactions." />
-    );
+    return <CustomMessage message={t("transactions.notLoggedIn")} />;
   }
   return (
     <section className="w-full">
       <div className="flex justify-between max-[970px]:flex-col items-center gap-[24px] mb-[27px]">
         <h1 className="text-(--color-title) text-[32px] font-semibold">
-          Transactions
+          {t("transactions.title")}
         </h1>
         <div className="flex gap-[12px] max-[400px]:flex-col justify-center">
           <DebouncedSearchInput
@@ -62,7 +63,7 @@ export function Transactions() {
             onClick={handleOpenPopup()}
             className="bg-(--color-card) rounded-[10px] p-[10px] text-(--color-text) border border-(--color-fixed-text) transitioned not-disabled:cursor-pointer not-disabled:hover:border-(--color-hover) not-disabled:hover:text-(--color-hover) not-disabled:hover:scale-95 text-[16px] font-bold"
           >
-            Add new
+            {t("transactions.addNew")}
           </button>
         </div>
       </div>
@@ -77,13 +78,13 @@ export function Transactions() {
             {hasNextPage && (
               <div ref={cursorRef} className="h-[16px] w-full">
                 {isFetchingNextPage && (
-                  <CustomMessage message="Loading more..." />
+                  <CustomMessage message={t("transactions.loadingMore")} />
                 )}
               </div>
             )}
 
             {!hasNextPage && flatInfiniteData.length > 0 && (
-              <CustomMessage message="No more transactions" />
+              <CustomMessage message={t("transactions.noMore")} />
             )}
           </>
         )}
@@ -96,7 +97,7 @@ export function Transactions() {
                 <TransactionsCard key={item.id} data={item} />
               ))
             ) : (
-              <CustomMessage message="No transactions found" />
+              <CustomMessage message={t("transactions.noFound")} />
             )}
           </>
         )}
@@ -104,8 +105,3 @@ export function Transactions() {
     </section>
   );
 }
-
-
-
-
-

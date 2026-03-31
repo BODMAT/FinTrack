@@ -38,5 +38,3 @@ export interface DashboardCardProps {
     labels: string[];
   };
 }
-
-

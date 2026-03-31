@@ -38,5 +38,3 @@ export function CustomMessage({ message }: { message: string }) {
     </div>
   );
 }
-
-

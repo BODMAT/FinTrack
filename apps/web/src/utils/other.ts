@@ -14,5 +14,3 @@ export function simpleMemoize3<Args extends unknown[], R>(
     return cacheResult as R;
   };
 }
-
-

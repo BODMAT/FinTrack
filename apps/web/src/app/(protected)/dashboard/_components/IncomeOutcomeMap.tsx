@@ -85,8 +85,3 @@ export function IncomeOutcomeMap() {
     </section>
   );
 }
-
-
-
-
-

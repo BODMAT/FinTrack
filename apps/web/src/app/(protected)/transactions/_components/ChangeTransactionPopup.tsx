@@ -161,7 +161,10 @@ function TransactionFormContent({
 
   return (
     <div className="bg-(--color-card) rounded-[10px] p-[20px] mx-auto">
-      <form className="flex flex-col gap-[20px]" onSubmit={handleChangeTransaction}>
+      <form
+        className="flex flex-col gap-[20px]"
+        onSubmit={handleChangeTransaction}
+      >
         <div className="flex items-center gap-[20px] max-[500px]:flex-col max-[500px]:items-stretch max-[500px]:gap-[12px]">
           <label
             className="text-(--color-text) text-[20px] font-semibold min-w-[120px]"
@@ -281,9 +284,9 @@ function TransactionFormContent({
               value={
                 form.longitude && form.latitude
                   ? {
-                    latitude: +form.latitude,
-                    longitude: +form.longitude,
-                  }
+                      latitude: +form.latitude,
+                      longitude: +form.longitude,
+                    }
                   : undefined
               }
               onChange={(newLoc) =>
@@ -351,8 +354,3 @@ function TransactionFormContent({
     </div>
   );
 }
-
-
-
-
-

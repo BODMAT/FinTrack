@@ -18,5 +18,3 @@ export const getAIResponse = async ({
     AIResponseSchema,
   );
 };
-
-

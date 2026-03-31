@@ -52,5 +52,3 @@ export const updateTransaction = async (
 export const deleteTransaction = async (id: string): Promise<void> => {
   return handleRequest(api.delete(`/transactions/${id}`));
 };
-
-

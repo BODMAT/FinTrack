@@ -56,5 +56,3 @@ export const useNumericValidator = () => {
     validateNumericInput,
   };
 };
-
-

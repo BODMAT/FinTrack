@@ -7,6 +7,7 @@ import { IncomeOutcomeAnalitics } from "./IncomeOutcomeAnalitics";
 import { CustomMessage, Spinner } from "@/shared/ui/Helpers";
 import { useAuth } from "@/hooks/useAuth";
 import { useTransactionsAll } from "@/hooks/useTransactions";
+import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
 
 interface DashboardProps {
   MapComponent?: React.ComponentType;
@@ -17,27 +18,24 @@ function EmptyMapSlot() {
 }
 
 export function Dashboard({ MapComponent = EmptyMapSlot }: DashboardProps) {
+  const { t } = useSafeTranslation();
   const { user, isLoading } = useAuth();
   const { data: transactions } = useTransactionsAll({ userId: user?.id });
 
   if (isLoading) return <Spinner />;
 
   if (!user) {
-    return (
-      <CustomMessage message="You are not logged in. Please log in to see your dashboard." />
-    );
+    return <CustomMessage message={t("dashboard.notLoggedIn")} />;
   }
 
   if (!transactions || transactions.data.length === 0) {
-    return (
-      <CustomMessage message="You have no transactions. Please add some transactions to see your dashboard." />
-    );
+    return <CustomMessage message={t("dashboard.noTransactions")} />;
   }
 
   return (
     <section className="w-full">
       <h1 className="text-(--color-title) text-[32px] font-semibold mb-[27px]">
-        Dashboard
+        {t("dashboard.title")}
       </h1>
       <div className="flex gap-[18px] flex-wrap mb-[24px]">
         <DashboardCard myImg={balance} title="balance" />
@@ -56,8 +54,3 @@ export function Dashboard({ MapComponent = EmptyMapSlot }: DashboardProps) {
     </section>
   );
 }
-
-
-
-
-

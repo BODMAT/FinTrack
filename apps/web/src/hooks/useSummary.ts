@@ -25,5 +25,3 @@ export const useSummary = (range: Range = "all") => {
     isError: summary.isError || chart.isError,
   };
 };
-
-

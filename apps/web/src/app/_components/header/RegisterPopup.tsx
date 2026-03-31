@@ -251,6 +251,3 @@ export function RegisterPopup() {
     </section>
   );
 }
-
-
-

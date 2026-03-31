@@ -1,0 +1,64 @@
+{
+  "nav": {
+    "dashboard": "Дашборд",
+    "analytics": "Аналітика",
+    "transactions": "Транзакції"
+  },
+  "common": {
+    "loading": "Завантаження...",
+    "retry": "Спробуйте ще раз",
+    "noData": "Немає даних",
+    "error": "Помилка",
+    "unexpected": "Щось пішло не так..."
+  },
+  "auth": {
+    "loginTitle": "Вхід",
+    "email": "Email",
+    "password": "Пароль",
+    "loginButton": "Увійти в акаунт",
+    "loginSuccess": "Користувач успішно увійшов",
+    "logout": "Вийти",
+    "registerNew": "Зареєструватися",
+    "registerProfileTitle": "Створити новий профіль",
+    "addProfile": "Додати профіль",
+    "anonymous": "Анонім",
+    "userPhotoAlt": "фото користувача"
+  },
+  "dashboard": {
+    "title": "Дашборд",
+    "notLoggedIn": "Ви не авторизовані. Увійдіть, щоб побачити дашборд.",
+    "noTransactions": "У вас немає транзакцій. Додайте транзакції, щоб побачити дашборд.",
+    "card": {
+      "currentBalance": "Поточний баланс",
+      "income": "Дохід",
+      "saving": "Заощадження",
+      "outcome": "Витрати",
+      "per": "за",
+      "allTime": "весь час",
+      "graphWith": "Графік для"
+    }
+  },
+  "transactions": {
+    "title": "Транзакції",
+    "addNew": "Додати",
+    "addTransactionTitle": "Додати транзакцію",
+    "notLoggedIn": "Ви не авторизовані. Увійдіть, щоб побачити транзакції.",
+    "loadingMore": "Завантажуємо ще...",
+    "noMore": "Більше транзакцій немає",
+    "noFound": "Транзакції не знайдено"
+  },
+  "analytics": {
+    "title": "Аналітика",
+    "notLoggedIn": "Ви не авторизовані...",
+    "askPlaceholder": "Запитайте мене про що завгодно...",
+    "analyze": "Проаналізувати"
+  },
+  "errors": {
+    "failedDashboard": "Не вдалося завантажити дашборд",
+    "failedAnalytics": "Не вдалося завантажити аналітику",
+    "failedTransactions": "Не вдалося завантажити транзакції",
+    "unexpectedDashboard": "Сталася неочікувана помилка під час завантаження дашборду.",
+    "unexpectedAnalytics": "Сталася неочікувана помилка під час завантаження аналітики.",
+    "unexpectedTransactions": "Сталася неочікувана помилка під час завантаження транзакцій."
+  }
+}

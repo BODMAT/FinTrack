@@ -21,7 +21,11 @@ interface MapPickerProps {
 
 const defaultCenter: [number, number] = [50.4501, 30.5234];
 
-function MapClickHandler({ onChange }: { onChange: MapPickerProps["onChange"] }) {
+function MapClickHandler({
+  onChange,
+}: {
+  onChange: MapPickerProps["onChange"];
+}) {
   useMapEvents({
     click(event) {
       onChange({

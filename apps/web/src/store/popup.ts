@@ -16,5 +16,3 @@ export const usePopupStore = create<PopupStateProps>((set) => ({
   },
   close: () => set({ active: false, title: "", children: null }),
 }));
-
-

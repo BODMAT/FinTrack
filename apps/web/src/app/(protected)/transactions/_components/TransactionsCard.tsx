@@ -57,7 +57,3 @@ export function TransactionsCard({ data }: { data: ResponseTransaction }) {
     </div>
   );
 }
-
-
-
-

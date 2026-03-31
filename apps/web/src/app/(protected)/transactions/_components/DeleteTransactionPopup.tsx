@@ -56,8 +56,3 @@ export function DeleteTransactionPopup({ id }: { id: string }) {
     </div>
   );
 }
-
-
-
-
-

@@ -7,10 +7,11 @@ export default function AnalyticsLoading() {
         {Array.from({ length: 4 }).map((_, index) => (
           <div
             key={index}
-            className={`max-w-[70%] rounded border border-(--color-fixed-text) px-[20px] py-[16px] ${index % 2 === 0
-              ? "ml-auto w-[65%] animate-pulse bg-(--color-card)"
-              : "w-[70%] animate-pulse bg-(--color-card)"
-              }`}
+            className={`max-w-[70%] rounded border border-(--color-fixed-text) px-[20px] py-[16px] ${
+              index % 2 === 0
+                ? "ml-auto w-[65%] animate-pulse bg-(--color-card)"
+                : "w-[70%] animate-pulse bg-(--color-card)"
+            }`}
           >
             <div className="h-[16px] w-full rounded bg-(--color-main) opacity-40" />
           </div>
@@ -26,5 +27,3 @@ export default function AnalyticsLoading() {
     </section>
   );
 }
-
-
