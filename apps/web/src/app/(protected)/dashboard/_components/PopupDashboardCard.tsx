@@ -34,7 +34,6 @@ export function PopupDashboardCard({
 }: DashboardCardProps) {
   if (!dataForPopupChart) return <NoData />;
   const { income, outcome, labels } = dataForPopupChart;
-  console.log(dataForPopupChart);
 
   let datasets: ChartDataset<"line">[] = [];
   switch (title) {
@@ -43,8 +42,9 @@ export function PopupDashboardCard({
         {
           label: "Income",
           data: income,
-          borderColor: "#d64bc2",
-          backgroundColor: "rgba(214, 75, 194, 0.3)",
+          borderColor: "var(--chart-income)",
+          backgroundColor:
+            "color-mix(in srgb, var(--chart-income) 24%, transparent)",
           fill: "start",
           tension: 0.3,
           pointRadius: 3,
@@ -57,8 +57,9 @@ export function PopupDashboardCard({
         {
           label: "Outcome",
           data: outcome,
-          borderColor: "#ffd4f4",
-          backgroundColor: "rgba(255, 212, 244, 0.3)",
+          borderColor: "var(--chart-outcome)",
+          backgroundColor:
+            "color-mix(in srgb, var(--chart-outcome) 24%, transparent)",
           fill: "start",
           tension: 0.3,
           pointRadius: 3,
@@ -72,8 +73,9 @@ export function PopupDashboardCard({
         {
           label: "Saving",
           data: saving,
-          borderColor: "#d64bc2",
-          backgroundColor: "rgba(214, 75, 194, 0.3)",
+          borderColor: "var(--chart-income)",
+          backgroundColor:
+            "color-mix(in srgb, var(--chart-income) 24%, transparent)",
           fill: "start",
           tension: 0.3,
           pointRadius: 3,
@@ -87,8 +89,9 @@ export function PopupDashboardCard({
         {
           label: "Income",
           data: income,
-          borderColor: "#d64bc2",
-          backgroundColor: "rgba(214, 75, 194, 0.3)",
+          borderColor: "var(--chart-income)",
+          backgroundColor:
+            "color-mix(in srgb, var(--chart-income) 24%, transparent)",
           fill: "start",
           tension: 0.3,
           pointRadius: 3,
@@ -96,8 +99,9 @@ export function PopupDashboardCard({
         {
           label: "Outcome",
           data: outcome,
-          borderColor: "#ffd4f4",
-          backgroundColor: "rgba(255, 212, 244, 0.3)",
+          borderColor: "var(--chart-outcome)",
+          backgroundColor:
+            "color-mix(in srgb, var(--chart-outcome) 24%, transparent)",
           fill: "start",
           tension: 0.3,
           pointRadius: 3,
@@ -153,7 +157,9 @@ export function PopupDashboardCard({
         reversedPercentage={reversedPercentage}
         inPopup
       />
-      <Line data={data} options={options} />
+      <div className="neo-panel p-[16px]">
+        <Line data={data} options={options} />
+      </div>
     </div>
   );
 }

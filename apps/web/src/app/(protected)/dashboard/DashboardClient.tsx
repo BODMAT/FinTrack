@@ -12,9 +12,7 @@ const IncomeOutcomeMapClientOnly = dynamic(
     ),
   {
     ssr: false,
-    loading: () => (
-      <div className="min-h-[450px] rounded-[10px] border border-(--color-fixed-text)" />
-    ),
+    loading: () => <div className="neo-panel min-h-[470px]" />,
   },
 );
 

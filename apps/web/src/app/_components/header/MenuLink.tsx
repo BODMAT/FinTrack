@@ -17,13 +17,14 @@ export function MenuLink({ name }: { name: string }) {
   return (
     <div
       className={
-        `py-3 px-4` + (isActive ? " bg-(--color-card) rounded shadow" : "")
+        `py-2 px-2.5 rounded-[12px] transitioned` +
+        (isActive ? " bg-(--color-hover-reverse) neon-outline" : "")
       }
     >
       <Link
         onClick={handleClick}
         href={`/${name}`}
-        className="flex items-center gap-3 text-(--color-fixed-text) hover:text-(--color-hover) transitioned text-[17px] font-bold"
+        className="flex items-center gap-3 px-[8px] py-[8px] text-(--color-fixed-text) transitioned text-[17px] font-bold hover:text-(--color-hover)"
       >
         {name === "dashboard" && <DashboardFrame />}
         {name === "analytics" && <AnalyticsFrame />}

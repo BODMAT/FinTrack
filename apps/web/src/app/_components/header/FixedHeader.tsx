@@ -41,18 +41,18 @@ export function FixedHeader() {
 
   return (
     <header
-      className={`bg-(--color-fixed) fixed z-10 top-0 left-0 transitioned p-7.75 
+      className={`glass-soft fixed z-10 top-0 left-0 transitioned p-7.75 border-r border-(--stroke-soft)
         ${isMobile && !isBurgerOpen ? "h-25" : ""} 
         ${isMobile ? "w-full" : "w-75 h-screen"} 
         ${isMobile && isBurgerOpen ? " h-screen" : ""}`}
     >
       {isMobile && (
         <div
-          className={`flex border-b-2 justify-between items-center 
-                ${isBurgerOpen ? "pb-7.5 border-(--color-text)" : "border-transparent"}`}
+          className={`flex border-b justify-between items-center 
+                ${isBurgerOpen ? "pb-7.5 border-(--stroke-soft)" : "border-transparent"}`}
         >
           <h2 className="roboto font-bold text-3xl flex items-center gap-2">
-            <Logo className="fill-(--color-text) w-10 h-10" />
+            <Logo className="fill-(--color-hover) w-10 h-10" />
             <span className="text-(--color-text)">FinTrack</span>
           </h2>
           <button
@@ -84,7 +84,7 @@ export function FixedHeader() {
                 ${isMobile && isBurgerOpen ? "top-0 opacity-100 visible" : ""}`}
       >
         <nav role="navigation" className="gap-10">
-          <ul className="border-b-2 pb-5 border-(--color-fixed-text)">
+          <ul className="border-b pb-5 border-(--stroke-soft)">
             <MenuLink name="dashboard" />
             <MenuLink name="analytics" />
             <MenuLink name="transactions" />

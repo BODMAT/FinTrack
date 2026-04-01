@@ -44,7 +44,7 @@ export function Transactions() {
       open(t("transactions.addTransactionTitle"), <ChangeTransactionPopup />);
   };
 
-  if (user?.id === null) {
+  if (!user) {
     return <CustomMessage message={t("transactions.notLoggedIn")} />;
   }
   return (

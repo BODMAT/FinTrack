@@ -66,8 +66,8 @@ function TransactionFormContent({
     created_at: initialData?.created_at,
     amount: initialData?.amount?.toString() || "",
     title: initialData?.title || "",
-    latitude: initialData?.location?.latitude.toString(),
-    longitude: initialData?.location?.longitude.toString(),
+    latitude: initialData?.location?.latitude?.toString() || "",
+    longitude: initialData?.location?.longitude?.toString() || "",
     type: initialData?.type || "INCOME",
   });
 

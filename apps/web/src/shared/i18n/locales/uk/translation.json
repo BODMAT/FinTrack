@@ -22,7 +22,12 @@
     "registerProfileTitle": "Створити новий профіль",
     "addProfile": "Додати профіль",
     "anonymous": "Анонім",
-    "userPhotoAlt": "фото користувача"
+    "userPhotoAlt": "фото користувача",
+    "name": "Ім’я",
+    "photoUrlOptional": "URL фото (необов’язково)",
+    "telegramOptional": "Telegram ID (необов’язково)",
+    "registerSuccess": "Користувача успішно створено",
+    "registerNewAccount": "Зареєструвати новий акаунт"
   },
   "dashboard": {
     "title": "Дашборд",
@@ -36,7 +41,9 @@
       "per": "за",
       "allTime": "весь час",
       "graphWith": "Графік для"
-    }
+    },
+    "overview": "Фінансовий огляд з актуальною активністю та геоданими.",
+    "styleBadge": "Teal-стиль активний"
   },
   "transactions": {
     "title": "Транзакції",
@@ -45,7 +52,8 @@
     "notLoggedIn": "Ви не авторизовані. Увійдіть, щоб побачити транзакції.",
     "loadingMore": "Завантажуємо ще...",
     "noMore": "Більше транзакцій немає",
-    "noFound": "Транзакції не знайдено"
+    "noFound": "Транзакції не знайдено",
+    "selectedLocation": "Обрана локація"
   },
   "analytics": {
     "title": "Аналітика",

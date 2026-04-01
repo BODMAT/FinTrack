@@ -17,9 +17,11 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
         <motion.main
           initial={{ opacity: 0, x: 100 }}
           animate={{ opacity: 1, x: 0 }}
-          className="transitioned p-[31px] md:ml-[300px] max-md:mt-[100px] w-full"
+          className="transitioned w-full p-[24px] md:ml-[300px] md:p-[28px] max-md:mt-[100px]"
         >
-          <Suspense fallback={<Spinner />}>{children}</Suspense>
+          <div className="glass-soft min-h-[calc(100vh-56px)] rounded-[24px] border border-(--stroke-soft) p-[20px] md:p-[24px]">
+            <Suspense fallback={<Spinner />}>{children}</Suspense>
+          </div>
         </motion.main>
       </div>
     </div>

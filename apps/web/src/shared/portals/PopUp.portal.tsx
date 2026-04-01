@@ -29,14 +29,14 @@ export function PopUpPortal() {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className="fixed inset-0 bg-[#0000008e] bg-opacity-50 !z-[99999] flex justify-center items-center"
+          className="fixed inset-0 bg-black/78 z-[99999] flex justify-center items-center"
         >
           <motion.div
             initial={{ opacity: 0, y: "-50px" }}
             animate={{ opacity: 1, y: "0px" }}
             exit={{ opacity: 0, y: "-50px" }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="bg-(--color-card) rounded-lg overflow-hidden w-[90%] max-w-[800px] max-h-[95vh] shadow-lg relative !z-[99999] max-md:mt-[5vh] flex flex-col"
+            className="bg-(--color-card) rounded-lg overflow-hidden w-[90%] max-w-[800px] max-h-[95vh] shadow-lg relative z-[99999] max-md:mt-[5vh] flex flex-col"
           >
             <div className="bg-(--color-fixed) flex justify-between items-center p-[16px] flex-shrink-0">
               <h2 className="text-2xl font-bold text-(--color-text)">

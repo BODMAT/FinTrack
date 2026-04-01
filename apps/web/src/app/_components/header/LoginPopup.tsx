@@ -5,9 +5,12 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { RegisterPopup } from "./RegisterPopup";
 import { usePopupStore } from "@/store/popup";
 import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
+import { queryClient } from "@/api/queryClient";
+import { useRouter } from "next/navigation";
 
 export function LoginPopup() {
   const { t } = useSafeTranslation();
+  const router = useRouter();
   const { open, close } = usePopupStore();
   const {
     user,
@@ -26,6 +29,9 @@ export function LoginPopup() {
     setLoginSuccess(false);
     try {
       await login(loginFields);
+      await queryClient.invalidateQueries();
+      router.refresh();
+      close();
       setLoginSuccess(true);
       setLoginFields({
         email: "",

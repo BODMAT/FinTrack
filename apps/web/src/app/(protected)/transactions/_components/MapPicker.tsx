@@ -8,8 +8,8 @@ import {
   Popup,
 } from "react-leaflet";
 import L from "leaflet";
-import { useEffect } from "react";
 import type { Location } from "@fintrack/types";
+import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
 
 import markerIcon from "leaflet/dist/images/marker-icon.png";
 import markerShadow from "leaflet/dist/images/marker-shadow.png";
@@ -20,6 +20,27 @@ interface MapPickerProps {
 }
 
 const defaultCenter: [number, number] = [50.4501, 30.5234];
+const resolveAssetUrl = (asset: unknown): string =>
+  typeof asset === "string"
+    ? asset
+    : asset && typeof asset === "object" && "src" in asset
+      ? String((asset as { src: string }).src)
+      : "";
+const markerIconUrl =
+  resolveAssetUrl(markerIcon) ||
+  "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png";
+const markerShadowUrl =
+  resolveAssetUrl(markerShadow) ||
+  "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png";
+
+const defaultMarkerIcon = L.icon({
+  iconUrl: markerIconUrl,
+  shadowUrl: markerShadowUrl,
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+  shadowSize: [41, 41],
+});
 
 function MapClickHandler({
   onChange,
@@ -39,18 +60,7 @@ function MapClickHandler({
 }
 
 export function MapPicker({ value, onChange }: MapPickerProps) {
-  useEffect(() => {
-    const icon = new L.Icon({
-      iconUrl: markerIcon.src,
-      shadowUrl: markerShadow.src,
-      iconSize: [25, 41],
-      iconAnchor: [12, 41],
-      popupAnchor: [1, -34],
-      shadowSize: [41, 41],
-    });
-
-    L.Marker.prototype.options.icon = icon;
-  }, []);
+  const { t } = useSafeTranslation();
 
   const position: [number, number] | null = value
     ? [value.latitude, value.longitude]
@@ -69,8 +79,8 @@ export function MapPicker({ value, onChange }: MapPickerProps) {
         />
         <MapClickHandler onChange={onChange} />
         {position && (
-          <Marker position={position}>
-            <Popup>Selected location</Popup>
+          <Marker position={position} icon={defaultMarkerIcon}>
+            <Popup>{t("transactions.selectedLocation")}</Popup>
           </Marker>
         )}
       </MapContainer>

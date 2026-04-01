@@ -84,33 +84,38 @@ export function DashboardCard({
   };
 
   return (
-    <div className="flex-[calc(25%-13.5px)] p-4.75 border border-(--color-fixed-text) rounded-[10px] transitioned bg-transparent">
-      <div className="flex justify-between gap-10 mb-5.5">
+    <article className="neo-panel group relative overflow-hidden px-[18px] py-[16px] transitioned">
+      <div className="pointer-events-none absolute right-[-36px] top-[-34px] h-[120px] w-[120px] rounded-full bg-(--color-hover-reverse) blur-[36px] transitioned group-hover:scale-110" />
+
+      <div className="relative mb-5.5 flex justify-between gap-10">
         {typeof myImg === "string" && <img src={myImg} alt={myImg} />}
         {typeof myImg === "function" &&
           React.createElement(myImg, {
-            className: "w-[44px] h-[44px]",
+            className: "h-[44px] w-[44px]",
           })}
 
         {!inPopup && (
           <button
             onClick={handleOpenPopup}
-            className="cursor-pointer -rotate-90 text-3xl font-bold text-(--color-text)"
+            className="cursor-pointer rounded-[8px] px-[6px] py-[2px] text-[28px] leading-[1] text-(--color-text) transitioned hover:bg-(--color-hover-reverse) hover:text-(--color-hover)"
           >
             ...
           </button>
         )}
       </div>
-      <h3 className="mb-1.5 text-(--color-fixed-text) font-medium text-[16px] tracking-[0.02em]">
+
+      <h3 className="mb-1.5 text-(--color-fixed-text) text-[14px] font-medium tracking-[0.02em]">
         {titleText}
       </h3>
-      <div className="flex justify-between items-center gap-2">
-        <h3 className="font-bold text-[25px] tracking-[0.02em] text-(--color-text)">
+
+      <div className="flex items-center justify-between gap-2">
+        <h3 className="text-(--color-text) text-[28px] font-bold tracking-[0.01em]">
           ${total.toFixed(2)}
         </h3>
+
         {period !== "all" && title !== "balance" && (
           <h4
-            className={`py-1.75 px-2.5 rounded-[12px]xl text-[14px] ${
+            className={`rounded-[12px] px-[10px] py-[4px] text-[13px] font-semibold ${
               percentage > 0
                 ? reversedPercentage
                   ? "bg-(--bg-red) text-(--text-red)"
@@ -125,6 +130,6 @@ export function DashboardCard({
           </h4>
         )}
       </div>
-    </div>
+    </article>
   );
 }

@@ -45,25 +45,35 @@ export function IncomeOutcomeAnalitics() {
   const chartData = {
     labels,
     datasets: [
-      { label: "Income", data: income, backgroundColor: "#d64bc2" },
-      { label: "Outcome", data: outcome, backgroundColor: "#ffd4f4" },
+      {
+        label: "Income",
+        data: income,
+        backgroundColor: "var(--chart-income)",
+        borderRadius: 6,
+      },
+      {
+        label: "Outcome",
+        data: outcome,
+        backgroundColor: "var(--chart-outcome)",
+        borderRadius: 6,
+      },
     ],
   };
 
   return (
-    <div className="w-full mx-auto px-[32px] py-[26px] border border-(--color-fixed-text) rounded-[10px] ">
+    <section className="neo-panel neo-panel-glow h-full w-full px-[24px] py-[22px]">
       <div className="flex items-center justify-between gap-[20px] max-[440px]:flex-col">
         <h2 className="text-(--color-text) text-[28px] font-medium">
           Analytics
         </h2>
         <div className="mb-[16px] flex gap-[16px] max-md:flex-col">
-          <div className="flex max-[440px]:flex-col gap-[24px] text-(--color-fixed-text) text-sm select-none">
+          <div className="flex select-none gap-[24px] text-sm text-(--color-fixed-text) max-[440px]:flex-col">
             <div className="flex items-center gap-[8px]">
-              <span className="w-[16px] h-[16px] rounded-[50%] bg-[#d64bc2]"></span>
+              <span className="h-[16px] w-[16px] rounded-[50%] bg-[var(--chart-income)]"></span>
               Income
             </div>
             <div className="flex items-center gap-[8px]">
-              <span className="w-[16px] h-[16px] rounded-[50%] bg-[#ffd4f4]"></span>
+              <span className="h-[16px] w-[16px] rounded-[50%] bg-[var(--chart-outcome)]"></span>
               Outcome
             </div>
           </div>
@@ -77,32 +87,34 @@ export function IncomeOutcomeAnalitics() {
             styles={{
               control: (base) => ({
                 ...base,
-                backgroundColor: "transparent",
-                borderColor: "var(--color-fixed-text)",
+                backgroundColor: "var(--color-input)",
+                borderColor: "var(--stroke-soft)",
                 borderWidth: "1px",
-                borderRadius: "6px",
+                borderRadius: "10px",
                 color: "var(--color-fixed-text)",
                 cursor: "pointer",
                 boxShadow: "none",
               }),
               singleValue: (base) => ({
                 ...base,
-                color: "var(--color-fixed-text)",
+                color: "var(--color-text)",
                 cursor: "pointer",
               }),
               option: (base, state) => ({
                 ...base,
                 backgroundColor: state.isFocused
-                  ? "var(--color-hover)"
-                  : "var(--color-card)",
+                  ? "var(--color-hover-reverse)"
+                  : "var(--color-input)",
                 color: state.isFocused
-                  ? "var(--color-fixed)"
-                  : "var(--color-fixed-text)",
+                  ? "var(--color-hover)"
+                  : "var(--color-text)",
                 cursor: "pointer",
               }),
               menu: (base) => ({
                 ...base,
                 backgroundColor: "var(--color-card)",
+                border: "1px solid var(--stroke-soft)",
+                boxShadow: "var(--shadow-soft)",
                 color: "var(--color-fixed-text)",
               }),
             }}
@@ -110,7 +122,7 @@ export function IncomeOutcomeAnalitics() {
         </div>
       </div>
       <div className="w-full overflow-x-auto">
-        <div className="min-w-[400px] h-[450px]">
+        <div className="h-[420px] min-w-[400px]">
           {chart ? (
             <Bar data={chartData} options={chartOptions} />
           ) : (
@@ -118,6 +130,6 @@ export function IncomeOutcomeAnalitics() {
           )}
         </div>
       </div>
-    </div>
+    </section>
   );
 }

@@ -14,9 +14,14 @@
   "auth": {
     "loginTitle": "Login",
     "email": "Email",
+    "name": "Name",
+    "photoUrlOptional": "Photo URL (optional)",
+    "telegramOptional": "Telegram ID (optional)",
     "password": "Password",
     "loginButton": "Login into account",
     "loginSuccess": "User login successfully",
+    "registerSuccess": "User created successfully",
+    "registerNewAccount": "Register new account",
     "logout": "Log out",
     "registerNew": "Register new",
     "registerProfileTitle": "Register New Profile",
@@ -26,6 +31,8 @@
   },
   "dashboard": {
     "title": "Dashboard",
+    "overview": "Financial overview with your real-time activity and location insights.",
+    "styleBadge": "Teal style active",
     "notLoggedIn": "You are not logged in. Please log in to see your dashboard.",
     "noTransactions": "You have no transactions. Please add some transactions to see your dashboard.",
     "card": {
@@ -42,6 +49,7 @@
     "title": "Transactions",
     "addNew": "Add new",
     "addTransactionTitle": "Add transaction",
+    "selectedLocation": "Selected location",
     "notLoggedIn": "You are not logged in. Please log in to see your transactions.",
     "loadingMore": "Loading more...",
     "noMore": "No more transactions",

@@ -5,6 +5,7 @@ import { ColoredMarker } from "./ColoredMarker";
 import { NoData } from "@/shared/ui/Helpers";
 import { useTransactionsAll } from "@/hooks/useTransactions";
 import { useSummary } from "@/hooks/useSummary";
+import { useThemeStore } from "@/store/theme";
 
 interface DefaultIconWithInternal extends L.Icon.Default {
   _getIconUrl?: string;
@@ -20,6 +21,7 @@ L.Icon.Default.mergeOptions({
 });
 
 export function IncomeOutcomeMap() {
+  const { theme } = useThemeStore();
   const { user } = useAuth();
   const { data: transactions } = useTransactionsAll({ userId: user?.id });
   const { summary } = useSummary();
@@ -36,9 +38,19 @@ export function IncomeOutcomeMap() {
 
   const center: LatLngTuple = [51.505, -0.09];
   const markers = transactions.data.filter((item) => item.location);
+  const isDarkTheme = theme === "dark";
+  const mapLayer = isDarkTheme
+    ? {
+        url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
+        attribution: "&copy; OpenStreetMap contributors &copy; CARTO",
+      }
+    : {
+        url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        attribution: "&copy; OpenStreetMap contributors",
+      };
 
   return (
-    <section className="relative h-full border border-(--color-fixed-text) rounded-[10px] overflow-hidden transitioned">
+    <section className="neo-panel neo-panel-glow relative h-full overflow-hidden transitioned">
       <MapContainer
         center={
           markers.length
@@ -46,12 +58,9 @@ export function IncomeOutcomeMap() {
             : center
         }
         zoom={9}
-        style={{ height: "100%", width: "100%", minHeight: "450px" }}
+        style={{ height: "100%", minHeight: "470px", width: "100%" }}
       >
-        <TileLayer
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          attribution="&copy; OpenStreetMap contributors"
-        />
+        <TileLayer url={mapLayer.url} attribution={mapLayer.attribution} />
         {markers.map((item, index) => {
           const isIncome: boolean = item.type === "INCOME";
           return (

@@ -4,8 +4,13 @@ import { useAuthStore } from "@/store/useAuthStore";
 import type { CreateUserBody as User } from "@fintrack/types";
 import { usePopupStore } from "@/store/popup";
 import { LoginPopup } from "./LoginPopup";
+import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
+import { queryClient } from "@/api/queryClient";
+import { useRouter } from "next/navigation";
 
 export function RegisterPopup() {
+  const { t } = useSafeTranslation();
+  const router = useRouter();
   const { open, close } = usePopupStore();
   const {
     user,
@@ -43,7 +48,7 @@ export function RegisterPopup() {
   const handleOpenLoginPopup = () => {
     close();
     setTimeout(() => {
-      open("Login", <LoginPopup />);
+      open(t("auth.loginTitle"), <LoginPopup />);
     }, 300);
   };
 
@@ -98,6 +103,9 @@ export function RegisterPopup() {
         });
       }
       //!=============================================================
+      await queryClient.invalidateQueries();
+      router.refresh();
+      close();
 
       setUserLocalInfo({
         name: "",
@@ -136,7 +144,7 @@ export function RegisterPopup() {
           required
           value={userLocalInfo.name}
           type="text"
-          placeholder="Name"
+          placeholder={t("auth.name")}
           onChange={(e) =>
             setUserLocalInfo({
               ...userLocalInfo,
@@ -148,7 +156,7 @@ export function RegisterPopup() {
         <input
           type="url"
           value={userLocalInfo.photo_url || ""}
-          placeholder="Photo url (optional)"
+          placeholder={t("auth.photoUrlOptional")}
           onChange={(e) =>
             setUserLocalInfo({
               ...userLocalInfo,
@@ -162,7 +170,7 @@ export function RegisterPopup() {
           <input
             required
             type="email"
-            placeholder="Email"
+            placeholder={t("auth.email")}
             value={
               userLocalInfo.authMethods.find((m) => m.type === "EMAIL")
                 ?.email || ""
@@ -184,7 +192,7 @@ export function RegisterPopup() {
             required
             minLength={8}
             type="password"
-            placeholder="Password"
+            placeholder={t("auth.password")}
             value={
               userLocalInfo.authMethods.find((m) => m.type === "EMAIL")
                 ?.password || ""
@@ -204,7 +212,7 @@ export function RegisterPopup() {
           />
           <input
             type="text"
-            placeholder="Telegram id (optional)"
+            placeholder={t("auth.telegramOptional")}
             value={
               userLocalInfo.authMethods.find((m) => m.type === "TELEGRAM")
                 ?.telegram_id || ""
@@ -223,29 +231,29 @@ export function RegisterPopup() {
             className="custom-input"
           />
           <button type="submit" disabled={isRegistering} className="custom-btn">
-            Register new account
+            {t("auth.registerNewAccount")}
           </button>
         </div>
 
         <div className="">
           {registerSuccess && (
-            <span className="text-green-500">User created successfully</span>
+            <span className="text-green-500">{t("auth.registerSuccess")}</span>
           )}
           {registerError && (
             <span className="text-red-500">{registerError}</span>
           )}
-          {isRegistering && <span>Loading...</span>}
+          {isRegistering && <span>{t("common.loading")}</span>}
         </div>
         <span className="h-[2px] w-full bg-(--color-background) rounded" />
       </form>
       <div className="w-full flex gap-[20px] justify-space-between">
         {user && (
           <button onClick={handleLogout} className="custom-btn">
-            Log out
+            {t("auth.logout")}
           </button>
         )}
         <button onClick={handleOpenLoginPopup} className="custom-btn">
-          Log in
+          {t("auth.loginTitle")}
         </button>
       </div>
     </section>
