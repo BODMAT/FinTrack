@@ -1,24 +1,33 @@
+import { useMemo } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAuth } from "./useAuth";
 import type { AIResponseWithDiff } from "@/types/ai";
 import type { AIRequest } from "@fintrack/types";
-import { getAIResponse } from "@/api/ai";
+import { getAIResponse, getAIHistory } from "@/api/ai";
 import { queryClient } from "@/api/queryClient";
 
 export function useAnalyticsAI() {
   const { user } = useAuth();
   const queryKey = ["AI_History", user?.id];
 
-  const { data: history = [] } = useQuery<AIResponseWithDiff[]>({
+  const { data: rawHistory = [], isLoading: isHistoryLoading } = useQuery({
     queryKey,
-    queryFn: () => {
-      if (typeof window === "undefined") return [];
-      const saved = localStorage.getItem(`AI_history_${user?.id}`);
-      return saved ? JSON.parse(saved) : [];
-    },
-    enabled: !!user && typeof window !== "undefined",
-    staleTime: Infinity,
+    queryFn: () => getAIHistory(),
+    enabled: !!user,
+    staleTime: 1000 * 60 * 5,
   });
+
+  const history = useMemo<AIResponseWithDiff[]>(
+    () =>
+      rawHistory.map((msg) => ({
+        id: msg.id,
+        model: "llama-3.1-8b-instant",
+        result: msg.result,
+        prompt: msg.prompt,
+        getted_at: new Date(msg.created_at),
+      })),
+    [rawHistory],
+  );
 
   const getResponse = useMutation<AIResponseWithDiff, Error, AIRequest>({
     mutationFn: async (params) => {
@@ -30,24 +39,14 @@ export function useAnalyticsAI() {
         id: crypto.randomUUID(),
       };
     },
-    onSuccess: (newResponse) => {
-      queryClient.setQueryData<AIResponseWithDiff[]>(queryKey, (old = []) => {
-        const updatedHistory = [newResponse, ...old];
-
-        if (typeof window !== "undefined") {
-          localStorage.setItem(
-            `AI_history_${user?.id}`,
-            JSON.stringify(updatedHistory),
-          );
-        }
-
-        return updatedHistory;
-      });
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey });
     },
   });
 
   return {
     history,
+    isHistoryLoading,
     isLoading: getResponse.isPending,
     getResponse: getResponse.mutate,
   };

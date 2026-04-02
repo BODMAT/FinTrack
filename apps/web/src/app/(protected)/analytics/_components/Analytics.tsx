@@ -29,7 +29,7 @@ export function Analytics() {
     getResponse({
       prompt,
       data: { transactions },
-      model: "openai/gpt-oss-120b:cerebras",
+      model: "llama-3.1-8b-instant",
     });
     setPrompt("");
   }, [prompt, transactionData, getResponse]);
@@ -113,14 +113,14 @@ export function Analytics() {
                         bg-(--color-card)  rounded-[8px]xl border-2 border-(--color-fixed-text)
                         shadow-lg"
           >
-            <div className="flex gap-[24px] my-[8px] mx-[12px] justify-between items-center">
+            <div className="flex flex-col sm:flex-row gap-[12px] sm:gap-[24px] my-[8px] mx-[12px] justify-between sm:items-center">
               <textarea
                 name="prompt"
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder={t("analytics.askPlaceholder")}
                 id="prompt"
-                className="w-full max-h-[192px] h-[48px] rounded-[5px] p-[12px] placeholder:text-(--color-placeholder)
+                className="w-full max-h-[192px] min-h-[48px] h-[48px] rounded-[5px] p-[12px] placeholder:text-(--color-placeholder)
                                 text-(--color-text) scrollable resize-none transitioned text-[16px] font-semibold
                                 focus:outline-none"
               />
@@ -129,10 +129,10 @@ export function Analytics() {
                 onClick={handleAnalyze}
                 type="button"
                 disabled={isLoadingAI}
-                className="w-[120px] h-[48px] border border-(--color-fixed-text) rounded-[10px] p-[12px]
+                className="w-full sm:w-auto sm:min-w-[120px] h-[48px] border border-(--color-fixed-text) rounded-[10px] px-[12px]
                                 text-(--color-text) cursor-pointer transitioned
                                 hover:bg-(--color-fixed-text) hover:text-(--color-card)
-                                text-[16px] font-semibold"
+                                text-[clamp(12px,1.8vw,16px)] font-semibold whitespace-nowrap leading-none"
               >
                 {t("analytics.analyze")}
               </button>

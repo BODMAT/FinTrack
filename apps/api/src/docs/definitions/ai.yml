@@ -10,8 +10,8 @@ components:
       properties:
         model:
           type: string
-          description: Optional model identifier to use for inference. Defaults to `openai/gpt-oss-120b:cerebras`.
-          example: "openai/gpt-oss-120b:cerebras"
+          description: Optional model identifier to use for inference. Defaults to `llama-3.1-8b-instant`.
+          example: "llama-3.1-8b-instant"
         prompt:
           type: string
           description: Instruction or question for the AI model.
@@ -39,7 +39,7 @@ components:
         model:
           type: string
           description: The model used to generate the response.
-          example: "openai/gpt-oss-120b:cerebras"
+          example: "llama-3.1-8b-instant"
         result:
           type: string
           description: The AI-generated text result.
@@ -99,7 +99,7 @@ paths:
               example:
                 error: "Unauthorized"
         "500":
-          description: AI service unavailable or all Hugging Face tokens failed.
+          description: AI service unavailable or all Groq API keys failed.
           content:
             application/json:
               schema:
