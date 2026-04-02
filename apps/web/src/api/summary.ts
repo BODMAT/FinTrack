@@ -5,7 +5,7 @@ import {
   type ISummary,
   type Range,
 } from "@fintrack/types";
-import { handleRequest } from "../utils/api";
+import { handleRequest } from "@/utils/api";
 import api from "./api";
 
 export const getSummary = async (): Promise<ISummary> => {

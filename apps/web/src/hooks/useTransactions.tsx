@@ -5,13 +5,13 @@ import {
   getTransactionById,
   getTransactions,
   updateTransaction,
-} from "../api/transaction";
+} from "@/api/transaction";
 import type {
   CreateTransaction,
   TransactionsListResponse,
   UpdateTransaction,
 } from "@fintrack/types";
-import { queryClient } from "../api/queryClient";
+import { queryClient } from "@/api/queryClient";
 
 interface UseTransactionsProps {
   perPage: number;

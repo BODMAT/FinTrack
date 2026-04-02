@@ -1,0 +1,72 @@
+{
+  "nav": {
+    "dashboard": "Дашборд",
+    "analytics": "Аналитика",
+    "transactions": "Транзакции"
+  },
+  "common": {
+    "loading": "Загрузка...",
+    "retry": "Попробуйте снова",
+    "noData": "Нет данных",
+    "error": "Ошибка",
+    "unexpected": "Что-то пошло не так..."
+  },
+  "auth": {
+    "loginTitle": "Вход",
+    "email": "Email",
+    "password": "Пароль",
+    "loginButton": "Войти в аккаунт",
+    "loginSuccess": "Пользователь успешно вошёл",
+    "logout": "Выйти",
+    "registerNew": "Зарегистрироваться",
+    "registerProfileTitle": "Создать новый профиль",
+    "addProfile": "Добавить профиль",
+    "anonymous": "Аноним",
+    "userPhotoAlt": "фото пользователя",
+    "name": "Имя",
+    "photoUrlOptional": "URL фото (необязательно)",
+    "telegramOptional": "Telegram ID (необязательно)",
+    "registerSuccess": "Пользователь успешно создан",
+    "registerNewAccount": "Зарегистрировать новый аккаунт"
+  },
+  "dashboard": {
+    "title": "Дашборд",
+    "notLoggedIn": "Вы не авторизованы. Войдите, чтобы увидеть дашборд.",
+    "noTransactions": "У вас нет транзакций. Добавьте транзакции, чтобы увидеть дашборд.",
+    "card": {
+      "currentBalance": "Текущий баланс",
+      "income": "Доход",
+      "saving": "Сбережения",
+      "outcome": "Расход",
+      "per": "за",
+      "allTime": "всё время",
+      "graphWith": "График для"
+    },
+    "overview": "Финансовый обзор с актуальной активностью и геоданными.",
+    "styleBadge": "Teal-стиль активен"
+  },
+  "transactions": {
+    "title": "Транзакции",
+    "addNew": "Добавить",
+    "addTransactionTitle": "Добавить транзакцию",
+    "notLoggedIn": "Вы не авторизованы. Войдите, чтобы увидеть транзакции.",
+    "loadingMore": "Загружаем ещё...",
+    "noMore": "Больше транзакций нет",
+    "noFound": "Транзакции не найдены",
+    "selectedLocation": "Выбранная локация"
+  },
+  "analytics": {
+    "title": "Аналитика",
+    "notLoggedIn": "Вы не авторизованы...",
+    "askPlaceholder": "Спросите меня о чём угодно...",
+    "analyze": "Анализировать"
+  },
+  "errors": {
+    "failedDashboard": "Не удалось загрузить дашборд",
+    "failedAnalytics": "Не удалось загрузить аналитику",
+    "failedTransactions": "Не удалось загрузить транзакции",
+    "unexpectedDashboard": "Произошла непредвиденная ошибка при загрузке дашборда.",
+    "unexpectedAnalytics": "Произошла непредвиденная ошибка при загрузке аналитики.",
+    "unexpectedTransactions": "Произошла непредвиденная ошибка при загрузке транзакций."
+  }
+}

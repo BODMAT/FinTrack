@@ -19,3 +19,5 @@ dist/
 *.tsbuildinfo
 .next/
 out/
+
+*dump*.txt

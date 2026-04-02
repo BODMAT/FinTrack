@@ -1,0 +1,72 @@
+{
+  "nav": {
+    "dashboard": "Dashboard",
+    "analytics": "Analytics",
+    "transactions": "Transactions"
+  },
+  "common": {
+    "loading": "Loading...",
+    "retry": "Try again",
+    "noData": "No data",
+    "error": "Error",
+    "unexpected": "Something went wrong..."
+  },
+  "auth": {
+    "loginTitle": "Login",
+    "email": "Email",
+    "name": "Name",
+    "photoUrlOptional": "Photo URL (optional)",
+    "telegramOptional": "Telegram ID (optional)",
+    "password": "Password",
+    "loginButton": "Login into account",
+    "loginSuccess": "User login successfully",
+    "registerSuccess": "User created successfully",
+    "registerNewAccount": "Register new account",
+    "logout": "Log out",
+    "registerNew": "Register new",
+    "registerProfileTitle": "Register New Profile",
+    "addProfile": "Add profile",
+    "anonymous": "Anonymous",
+    "userPhotoAlt": "user photo"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "overview": "Financial overview with your real-time activity and location insights.",
+    "styleBadge": "Teal style active",
+    "notLoggedIn": "You are not logged in. Please log in to see your dashboard.",
+    "noTransactions": "You have no transactions. Please add some transactions to see your dashboard.",
+    "card": {
+      "currentBalance": "Current balance",
+      "income": "Income",
+      "saving": "Saving",
+      "outcome": "Outcome",
+      "per": "per",
+      "allTime": "all time",
+      "graphWith": "Graph with"
+    }
+  },
+  "transactions": {
+    "title": "Transactions",
+    "addNew": "Add new",
+    "addTransactionTitle": "Add transaction",
+    "selectedLocation": "Selected location",
+    "notLoggedIn": "You are not logged in. Please log in to see your transactions.",
+    "loadingMore": "Loading more...",
+    "noMore": "No more transactions",
+    "noFound": "No transactions found"
+  },
+  "analytics": {
+    "title": "Analytics",
+    "notLoggedIn": "You are not logged in...",
+    "askPlaceholder": "Ask me anything...",
+    "analyze": "Analyze"
+  },
+  "errors": {
+    "failedDashboard": "Failed to load dashboard",
+    "failedAnalytics": "Failed to load analytics",
+    "failedTransactions": "Failed to load transactions",
+    "unexpectedDashboard": "Unexpected error happened while loading dashboard.",
+    "unexpectedAnalytics": "Unexpected error happened while loading analytics.",
+    "unexpectedTransactions": "Unexpected error happened while loading transactions."
+  }
+}

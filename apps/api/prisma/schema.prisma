@@ -45,6 +45,15 @@ model Location {
     transactionId String      @unique
 }
 
+model Message {
+    id         String   @id @default(uuid())
+    role       String // "user" або "assistant"
+    content    String   @db.Text
+    created_at DateTime @default(now())
+    user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId     String
+}
+
 model User {
     id           String         @id @default(uuid())
     name         String         @db.VarChar(200)
@@ -55,6 +64,7 @@ model User {
     authMethods  AuthMethod[]
     refreshToken RefreshToken[]
     transactions Transaction[]
+    messages     Message[]
 }
 
 model AuthMethod {

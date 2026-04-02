@@ -10,7 +10,7 @@ interface BurgerState {
 
 export const useBurgerStore = create<BurgerState>((set) => ({
   isBurgerOpen: false,
-  isMobile: window.innerWidth <= 768,
+  isMobile: false,
   setIsMobile: (val) => set({ isMobile: val }),
   toggleBurger: () =>
     set((state) =>

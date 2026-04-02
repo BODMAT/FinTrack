@@ -15,15 +15,13 @@ for (const key of requiredEnvVars) {
   }
 }
 
-const HF_API_TOKENS = Object.keys(process.env)
-  .filter((key) => key.startsWith("HF_API_TOKEN"))
+const GROQAPITOKENS = Object.keys(process.env)
+  .filter((key) => key.startsWith("GROQ_API_KEY_"))
   .map((key) => process.env[key])
   .filter((token): token is string => Boolean(token));
 
-if (HF_API_TOKENS.length === 0) {
-  console.warn(
-    "⚠️ Warning: No Hugging Face API tokens (HF_API_TOKEN_x) found in .env",
-  );
+if (GROQAPITOKENS.length === 0) {
+  console.warn("⚠️ Warning: No Groq API tokens (GROQ_API_KEY_x) found in .env");
 }
 
 export const ENV = {
@@ -33,7 +31,7 @@ export const ENV = {
   DATABASE_URL: process.env.DATABASE_URL as string,
   REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET as string,
   ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET as string,
-  HF_API_TOKENS,
+  GROQAPITOKENS,
 } as const;
 
 export type EnvConfig = typeof ENV;

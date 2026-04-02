@@ -6,7 +6,7 @@ import {
   type TokenUserResponse,
   type LoginUserResponse,
 } from "@fintrack/types";
-import { handleRequest } from "../utils/api";
+import { handleRequest } from "@/utils/api";
 import api from "./api";
 
 export const loginUser = async (
