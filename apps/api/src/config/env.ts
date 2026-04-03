@@ -7,6 +7,7 @@ const requiredEnvVars = [
   "DATABASE_URL",
   "REFRESH_TOKEN_SECRET",
   "ACCESS_TOKEN_SECRET",
+  "API_KEY_ENCRYPTION_SECRET",
 ];
 
 for (const key of requiredEnvVars) {
@@ -32,6 +33,7 @@ export const ENV = {
   REFRESH_TOKEN_SECRET: process.env.REFRESH_TOKEN_SECRET as string,
   ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET as string,
   GROQAPITOKENS,
+  API_KEY_ENCRYPTION_SECRET: process.env.API_KEY_ENCRYPTION_SECRET as string,
 } as const;
 
 export type EnvConfig = typeof ENV;

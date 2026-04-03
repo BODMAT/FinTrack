@@ -6,33 +6,36 @@
   },
   "common": {
     "loading": "Завантаження...",
-    "retry": "Спробуйте ще раз",
+    "retry": "Повторити",
     "noData": "Немає даних",
     "error": "Помилка",
-    "unexpected": "Щось пішло не так..."
+    "unexpected": "Щось пішло не так",
+    "close": "Закрити"
   },
   "auth": {
     "loginTitle": "Вхід",
     "email": "Email",
+    "name": "Ім'я",
+    "photoUrlOptional": "URL фото (необов'язково)",
+    "telegramOptional": "Telegram ID (необов'язково)",
     "password": "Пароль",
     "loginButton": "Увійти в акаунт",
-    "loginSuccess": "Користувач успішно увійшов",
+    "loginSuccess": "Вхід успішний",
+    "registerSuccess": "Користувача створено",
+    "registerNewAccount": "Зареєструвати новий акаунт",
     "logout": "Вийти",
-    "registerNew": "Зареєструватися",
-    "registerProfileTitle": "Створити новий профіль",
+    "registerNew": "Реєстрація",
+    "registerProfileTitle": "Новий профіль",
     "addProfile": "Додати профіль",
-    "anonymous": "Анонім",
-    "userPhotoAlt": "фото користувача",
-    "name": "Ім’я",
-    "photoUrlOptional": "URL фото (необов’язково)",
-    "telegramOptional": "Telegram ID (необов’язково)",
-    "registerSuccess": "Користувача успішно створено",
-    "registerNewAccount": "Зареєструвати новий акаунт"
+    "anonymous": "Анонімний",
+    "userPhotoAlt": "фото користувача"
   },
   "dashboard": {
     "title": "Дашборд",
-    "notLoggedIn": "Ви не авторизовані. Увійдіть, щоб побачити дашборд.",
-    "noTransactions": "У вас немає транзакцій. Додайте транзакції, щоб побачити дашборд.",
+    "overview": "Фінансовий огляд з активністю в реальному часі та геолокацією.",
+    "styleBadge": "Teal стиль активний",
+    "notLoggedIn": "Ви не увійшли. Будь ласка, увійдіть для перегляду дашборду.",
+    "noTransactions": "Немає транзакцій. Додайте транзакції для відображення дашборду.",
     "card": {
       "currentBalance": "Поточний баланс",
       "income": "Дохід",
@@ -40,33 +43,48 @@
       "outcome": "Витрати",
       "per": "за",
       "allTime": "весь час",
-      "graphWith": "Графік для"
-    },
-    "overview": "Фінансовий огляд з актуальною активністю та геоданими.",
-    "styleBadge": "Teal-стиль активний"
+      "graphWith": "Графік "
+    }
   },
   "transactions": {
     "title": "Транзакції",
     "addNew": "Додати",
     "addTransactionTitle": "Додати транзакцію",
-    "notLoggedIn": "Ви не авторизовані. Увійдіть, щоб побачити транзакції.",
-    "loadingMore": "Завантажуємо ще...",
+    "selectedLocation": "Вибране місце",
+    "notLoggedIn": "Ви не увійшли. Будь ласка, увійдіть для перегляду транзакцій.",
+    "loadingMore": "Завантаження...",
     "noMore": "Більше транзакцій немає",
-    "noFound": "Транзакції не знайдено",
-    "selectedLocation": "Обрана локація"
+    "noFound": "Транзакції не знайдено"
   },
   "analytics": {
     "title": "Аналітика",
-    "notLoggedIn": "Ви не авторизовані...",
-    "askPlaceholder": "Запитайте мене про що завгодно...",
-    "analyze": "Проаналізувати"
+    "notLoggedIn": "Будь ласка, увійдіть для використання аналітики",
+    "askPlaceholder": "Запитай про свої фінанси...",
+    "analyze": "Аналізувати",
+    "apiKeyButton": "API ключ",
+    "apiKeyTitle": "Налаштування AI API ключа",
+    "apiKeyDescription": "Підключи власний ключ для аналізу портфеля. Підтримуються:",
+    "apiKeySave": "Зберегти",
+    "apiKeyReplace": "Замінити ключ...",
+    "addApiKey": "Додати API ключ"
   },
   "errors": {
-    "failedDashboard": "Не вдалося завантажити дашборд",
-    "failedAnalytics": "Не вдалося завантажити аналітику",
-    "failedTransactions": "Не вдалося завантажити транзакції",
-    "unexpectedDashboard": "Сталася неочікувана помилка під час завантаження дашборду.",
-    "unexpectedAnalytics": "Сталася неочікувана помилка під час завантаження аналітики.",
-    "unexpectedTransactions": "Сталася неочікувана помилка під час завантаження транзакцій."
+    "error": "Помилка",
+    "failedDashboard": "Помилка завантаження дашборду",
+    "failedAnalytics": "Помилка завантаження аналітики",
+    "failedTransactions": "Помилка завантаження транзакцій",
+    "unexpectedDashboard": "Несподівана помилка при завантаженні дашборду.",
+    "unexpectedAnalytics": "Несподівана помилка при завантаженні аналітики.",
+    "unexpectedTransactions": "Несподівана помилка при завантаженні транзакцій.",
+    "aiKeyLimit": "Ліміт вичерпано",
+    "aiKeyLimitDesc": "Твій API ключ досяг ліміту запитів. Зачекай або заміни ключ.",
+    "aiKeyInvalid": "Невалідний ключ",
+    "aiKeyInvalidDesc": "Твій API ключ недійсний або прострочений. Перевір і заміни.",
+    "aiDefaultLimit": "Сервіс перевантажений",
+    "aiDefaultLimitDesc": "Дефолтний AI ключ вичерпано. Додай власний ключ.",
+    "aiAllFailed": "Сервіс недоступний",
+    "aiAllFailedDesc": "Всі AI ключі недоступні. Додай власний ключ Groq або Gemini.",
+    "aiUsingDefault": "Використовується стандартний AI ключ",
+    "aiUsingDefaultDesc": "Ваш персональний API ключ зараз неактивний. Для цього запиту FinTrack використає стандартний AI ключ."
   }
 }

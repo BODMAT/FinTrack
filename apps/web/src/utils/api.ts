@@ -47,6 +47,7 @@ export async function handleRequest<T>(
         message: serverData?.message || "An unexpected error occurred",
         error: serverData?.error || err.message || "Unknown error",
         code: status || 500,
+        backendCode: serverData?.backendCode ?? serverData?.code,
       };
 
       if (status === 409) {

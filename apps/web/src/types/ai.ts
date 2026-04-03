@@ -7,6 +7,13 @@ export const AIResponseWithDiffSchema = AIResponseSchema.extend({
   id: z.string(),
 });
 
+export type AiErrorCode =
+  | "USER_KEY_LIMIT"
+  | "USER_KEY_INVALID"
+  | "DEFAULT_KEY_LIMIT"
+  | "ALL_KEYS_FAILED"
+  | "USING_DEFAULT_KEY";
+
 export const AIHistorySchema = z.array(AIResponseWithDiffSchema);
 
 export type AIResponseWithDiff = z.infer<typeof AIResponseWithDiffSchema>;
