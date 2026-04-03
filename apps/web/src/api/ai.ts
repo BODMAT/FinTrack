@@ -10,7 +10,8 @@ export type MessageFromDB = {
   id: string;
   prompt: string;
   result: string;
-  created_at: string;
+  created_at?: string;
+  gettedat?: string;
 };
 
 export const getAIResponse = async ({

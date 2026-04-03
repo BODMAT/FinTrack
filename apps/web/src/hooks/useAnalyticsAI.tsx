@@ -19,13 +19,20 @@ export function useAnalyticsAI() {
 
   const history = useMemo<AIResponseWithDiff[]>(
     () =>
-      rawHistory.map((msg) => ({
-        id: msg.id,
-        model: "llama-3.1-8b-instant",
-        result: msg.result,
-        prompt: msg.prompt,
-        getted_at: new Date(msg.created_at),
-      })),
+      rawHistory.map((msg) => {
+        const rawDate = msg.created_at ?? msg.gettedat;
+        const parsedDate = rawDate ? new Date(rawDate) : new Date();
+        const safeDate = Number.isFinite(parsedDate.getTime())
+          ? parsedDate
+          : new Date();
+        return {
+          id: msg.id,
+          model: "llama-3.1-8b-instant",
+          result: msg.result,
+          prompt: msg.prompt,
+          getted_at: safeDate,
+        };
+      }),
     [rawHistory],
   );
 
@@ -48,6 +55,6 @@ export function useAnalyticsAI() {
     history,
     isHistoryLoading,
     isLoading: getResponse.isPending,
-    getResponse: getResponse.mutate,
+    getResponse: getResponse.mutateAsync,
   };
 }

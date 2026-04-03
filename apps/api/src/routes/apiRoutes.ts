@@ -5,6 +5,7 @@ import { authRouter } from "../modules/auth/route.js";
 import { transactionRouter } from "../modules/transaction/route.js";
 import { aiRouter } from "../modules/ai/route.js";
 import { summaryRouter } from "../modules/summary/route.js";
+import { userApiKeyRouter } from "../modules/user-api-key/route.js";
 
 export const apiRouter = express.Router();
 
@@ -13,6 +14,7 @@ apiRouter.use("/users", userRouter);
 apiRouter.use("/transactions", transactionRouter);
 apiRouter.use("/ai", aiRouter);
 apiRouter.use("/summary", summaryRouter);
+apiRouter.use("/user-api-keys", userApiKeyRouter);
 
 // apiRouter.all("*", (req: Request, res: Response, next: NextFunction) => {
 // 	res.status(404).json({ error: "Endpoint not found" });

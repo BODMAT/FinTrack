@@ -9,7 +9,8 @@
     "retry": "Try again",
     "noData": "No data",
     "error": "Error",
-    "unexpected": "Something went wrong..."
+    "unexpected": "Something went wrong",
+    "close": "Close"
   },
   "auth": {
     "loginTitle": "Login",
@@ -42,7 +43,7 @@
       "outcome": "Outcome",
       "per": "per",
       "allTime": "all time",
-      "graphWith": "Graph with"
+      "graphWith": "Graph with "
     }
   },
   "transactions": {
@@ -57,16 +58,33 @@
   },
   "analytics": {
     "title": "Analytics",
-    "notLoggedIn": "You are not logged in...",
-    "askPlaceholder": "Ask me anything...",
-    "analyze": "Analyze"
+    "notLoggedIn": "Please log in to use analytics",
+    "askPlaceholder": "Ask about your finances...",
+    "analyze": "Analyze",
+    "apiKeyButton": "API Key",
+    "apiKeyTitle": "AI API Key Settings",
+    "apiKeyDescription": "Connect your own key for portfolio analysis. Supported:",
+    "apiKeySave": "Save",
+    "apiKeyReplace": "Replace key...",
+    "addApiKey": "Add API Key"
   },
   "errors": {
+    "error": "Error",
     "failedDashboard": "Failed to load dashboard",
     "failedAnalytics": "Failed to load analytics",
     "failedTransactions": "Failed to load transactions",
     "unexpectedDashboard": "Unexpected error happened while loading dashboard.",
     "unexpectedAnalytics": "Unexpected error happened while loading analytics.",
-    "unexpectedTransactions": "Unexpected error happened while loading transactions."
+    "unexpectedTransactions": "Unexpected error happened while loading transactions.",
+    "aiKeyLimit": "Rate limit reached",
+    "aiKeyLimitDesc": "Your API key has hit its rate limit. Wait or replace the key.",
+    "aiKeyInvalid": "Invalid API key",
+    "aiKeyInvalidDesc": "Your API key is invalid or expired. Check and try again.",
+    "aiDefaultLimit": "Service overloaded",
+    "aiDefaultLimitDesc": "The default AI key is exhausted. Add your own key to continue.",
+    "aiAllFailed": "Service unavailable",
+    "aiAllFailedDesc": "All AI keys are unavailable. Please add your own Groq or Gemini key.",
+    "aiUsingDefault": "Using default AI key",
+    "aiUsingDefaultDesc": "Your personal API key is not active now. FinTrack will use the default AI key for this request."
   }
 }

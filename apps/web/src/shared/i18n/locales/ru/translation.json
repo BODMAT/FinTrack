@@ -9,28 +9,31 @@
     "retry": "Попробуйте снова",
     "noData": "Нет данных",
     "error": "Ошибка",
-    "unexpected": "Что-то пошло не так..."
+    "unexpected": "Что-то пошло не так...",
+    "close": "Закрыть"
   },
   "auth": {
     "loginTitle": "Вход",
     "email": "Email",
+    "name": "Имя",
+    "photoUrlOptional": "URL фото (необязательно)",
+    "telegramOptional": "Telegram ID (необязательно)",
     "password": "Пароль",
     "loginButton": "Войти в аккаунт",
-    "loginSuccess": "Пользователь успешно вошёл",
+    "loginSuccess": "Пользователь успешно вошел",
+    "registerSuccess": "Пользователь успешно создан",
+    "registerNewAccount": "Зарегистрировать новый аккаунт",
     "logout": "Выйти",
     "registerNew": "Зарегистрироваться",
     "registerProfileTitle": "Создать новый профиль",
     "addProfile": "Добавить профиль",
     "anonymous": "Аноним",
-    "userPhotoAlt": "фото пользователя",
-    "name": "Имя",
-    "photoUrlOptional": "URL фото (необязательно)",
-    "telegramOptional": "Telegram ID (необязательно)",
-    "registerSuccess": "Пользователь успешно создан",
-    "registerNewAccount": "Зарегистрировать новый аккаунт"
+    "userPhotoAlt": "фото пользователя"
   },
   "dashboard": {
     "title": "Дашборд",
+    "overview": "Финансовый обзор с актуальной активностью и геоданными.",
+    "styleBadge": "Teal-стиль активен",
     "notLoggedIn": "Вы не авторизованы. Войдите, чтобы увидеть дашборд.",
     "noTransactions": "У вас нет транзакций. Добавьте транзакции, чтобы увидеть дашборд.",
     "card": {
@@ -39,34 +42,49 @@
       "saving": "Сбережения",
       "outcome": "Расход",
       "per": "за",
-      "allTime": "всё время",
-      "graphWith": "График для"
-    },
-    "overview": "Финансовый обзор с актуальной активностью и геоданными.",
-    "styleBadge": "Teal-стиль активен"
+      "allTime": "все время",
+      "graphWith": "График для "
+    }
   },
   "transactions": {
     "title": "Транзакции",
     "addNew": "Добавить",
     "addTransactionTitle": "Добавить транзакцию",
+    "selectedLocation": "Выбранная локация",
     "notLoggedIn": "Вы не авторизованы. Войдите, чтобы увидеть транзакции.",
-    "loadingMore": "Загружаем ещё...",
+    "loadingMore": "Загружаем еще...",
     "noMore": "Больше транзакций нет",
-    "noFound": "Транзакции не найдены",
-    "selectedLocation": "Выбранная локация"
+    "noFound": "Транзакции не найдены"
   },
   "analytics": {
     "title": "Аналитика",
-    "notLoggedIn": "Вы не авторизованы...",
-    "askPlaceholder": "Спросите меня о чём угодно...",
-    "analyze": "Анализировать"
+    "notLoggedIn": "Пожалуйста, войдите для использования аналитики",
+    "askPlaceholder": "Спроси про свои финансы...",
+    "analyze": "Анализировать",
+    "apiKeyButton": "API ключ",
+    "apiKeyTitle": "Настройка AI ключа",
+    "apiKeyDescription": "Подключи собственный ключ для анализа портфеля. Поддерживаются:",
+    "apiKeySave": "Сохранить",
+    "apiKeyReplace": "Заменить ключ...",
+    "addApiKey": "Добавить ключ"
   },
   "errors": {
-    "failedDashboard": "Не удалось загрузить дашборд",
-    "failedAnalytics": "Не удалось загрузить аналитику",
-    "failedTransactions": "Не удалось загрузить транзакции",
-    "unexpectedDashboard": "Произошла непредвиденная ошибка при загрузке дашборда.",
-    "unexpectedAnalytics": "Произошла непредвиденная ошибка при загрузке аналитики.",
-    "unexpectedTransactions": "Произошла непредвиденная ошибка при загрузке транзакций."
+    "error": "Ошибка",
+    "failedDashboard": "Ошибка загрузки дашборда",
+    "failedAnalytics": "Ошибка загрузки аналитики",
+    "failedTransactions": "Ошибка загрузки транзакций",
+    "unexpectedDashboard": "Неожиданная ошибка при загрузке дашборда.",
+    "unexpectedAnalytics": "Неожиданная ошибка при загрузке аналитики.",
+    "unexpectedTransactions": "Неожиданная ошибка при загрузке транзакций.",
+    "aiKeyLimit": "Лимит исчерпан",
+    "aiKeyLimitDesc": "Твой API ключ достиг лимита запросов. Подожди или замени ключ.",
+    "aiKeyInvalid": "Невалидный ключ",
+    "aiKeyInvalidDesc": "Твой API ключ недействителен или просрочен. Проверь и замени его.",
+    "aiDefaultLimit": "Сервис перегружен",
+    "aiDefaultLimitDesc": "Дефолтный AI ключ исчерпан. Добавь собственный ключ, чтобы продолжить.",
+    "aiAllFailed": "Сервис недоступен",
+    "aiAllFailedDesc": "Все AI ключи недоступны. Добавь собственный ключ Groq или Gemini.",
+    "aiUsingDefault": "Используется стандартный AI ключ",
+    "aiUsingDefaultDesc": "Ваш персональный API ключ сейчас неактивен. Для этого запроса FinTrack использует стандартный AI ключ."
   }
 }

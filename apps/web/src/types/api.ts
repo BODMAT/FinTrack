@@ -6,6 +6,7 @@ export type ApiResponse<T> =
         message?: string;
         error?: string;
         code?: number;
+        backendCode?: string | number;
       };
     };
 
@@ -13,4 +14,5 @@ export interface ApiError {
   message: string;
   error: string;
   code: number;
+  backendCode?: string | number;
 }
