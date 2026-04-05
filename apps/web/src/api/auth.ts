@@ -19,14 +19,22 @@ export const loginUser = async (
 };
 
 export const tokenUser = async (
-  payload: TokenUserBody,
+  payload?: TokenUserBody,
 ): Promise<TokenUserResponse> => {
   return handleRequest(
-    api.post("/auth/token", payload),
+    api.post("/auth/token", payload ?? {}),
     TokenUserResponseSchema,
   );
 };
 
-export const logoutUser = async (payload: TokenUserBody): Promise<void> => {
-  return handleRequest(api.delete("/auth/logout", { data: payload }));
+export const logoutUser = async (): Promise<void> => {
+  return handleRequest(api.delete("/auth/logout"));
+};
+
+export const logoutAllUser = async (): Promise<void> => {
+  return handleRequest(api.post("/auth/logout-all"));
+};
+
+export const exchangeGoogleSession = async (idToken: string): Promise<void> => {
+  await handleRequest(api.post("/auth/google/exchange", { idToken }));
 };

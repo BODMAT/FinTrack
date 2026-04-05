@@ -3,6 +3,7 @@ import { ENV } from "../../config/env.js";
 import { prisma } from "../../prisma/client.js";
 import { decryptApiKey } from "../../utils/crypto.js";
 import type { AiProvider } from "@prisma/client";
+import type { AiErrorCode } from "@fintrack/types";
 
 const CONTEXT_LIMIT = 20;
 
@@ -12,15 +13,11 @@ Ukrainian → Ukrainian. English → English. NEVER mention the language, NEVER 
 NEVER meta-comment. Just answer directly.
 Format rules: plain text only, no markdown, no tables, no bold, no emojis, no bullet points. 2–3 sentences max. Use exact numbers from the data.`;
 
-export type AiErrorCode =
-  | "USER_KEY_LIMIT"
-  | "USER_KEY_INVALID"
-  | "DEFAULT_KEY_LIMIT"
-  | "ALL_KEYS_FAILED";
+type ServiceAiErrorCode = Exclude<AiErrorCode, "USING_DEFAULT_KEY">;
 
 export class AiServiceError extends Error {
   constructor(
-    public readonly code: AiErrorCode,
+    public readonly code: ServiceAiErrorCode,
     message: string,
   ) {
     super(message);

@@ -1,12 +1,19 @@
 "use client";
 
+import { HydrationBoundary, type DehydratedState } from "@tanstack/react-query";
 import { Analytics } from "./_components/Analytics";
 import { ProtectedClientGate } from "@/app/_components/auth/ProtectedClientGate";
 
-export function AnalyticsClient() {
+interface AnalyticsClientProps {
+  initialData?: DehydratedState | null;
+}
+
+export function AnalyticsClient({ initialData = null }: AnalyticsClientProps) {
   return (
     <ProtectedClientGate>
-      <Analytics />
+      <HydrationBoundary state={initialData ?? undefined}>
+        <Analytics />
+      </HydrationBoundary>
     </ProtectedClientGate>
   );
 }

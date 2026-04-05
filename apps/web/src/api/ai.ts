@@ -4,15 +4,9 @@ import {
   type AIRequest,
   type AIResponse,
   AIResponseSchema,
+  type MessageFromDB,
+  MessageFromDBSchema,
 } from "@fintrack/types";
-
-export type MessageFromDB = {
-  id: string;
-  prompt: string;
-  result: string;
-  created_at?: string;
-  gettedat?: string;
-};
 
 export const getAIResponse = async ({
   data,
@@ -26,5 +20,8 @@ export const getAIResponse = async ({
 };
 
 export async function getAIHistory(): Promise<MessageFromDB[]> {
-  return handleRequest<MessageFromDB[]>(api.get("/ai/history"));
+  return handleRequest<MessageFromDB[]>(
+    api.get("/ai/history"),
+    MessageFromDBSchema.array(),
+  );
 }

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useAuthStore } from "@/store/useAuthStore";
 import type { CreateUserBody as User } from "@fintrack/types";
 import { usePopupStore } from "@/store/popup";
 import { LoginPopup } from "./LoginPopup";
@@ -14,10 +13,9 @@ export function RegisterPopup() {
   const { open, close } = usePopupStore();
   const {
     user,
-    status: { registerError, isRegistering },
-    actions: { register, logout, login },
+    status: { registerError, isRegistering, isLoggingOutAll, logoutAllError },
+    actions: { register, logout, login, logoutAll },
   } = useAuth();
-  const { logout: localLogout } = useAuthStore();
 
   const [registerSuccess, setRegisterSuccess] = useState(false);
   const [userLocalInfo, setUserLocalInfo] = useState<User>({
@@ -39,7 +37,14 @@ export function RegisterPopup() {
   const handleLogout = async () => {
     try {
       await logout();
-      localLogout();
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleLogoutAll = async () => {
+    try {
+      await logoutAll();
     } catch (error) {
       console.error(error);
     }
@@ -248,14 +253,24 @@ export function RegisterPopup() {
       </form>
       <div className="w-full flex gap-[20px] justify-space-between">
         {user && (
-          <button onClick={handleLogout} className="custom-btn">
-            {t("auth.logout")}
-          </button>
+          <>
+            <button onClick={handleLogout} className="custom-btn">
+              {t("auth.logout")}
+            </button>
+            <button
+              onClick={handleLogoutAll}
+              disabled={isLoggingOutAll}
+              className="custom-btn"
+            >
+              {t("auth.logoutAllSessions")}
+            </button>
+          </>
         )}
         <button onClick={handleOpenLoginPopup} className="custom-btn">
           {t("auth.loginTitle")}
         </button>
       </div>
+      {logoutAllError && <span className="text-red-500">{logoutAllError}</span>}
     </section>
   );
 }

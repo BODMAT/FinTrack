@@ -24,6 +24,7 @@
     "registerSuccess": "User created successfully",
     "registerNewAccount": "Register new account",
     "logout": "Log out",
+    "logoutAllSessions": "Logout all sessions",
     "registerNew": "Register new",
     "registerProfileTitle": "Register New Profile",
     "addProfile": "Add profile",

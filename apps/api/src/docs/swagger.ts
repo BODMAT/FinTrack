@@ -70,6 +70,10 @@ const options: swaggerJsdoc.Options = {
 const swaggerSpec = swaggerJsdoc(options);
 
 export function swaggerDocs(app: Express) {
+  if (ENV.NODE_ENV === "production" && !ENV.ENABLE_SWAGGER_IN_PROD) {
+    return;
+  }
+
   // Swagger page
   app.use(
     "/api-docs",

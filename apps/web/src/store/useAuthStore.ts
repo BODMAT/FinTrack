@@ -1,38 +1,30 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
 
 interface AuthState {
-  token: string | null;
-  refreshToken: string | null;
   isAuthenticated: boolean;
-  setTokens: (accessToken: string, refreshToken: string) => void;
+  isBootstrapping: boolean;
+  setAuthenticated: (value: boolean) => void;
+  setBootstrapping: (value: boolean) => void;
   logout: () => void;
 }
 
-export const useAuthStore = create<AuthState>()(
-  persist(
-    (set) => ({
-      token: null,
-      refreshToken: null,
-      isAuthenticated: false,
+export const useAuthStore = create<AuthState>()((set) => ({
+  isAuthenticated: false,
+  isBootstrapping: true,
 
-      setTokens: (accessToken, refreshToken) =>
-        set({
-          token: accessToken,
-          refreshToken: refreshToken,
-          isAuthenticated: true,
-        }),
-
-      logout: () =>
-        set({
-          token: null,
-          refreshToken: null,
-          isAuthenticated: false,
-        }),
+  setAuthenticated: (value) =>
+    set({
+      isAuthenticated: value,
     }),
-    {
-      name: "fintrack-auth",
-      storage: createJSONStorage(() => localStorage),
-    },
-  ),
-);
+
+  setBootstrapping: (value) =>
+    set({
+      isBootstrapping: value,
+    }),
+
+  logout: () =>
+    set({
+      isAuthenticated: false,
+      isBootstrapping: false,
+    }),
+}));
