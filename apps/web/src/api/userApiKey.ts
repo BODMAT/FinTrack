@@ -1,24 +1,26 @@
 import api from "./api";
 import { handleRequest } from "@/utils/api";
-
-export interface UserApiKey {
-  id: string;
-  provider: "GROQ" | "GEMINI";
-  isActive: boolean;
-  maskedKey: string;
-  createdAt: string;
-  updatedAt: string;
-}
+import {
+  type UserApiKey,
+  UserApiKeySchema,
+  UserApiKeysSchema,
+} from "@fintrack/types";
 
 export const getUserApiKeys = async (): Promise<UserApiKey[]> => {
-  return handleRequest<UserApiKey[]>(api.get("user-api-keys"));
+  return handleRequest<UserApiKey[]>(
+    api.get("user-api-keys"),
+    UserApiKeysSchema,
+  );
 };
 
 export const upsertUserApiKey = async (payload: {
   provider: "GROQ" | "GEMINI";
   apiKey: string;
 }): Promise<UserApiKey> => {
-  return handleRequest<UserApiKey>(api.put("user-api-keys", payload));
+  return handleRequest<UserApiKey>(
+    api.put("user-api-keys", payload),
+    UserApiKeySchema,
+  );
 };
 
 export const deleteUserApiKey = async (

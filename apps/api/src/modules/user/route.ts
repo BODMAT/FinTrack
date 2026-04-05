@@ -1,5 +1,8 @@
 import express from "express";
 import { authenticateToken } from "../auth/controller.js";
+import { requireRole } from "../../middleware/authz.js";
+import { blockInProduction } from "../../middleware/envGuards.js";
+import { registrationLimiter } from "../../middleware/rateLimit.js";
 import {
   getAllUsers,
   getCurrentUser,
@@ -11,12 +14,17 @@ import {
 
 export const userRouter = express.Router();
 
-//TODO: REMOVE getAll from prod api
-userRouter.get("/", getAllUsers);
+userRouter.get(
+  "/",
+  authenticateToken,
+  requireRole(["ADMIN"]),
+  blockInProduction,
+  getAllUsers,
+);
 
 // userRouter.get("/:id", authenticateToken, getUser);
 userRouter.get("/me", authenticateToken, getCurrentUser);
-userRouter.post("/", createUser);
+userRouter.post("/", registrationLimiter, createUser);
 // userRouter.patch("/:id", authenticateToken, updateUser);
 userRouter.patch("/me", authenticateToken, updateCurrentUser);
 // userRouter.delete("/:id", authenticateToken, deleteUser);

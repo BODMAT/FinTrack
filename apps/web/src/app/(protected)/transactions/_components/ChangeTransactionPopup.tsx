@@ -83,9 +83,10 @@ function TransactionFormContent({
       }));
       setLocationError(null);
     } catch (error) {
-      console.error("Error fetching location:", error);
       if (error instanceof Error) {
         setLocationError(error.message);
+      } else {
+        setLocationError("Failed to get location.");
       }
     }
   };

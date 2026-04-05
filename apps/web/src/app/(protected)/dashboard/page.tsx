@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { DashboardClient } from "./DashboardClient";
+import { prefetchDashboardState } from "@/lib/server/prefetchProtected";
 
 function DashboardFallback() {
   return (
@@ -19,9 +20,11 @@ function DashboardFallback() {
 }
 
 export default async function DashboardPage() {
+  const initialData = await prefetchDashboardState();
+
   return (
     <Suspense fallback={<DashboardFallback />}>
-      <DashboardClient initialData={null} />
+      <DashboardClient initialData={initialData} />
     </Suspense>
   );
 }

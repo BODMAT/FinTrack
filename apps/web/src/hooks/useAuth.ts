@@ -1,35 +1,23 @@
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useSyncExternalStore } from "react";
+import { signOut } from "next-auth/react";
 import {
-  getMe,
-  updateMe,
+  createUser,
   deleteMe,
   deleteMyAuthMethod,
-  createUser,
+  getMe,
+  updateMe,
 } from "@/api/user";
-import { loginUser, logoutUser } from "@/api/auth";
+import { loginUser, logoutAllUser, logoutUser } from "@/api/auth";
 import { useAuthStore } from "@/store/useAuthStore";
 import type {
   CreateUserBody,
-  UserResponse,
   LoginUserBody,
   LoginUserResponse,
+  UserResponse,
 } from "@fintrack/types";
 import type { ApiError } from "@/types/api";
 import { queryClient } from "@/api/queryClient";
-
-const AUTH_COOKIE_NAME = "fintrack_auth";
-const AUTH_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 7;
-
-function setAuthCookie() {
-  if (typeof document === "undefined") return;
-  document.cookie = `${AUTH_COOKIE_NAME}=1; Path=/; Max-Age=${AUTH_COOKIE_MAX_AGE_SECONDS}; SameSite=Lax`;
-}
-
-function clearAuthCookie() {
-  if (typeof document === "undefined") return;
-  document.cookie = `${AUTH_COOKIE_NAME}=; Path=/; Max-Age=0; SameSite=Lax`;
-}
 
 export const useAuth = () => {
   const isHydrated = useSyncExternalStore(
@@ -37,13 +25,22 @@ export const useAuth = () => {
     () => true,
     () => false,
   );
-  const { token, refreshToken, setTokens, logout: clearStore } = useAuthStore();
+  const {
+    isAuthenticated,
+    setAuthenticated,
+    setBootstrapping,
+    isBootstrapping,
+    logout: clearStore,
+  } = useAuthStore();
 
   const profile = useQuery<UserResponse, ApiError>({
     queryKey: ["user", "me"],
     queryFn: getMe,
-    enabled: isHydrated && !!token,
+    enabled: isHydrated && isAuthenticated,
     retry: false,
+    refetchOnWindowFocus: false,
+    refetchOnReconnect: false,
+    refetchOnMount: false,
   });
 
   const register = useMutation<UserResponse, ApiError, CreateUserBody>({
@@ -52,20 +49,26 @@ export const useAuth = () => {
 
   const login = useMutation<LoginUserResponse, ApiError, LoginUserBody>({
     mutationFn: loginUser,
-    onSuccess: (data) => {
-      setTokens(data.accessToken, data.refreshToken);
-      setAuthCookie();
-      queryClient.invalidateQueries({ queryKey: ["user", "me"] });
+    onSuccess: async () => {
+      setAuthenticated(true);
+      setBootstrapping(false);
+      await queryClient.invalidateQueries({ queryKey: ["user", "me"] });
     },
   });
 
   const logout = useMutation<void, ApiError, void>({
-    mutationFn: () => {
-      if (!refreshToken) return Promise.reject(new Error("No refresh token"));
-      return logoutUser({ token: refreshToken });
-    },
+    mutationFn: logoutUser,
     onSettled: () => {
-      clearAuthCookie();
+      void signOut({ redirect: false });
+      clearStore();
+      queryClient.clear();
+    },
+  });
+
+  const logoutAll = useMutation<void, ApiError, void>({
+    mutationFn: logoutAllUser,
+    onSettled: () => {
+      void signOut({ redirect: false });
       clearStore();
       queryClient.clear();
     },
@@ -81,7 +84,7 @@ export const useAuth = () => {
   const deleteAccount = useMutation<void, ApiError>({
     mutationFn: deleteMe,
     onSettled: () => {
-      clearAuthCookie();
+      void signOut({ redirect: false });
       clearStore();
       queryClient.clear();
     },
@@ -96,15 +99,14 @@ export const useAuth = () => {
 
   return {
     user: profile.data,
-
-    isLoading: !isHydrated || profile.isLoading,
+    isLoading: !isHydrated || isBootstrapping || profile.isLoading,
     isError: profile.isError,
     profileError: profile.error?.message,
-
     actions: {
       register: register.mutateAsync,
       login: login.mutateAsync,
-      logout: logout.mutate,
+      logout: logout.mutateAsync,
+      logoutAll: logoutAll.mutateAsync,
       update: update.mutate,
       deleteAccount: deleteAccount.mutate,
       deleteAuthMethod: deleteAuthMethod.mutate,
@@ -113,11 +115,12 @@ export const useAuth = () => {
       isLoggingIn: login.isPending,
       isUpdating: update.isPending,
       isRegistering: register.isPending,
+      isLoggingOutAll: logoutAll.isPending,
       isDeletingAccount: deleteAccount.isPending,
       isDeletingAuthMethod: deleteAuthMethod.isPending,
-
       loginError: login.error?.message,
       registerError: register.error?.message,
+      logoutAllError: logoutAll.error?.message,
       updateError: update.error?.message,
       deleteAccountError: deleteAccount.error?.message,
       deleteAuthMethodError: deleteAuthMethod.error?.message,

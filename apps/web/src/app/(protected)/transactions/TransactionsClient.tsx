@@ -1,12 +1,21 @@
 "use client";
 
+import { HydrationBoundary, type DehydratedState } from "@tanstack/react-query";
 import { Transactions } from "./_components/Transactions";
 import { ProtectedClientGate } from "@/app/_components/auth/ProtectedClientGate";
 
-export function TransactionsClient() {
+interface TransactionsClientProps {
+  initialData?: DehydratedState | null;
+}
+
+export function TransactionsClient({
+  initialData = null,
+}: TransactionsClientProps) {
   return (
     <ProtectedClientGate>
-      <Transactions />
+      <HydrationBoundary state={initialData ?? undefined}>
+        <Transactions />
+      </HydrationBoundary>
     </ProtectedClientGate>
   );
 }

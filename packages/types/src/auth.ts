@@ -7,15 +7,12 @@ export const LoginUserBodySchema = z.object({
 export type LoginUserBody = z.infer<typeof LoginUserBodySchema>;
 
 export const LoginUserResponseSchema = z.object({
-  accessToken: z.string(),
-  refreshToken: z.string(),
+  authenticated: z.boolean(),
 });
 export type LoginUserResponse = z.infer<typeof LoginUserResponseSchema>;
 
-export const TokenUserBodySchema = z.object({
-  token: z.string().min(1, "Token is required"),
-});
+export const TokenUserBodySchema = z.object({}).optional();
 export type TokenUserBody = z.infer<typeof TokenUserBodySchema>;
 
-export const TokenUserResponseSchema = z.object({ accessToken: z.string() });
+export const TokenUserResponseSchema = z.object({ authenticated: z.boolean() });
 export type TokenUserResponse = z.infer<typeof TokenUserResponseSchema>;

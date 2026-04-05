@@ -24,6 +24,7 @@
     "registerSuccess": "Користувача створено",
     "registerNewAccount": "Зареєструвати новий акаунт",
     "logout": "Вийти",
+    "logoutAllSessions": "Вийти з усіх сесій",
     "registerNew": "Реєстрація",
     "registerProfileTitle": "Новий профіль",
     "addProfile": "Додати профіль",

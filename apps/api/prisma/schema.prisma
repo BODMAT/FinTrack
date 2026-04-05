@@ -21,6 +21,12 @@ enum TransactionType {
 enum AuthType {
     EMAIL
     TELEGRAM
+    GOOGLE
+}
+
+enum UserRole {
+    USER
+    ADMIN
 }
 
 enum AiProvider {
@@ -63,11 +69,13 @@ model User {
     id           String         @id @default(uuid())
     name         String         @db.VarChar(200)
     photo_url    String?
+    isVerified   Boolean        @default(false)
+    role         UserRole       @default(USER)
     created_at   DateTime       @default(now())
     updated_at   DateTime       @updatedAt
     // relations
     authMethods  AuthMethod[]
-    refreshToken RefreshToken[]
+    sessions     Session[]
     transactions Transaction[]
     messages     Message[]
     apiKeys      UserApiKey[]
@@ -79,18 +87,34 @@ model AuthMethod {
     email         String?  @unique @db.VarChar(200)
     password_hash String?
     telegram_id   String?  @unique
+    google_sub    String?  @unique
     // relations
     user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId        String
 }
 
-model RefreshToken {
-    id        String   @id @default(uuid())
-    token     String   @unique
-    expiresAt DateTime
+model Session {
+    sessionId       String    @id @default(uuid())
+    tokenHash       String    @unique @db.VarChar(128)
+    familyId        String    @db.VarChar(64)
+    parentSessionId String?
+    expiresAt       DateTime
+    revokedAt       DateTime?
+    userAgent       String?   @db.VarChar(512)
+    ip              String?   @db.VarChar(64)
+    lastUsedAt      DateTime  @default(now())
+    createdAt       DateTime  @default(now())
+    updatedAt       DateTime  @updatedAt
     // relations
-    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-    userId    String
+    user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId          String
+    parentSession   Session?  @relation("SessionRotation", fields: [parentSessionId], references: [sessionId], onDelete: SetNull)
+    childSessions   Session[] @relation("SessionRotation")
+
+    @@index([userId])
+    @@index([familyId])
+    @@index([expiresAt])
+    @@index([revokedAt])
 }
 
 model UserApiKey {

@@ -146,14 +146,24 @@ export async function deleteUser(userId: string) {
 }
 
 export async function deleteAuthMethod(userId: string, authMethodId: string) {
-  const count = await prisma.authMethod.count({ where: { userId } });
-  if (count <= 1) {
-    throw new AppError("You cannot remove the last authentication method", 400);
-  }
+  return prisma.$transaction(async (tx) => {
+    const count = await tx.authMethod.count({ where: { userId } });
+    if (count <= 1) {
+      throw new AppError(
+        "You cannot remove the last authentication method",
+        400,
+      );
+    }
 
-  return await prisma.authMethod.delete({
-    where: {
-      id: authMethodId,
-    },
+    const deleted = await tx.authMethod.deleteMany({
+      where: {
+        id: authMethodId,
+        userId,
+      },
+    });
+
+    if (deleted.count === 0) {
+      throw new AppError("Auth method not found", 404);
+    }
   });
 }

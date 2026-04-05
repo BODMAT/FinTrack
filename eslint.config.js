@@ -23,7 +23,7 @@ export default defineConfig([
   // API (Node.js, TypeScript)
   {
     files: ["apps/api/**/*.ts"],
-    ignores: ["*.test.ts", "*.spec.ts"],
+    ignores: ["apps/api/test/**/*.ts"],
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
@@ -38,6 +38,36 @@ export default defineConfig([
       parserOptions: {
         tsconfigRootDir: process.cwd(),
         project: "./apps/api/tsconfig.json",
+      },
+    },
+    rules: {
+      semi: ["error", "always"],
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+    },
+  },
+
+  // API tests (TypeScript + Jest)
+  {
+    files: ["apps/api/test/**/*.ts"],
+    extends: [
+      js.configs.recommended,
+      tseslint.configs.recommended,
+      eslintConfigPrettier,
+    ],
+    languageOptions: {
+      ecmaVersion: 2020,
+      sourceType: "module",
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+      },
+      parserOptions: {
+        tsconfigRootDir: process.cwd(),
+        project: "./apps/api/test/tsconfig.json",
       },
     },
     rules: {
