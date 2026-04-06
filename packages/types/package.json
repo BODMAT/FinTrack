@@ -3,10 +3,20 @@
   "version": "1.0.0",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
+  },
   "private": true,
   "type": "module",
+  "dependencies": {
+    "zod": "^3.23.8"
+  },
   "scripts": {
-    "build": "tsc",
-    "clean": "rimraf dist"
+    "build": "tsc --build --force",
+    "clean": "rimraf dist tsconfig.tsbuildinfo"
   }
 }

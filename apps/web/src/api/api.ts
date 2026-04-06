@@ -2,8 +2,7 @@ import axios from "axios";
 import { useAuthStore } from "@/store/useAuthStore";
 
 const api = axios.create({
-  baseURL:
-    process.env.NEXT_PUBLIC_API_URL || "https://fintrack-irxy.onrender.com/api",
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
