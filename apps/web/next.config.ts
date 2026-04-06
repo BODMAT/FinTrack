@@ -3,6 +3,8 @@ import path from "node:path";
 
 const nextConfig: NextConfig = {
   basePath: "/FinTrack",
+  output: "standalone",
+  outputFileTracingRoot: path.resolve(process.cwd(), "../.."),
   turbopack: {
     root: path.resolve(process.cwd(), "../.."),
     rules: {
