@@ -20,10 +20,10 @@ export default defineConfig([
     "apps/web/dist/**",
   ]),
 
-  // API (Node.js, TypeScript)
+  // API & BOT (Node.js, TypeScript)
   {
-    files: ["apps/api/**/*.ts"],
-    ignores: ["apps/api/test/**/*.ts"],
+    files: ["apps/api/**/*.ts", "apps/bot/**/*.ts"],
+    ignores: ["apps/api/test/**/*.ts", "apps/bot/test/**/*.ts"],
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
@@ -37,7 +37,7 @@ export default defineConfig([
       },
       parserOptions: {
         tsconfigRootDir: process.cwd(),
-        project: "./apps/api/tsconfig.json",
+        project: ["./apps/api/tsconfig.json", "./apps/bot/tsconfig.json"],
       },
     },
     rules: {
