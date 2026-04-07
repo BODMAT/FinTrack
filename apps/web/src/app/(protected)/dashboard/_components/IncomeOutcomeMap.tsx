@@ -6,6 +6,7 @@ import { NoData } from "@/shared/ui/Helpers";
 import { useTransactionsAll } from "@/hooks/useTransactions";
 import { useSummary } from "@/hooks/useSummary";
 import { useThemeStore } from "@/store/theme";
+import { useCurrency } from "@/hooks/useCurrency";
 
 interface DefaultIconWithInternal extends L.Icon.Default {
   _getIconUrl?: string;
@@ -25,6 +26,7 @@ export function IncomeOutcomeMap() {
   const { user } = useAuth();
   const { data: transactions } = useTransactionsAll({ userId: user?.id });
   const { summary } = useSummary();
+  const { displayCurrency, convertAmount, formatMoney } = useCurrency();
 
   if (!transactions || !transactions.data.length || !user || !summary)
     return <NoData />;
@@ -73,7 +75,11 @@ export function IncomeOutcomeMap() {
                 ] as LatLngTuple
               }
               icon={ColoredMarker(
-                item.amount.toString(),
+                convertAmount(
+                  Number(item.amount),
+                  item.currencyCode ?? "USD",
+                  displayCurrency,
+                ).toString(),
                 isIncome ? "income" : "outcome",
                 Number(
                   isIncome ? minPositiveTransaction : minNegativeTransaction,
@@ -85,7 +91,14 @@ export function IncomeOutcomeMap() {
             >
               <Popup>
                 {item.title}: {isIncome ? "+" : "-"}
-                {item.amount} $
+                {formatMoney(
+                  convertAmount(
+                    Number(item.amount),
+                    item.currencyCode ?? "USD",
+                    displayCurrency,
+                  ),
+                  displayCurrency,
+                )}
               </Popup>
             </Marker>
           );

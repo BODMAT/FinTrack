@@ -16,6 +16,13 @@ import type {
 import type { FormTransaction } from "@/types/transaction";
 import { useNumericValidator } from "@/hooks/useNumericValidator";
 import { useCurrentLocation } from "@/hooks/useCurrentLocation";
+import { useCurrency } from "@/hooks/useCurrency";
+
+function toManualCurrencyCode(currencyCode: string): "USD" | "UAH" | "RUB" {
+  if (currencyCode === "UAH") return "UAH";
+  if (currencyCode === "RUB") return "RUB";
+  return "USD";
+}
 
 interface MapPickerProps {
   value: Location | undefined;
@@ -50,6 +57,7 @@ function TransactionFormContent({
   id?: string;
   initialData?: ResponseTransaction;
 }) {
+  const { displayCurrency, convertAmount } = useCurrency();
   const {
     updateTx,
     isUpdating,
@@ -62,10 +70,19 @@ function TransactionFormContent({
   const { open, close } = usePopupStore();
   const { fetchLocation, loadingLocation, locationError, setLocationError } =
     useCurrentLocation();
+  const initialConvertedAmount = initialData
+    ? convertAmount(
+        Number(initialData.amount),
+        initialData.currencyCode ?? "USD",
+        displayCurrency,
+      ).toString()
+    : "";
+  const manualCurrencyCode = toManualCurrencyCode(displayCurrency);
   const [form, setForm] = useState<FormTransaction>({
     created_at: initialData?.created_at,
-    amount: initialData?.amount?.toString() || "",
+    amount: initialConvertedAmount || "",
     title: initialData?.title || "",
+    currencyCode: manualCurrencyCode,
     latitude: initialData?.location?.latitude?.toString() || "",
     longitude: initialData?.location?.longitude?.toString() || "",
     type: initialData?.type || "INCOME",
@@ -113,6 +130,7 @@ function TransactionFormContent({
         created_at: form.created_at,
         updated_at: new Date(),
         amount: +form.amount,
+        currencyCode: form.currencyCode ?? manualCurrencyCode,
       };
       if (form.latitude && form.longitude) {
         data.location = {
@@ -210,7 +228,7 @@ function TransactionFormContent({
             className="text-(--color-text) text-[20px] font-semibold min-w-[120px]"
             htmlFor="amount"
           >
-            Amount:
+            Amount ({displayCurrency}):
           </label>
           <input
             required

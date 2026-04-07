@@ -1,8 +1,8 @@
 import z from "zod";
-import { createTransactionSchema } from "./transaction.js";
+import { responseTransactionSchema } from "./transaction.js";
 
 export const AITransactionSchema = z.object({
-  transactions: z.array(createTransactionSchema),
+  transactions: z.array(responseTransactionSchema),
 });
 
 export const AIRequestSchema = z.object({

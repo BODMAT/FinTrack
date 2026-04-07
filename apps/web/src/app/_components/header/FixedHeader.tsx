@@ -88,6 +88,7 @@ export function FixedHeader() {
             <MenuLink name="dashboard" />
             <MenuLink name="analytics" />
             <MenuLink name="transactions" />
+            <MenuLink name="monobank" />
           </ul>
           <div className="mt-3 py-3 px-2.5 flex justify-center">
             <div className="w-auto max-w-55">

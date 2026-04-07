@@ -15,6 +15,9 @@ import { useSummary } from "@/hooks/useSummary";
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip, Legend);
 
+const CHART_INCOME_COLOR = "#00c07a";
+const CHART_OUTCOME_COLOR = "#ff4d5f";
+
 const selectDateOptions: Array<{ label: string; value: Range }> = [
   { label: "Day", value: "day" },
   { label: "Week", value: "week" },
@@ -48,13 +51,13 @@ export function IncomeOutcomeAnalitics() {
       {
         label: "Income",
         data: income,
-        backgroundColor: "var(--chart-income)",
+        backgroundColor: CHART_INCOME_COLOR,
         borderRadius: 6,
       },
       {
         label: "Outcome",
         data: outcome,
-        backgroundColor: "var(--chart-outcome)",
+        backgroundColor: CHART_OUTCOME_COLOR,
         borderRadius: 6,
       },
     ],

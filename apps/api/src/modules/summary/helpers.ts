@@ -64,30 +64,19 @@ export function groupData(data: IData[], range: CustomDate, nowDate?: Date) {
       key = `${hour}:00`;
       rawDate.setMinutes(0, 0, 0);
       rawDate.setHours(date.getHours());
-    } else if (range === "week") {
+    } else if (
+      range === "week" ||
+      range === "month" ||
+      range === "year" ||
+      range === "all"
+    ) {
       key = date.toLocaleDateString("default", {
-        weekday: "short",
         day: "2-digit",
-        month: "short",
-      });
-      rawDate.setHours(0, 0, 0, 0);
-    } else if (range === "month") {
-      const week = Math.ceil(date.getDate() / 7);
-      key = `Week ${week} of ${date.toLocaleString("default", { month: "short" })}`;
-      rawDate = new Date(
-        date.getFullYear(),
-        date.getMonth(),
-        (week - 1) * 7 + 1,
-      );
-    } else if (range === "year") {
-      key = date.toLocaleString("default", { month: "short" });
-      rawDate = new Date(date.getFullYear(), date.getMonth(), 1);
-    } else if (range === "all") {
-      key = date.toLocaleString("default", {
         month: "short",
         year: "numeric",
       });
-      rawDate = new Date(date.getFullYear(), date.getMonth(), 1);
+      rawDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      rawDate.setHours(0, 0, 0, 0);
     }
 
     const group = map.get(key) || { income: 0, outcome: 0, rawDate };
@@ -108,35 +97,71 @@ export function groupData(data: IData[], range: CustomDate, nowDate?: Date) {
   return { labels, income, outcome };
 }
 
-function getPreviousDateByRange(range: CustomDate): Date {
-  const now = new Date();
-  let prevDate: Date;
+function shiftDateByRange(date: Date, range: CustomDate): Date {
+  const shifted = new Date(date);
+  if (range === "day") shifted.setDate(shifted.getDate() - 1);
+  else if (range === "week") shifted.setDate(shifted.getDate() - 7);
+  else if (range === "month") shifted.setMonth(shifted.getMonth() - 1);
+  else if (range === "year") shifted.setFullYear(shifted.getFullYear() - 1);
+  return shifted;
+}
 
-  switch (range) {
-    case "day":
-      prevDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-      break;
-    case "week":
-      prevDate = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 7);
-      break;
-    case "month":
-      prevDate = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
-      break;
-    case "year":
-      prevDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-      break;
-    case "all":
-      prevDate = new Date(0);
-      break;
-    default:
-      prevDate = now;
-      break;
+function getRangeInterval(range: CustomDate, now: Date = new Date()) {
+  if (range === "day") {
+    return {
+      start: new Date(now.getFullYear(), now.getMonth(), now.getDate()),
+      end: now,
+    };
   }
+  if (range === "week") {
+    const startOfWeek = (() => {
+      const day = now.getDay();
+      const diff = day === 0 ? 6 : day - 1;
+      const start = new Date(now);
+      start.setHours(0, 0, 0, 0);
+      start.setDate(now.getDate() - diff);
+      return start;
+    })();
+    return { start: startOfWeek, end: now };
+  }
+  if (range === "month") {
+    return {
+      start: new Date(now.getFullYear(), now.getMonth(), 1),
+      end: now,
+    };
+  }
+  if (range === "year") {
+    return {
+      start: new Date(now.getFullYear(), 0, 1),
+      end: now,
+    };
+  }
+  return {
+    start: new Date(0),
+    end: now,
+  };
+}
 
-  // console.log("Now:", now.toString());
-  // console.log(`Previous date for range "${range}":`, prevDate.toString());
+function filterByInterval(data: IData[], start: Date, end: Date) {
+  return data.filter((item) => {
+    if (!item.created_at) return false;
+    const date = item.created_at;
+    return date >= start && date <= end;
+  });
+}
 
-  return prevDate;
+function aggregateTotal(items: IData[], title: MoneyType) {
+  const income = items
+    .filter((item) => item.type === "INCOME")
+    .reduce((acc, cur) => acc + Number(cur.amount), 0);
+  const outcome = items
+    .filter((item) => item.type !== "INCOME")
+    .reduce((acc, cur) => acc + Number(cur.amount), 0);
+
+  if (title === "income") return income;
+  if (title === "outcome") return outcome;
+  if (title === "saving") return income - outcome;
+  return income - outcome;
 }
 
 function getTotalOfRange(
@@ -173,18 +198,23 @@ function getPercentageOfRangeIncrease(
   range: CustomDate,
   title: MoneyType,
 ): number {
-  const currentTotal = getTotalOfRange(data, range, title);
-  const previousTotal = getTotalOfRange(
-    data,
-    range,
+  if (range === "all") return 0;
+
+  const now = new Date();
+  const { start: currentStart, end: currentEnd } = getRangeInterval(range, now);
+  const previousStart = shiftDateByRange(currentStart, range);
+  const previousEnd = shiftDateByRange(currentEnd, range);
+
+  const currentTotal = aggregateTotal(
+    filterByInterval(data, currentStart, currentEnd),
     title,
-    getPreviousDateByRange(range),
+  );
+  const previousTotal = aggregateTotal(
+    filterByInterval(data, previousStart, previousEnd),
+    title,
   );
 
-  if (previousTotal === 0) {
-    if (currentTotal === 0) return 0;
-    return 100;
-  }
+  if (previousTotal === 0) return 0;
 
   return Math.round(((currentTotal - previousTotal) / previousTotal) * 100);
 }
