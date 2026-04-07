@@ -42,6 +42,7 @@ export async function handleRequest<T>(
     if (axios.isAxiosError(err)) {
       const serverData = err.response?.data as ApiError | undefined;
       const status = err.response?.status;
+      const requestUrl = String(err.config?.url ?? "");
 
       const errorObject: ApiError = {
         message: serverData?.message || "An unexpected error occurred",
@@ -53,7 +54,9 @@ export async function handleRequest<T>(
       if (status === 409) {
         errorObject.message = "A user with these credentials already exists";
       } else if (status === 401) {
-        errorObject.message = "Invalid email or password";
+        errorObject.message = requestUrl.includes("/auth/login")
+          ? "Invalid email or password"
+          : serverData?.error || "Unauthorized";
       } else if (status === 400) {
         errorObject.message =
           serverData?.error || serverData?.message || "Invalid request data";

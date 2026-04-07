@@ -8,6 +8,7 @@ import { useSummary } from "@/hooks/useSummary";
 import { getStats } from "@/types/summary";
 import React from "react";
 import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
+import { useCurrency } from "@/hooks/useCurrency";
 
 export function DashboardCard({
   myImg,
@@ -16,6 +17,7 @@ export function DashboardCard({
   inPopup = false,
 }: DashboardCardProps) {
   const { t } = useSafeTranslation();
+  const { displayCurrency, formatMoney } = useCurrency();
   const { open } = usePopupStore();
   const { period } = usePeriodStore();
   const { user, isLoading, isError } = useAuth();
@@ -109,13 +111,13 @@ export function DashboardCard({
       </h3>
 
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-(--color-text) text-[28px] font-bold tracking-[0.01em]">
-          ${total.toFixed(2)}
+        <h3 className="min-w-0 flex-1 whitespace-nowrap text-(--color-text) text-[clamp(18px,1.5vw,30px)] font-bold tracking-[0.01em] leading-[1.1]">
+          {formatMoney(total, displayCurrency)}
         </h3>
 
         {period !== "all" && title !== "balance" && (
           <h4
-            className={`rounded-[12px] px-[10px] py-[4px] text-[13px] font-semibold ${
+            className={`shrink-0 whitespace-nowrap rounded-[12px] px-[8px] py-[4px] text-[clamp(10px,1vw,13px)] font-semibold ${
               percentage > 0
                 ? reversedPercentage
                   ? "bg-(--bg-red) text-(--text-red)"

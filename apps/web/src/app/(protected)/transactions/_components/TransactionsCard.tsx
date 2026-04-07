@@ -4,9 +4,13 @@ import { usePopupStore } from "@/store/popup";
 import type { ResponseTransaction } from "@fintrack/types";
 import { ChangeTransactionPopup } from "./ChangeTransactionPopup";
 import { DeleteTransactionPopup } from "./DeleteTransactionPopup";
+import { useCurrency } from "@/hooks/useCurrency";
+import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
 
 export function TransactionsCard({ data }: { data: ResponseTransaction }) {
   const { open } = usePopupStore();
+  const { t } = useSafeTranslation();
+  const { displayCurrency, convertAmount, formatMoney } = useCurrency();
 
   const handleOpenChange = (id: string) => () =>
     open("Change transaction", <ChangeTransactionPopup id={id} key={id} />);
@@ -18,12 +22,21 @@ export function TransactionsCard({ data }: { data: ResponseTransaction }) {
         {data.title}
       </span>
       <span className="justify-self-center px-[8px] font-semibold">
-        ${Number(data.amount).toFixed(2)}
+        {formatMoney(
+          convertAmount(
+            Number(data.amount),
+            data.currencyCode ?? "USD",
+            displayCurrency,
+          ),
+          displayCurrency,
+        )}
       </span>
       <span
         className={`justify-self-center py-[8px] px-[20px] text-sm rounded-xl text-gray-40 ${data.type === "INCOME" ? "bg-(--bg-green)" : "bg-(--bg-red)"}`}
       >
-        {data.type === "INCOME" ? "Income" : "Outcome"}
+        {data.type === "INCOME"
+          ? t("dashboard.card.income")
+          : t("dashboard.card.outcome")}
       </span>
       <span className="col-span-2 max-[1000px]:col-span-1 justify-self-center px-[8px] wrap-break-word whitespace-normal text-center">
         {`${new Date(data.created_at || 0).toLocaleDateString("en-GB", {
@@ -38,7 +51,7 @@ export function TransactionsCard({ data }: { data: ResponseTransaction }) {
       <span className="text-center col-span-2 max-[1300px]:col-span-1 justify-self-center px-[8px] wrap-break-word whitespace-normal">
         {data.location
           ? `${data.location.latitude.toFixed(3)}, ${data.location.longitude.toFixed(3)}`
-          : "No location"}
+          : t("transactions.noLocation")}
       </span>
       <span className="flex gap-[12px] max-[1200px]:flex-col max-[1200px]:justify-self-center max-[1200px]:gap-[4px] max-[970px]:flex-row">
         <button

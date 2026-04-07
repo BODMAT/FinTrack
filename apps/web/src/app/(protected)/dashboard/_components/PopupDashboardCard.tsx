@@ -26,6 +26,11 @@ ChartJS.register(
   Filler,
 );
 
+const CHART_INCOME_COLOR = "#00c07a";
+const CHART_OUTCOME_COLOR = "#ff4d5f";
+const CHART_INCOME_FILL = "rgba(0, 192, 122, 0.24)";
+const CHART_OUTCOME_FILL = "rgba(255, 77, 95, 0.24)";
+
 export function PopupDashboardCard({
   myImg,
   title,
@@ -42,9 +47,8 @@ export function PopupDashboardCard({
         {
           label: "Income",
           data: income,
-          borderColor: "var(--chart-income)",
-          backgroundColor:
-            "color-mix(in srgb, var(--chart-income) 24%, transparent)",
+          borderColor: CHART_INCOME_COLOR,
+          backgroundColor: CHART_INCOME_FILL,
           fill: "start",
           tension: 0.3,
           pointRadius: 3,
@@ -57,9 +61,8 @@ export function PopupDashboardCard({
         {
           label: "Outcome",
           data: outcome,
-          borderColor: "var(--chart-outcome)",
-          backgroundColor:
-            "color-mix(in srgb, var(--chart-outcome) 24%, transparent)",
+          borderColor: CHART_OUTCOME_COLOR,
+          backgroundColor: CHART_OUTCOME_FILL,
           fill: "start",
           tension: 0.3,
           pointRadius: 3,
@@ -73,9 +76,8 @@ export function PopupDashboardCard({
         {
           label: "Saving",
           data: saving,
-          borderColor: "var(--chart-income)",
-          backgroundColor:
-            "color-mix(in srgb, var(--chart-income) 24%, transparent)",
+          borderColor: CHART_INCOME_COLOR,
+          backgroundColor: CHART_INCOME_FILL,
           fill: "start",
           tension: 0.3,
           pointRadius: 3,
@@ -89,9 +91,8 @@ export function PopupDashboardCard({
         {
           label: "Income",
           data: income,
-          borderColor: "var(--chart-income)",
-          backgroundColor:
-            "color-mix(in srgb, var(--chart-income) 24%, transparent)",
+          borderColor: CHART_INCOME_COLOR,
+          backgroundColor: CHART_INCOME_FILL,
           fill: "start",
           tension: 0.3,
           pointRadius: 3,
@@ -99,9 +100,8 @@ export function PopupDashboardCard({
         {
           label: "Outcome",
           data: outcome,
-          borderColor: "var(--chart-outcome)",
-          backgroundColor:
-            "color-mix(in srgb, var(--chart-outcome) 24%, transparent)",
+          borderColor: CHART_OUTCOME_COLOR,
+          backgroundColor: CHART_OUTCOME_FILL,
           fill: "start",
           tension: 0.3,
           pointRadius: 3,

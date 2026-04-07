@@ -7,6 +7,10 @@ import {
   createTransaction,
   updateTransaction,
   deleteTransaction,
+  fetchMonobankAccounts,
+  fetchMonobankTransactions,
+  importMonobankTransactions,
+  deleteMonobankTransactions,
 } from "./controller.js";
 
 export const transactionRouter = express.Router();
@@ -22,6 +26,30 @@ transactionRouter.get(
   authenticateToken,
   requireVerifiedUser,
   getTransaction,
+);
+transactionRouter.post(
+  "/monobank/accounts",
+  authenticateToken,
+  requireVerifiedUser,
+  fetchMonobankAccounts,
+);
+transactionRouter.post(
+  "/monobank/fetch",
+  authenticateToken,
+  requireVerifiedUser,
+  fetchMonobankTransactions,
+);
+transactionRouter.post(
+  "/monobank/import",
+  authenticateToken,
+  requireVerifiedUser,
+  importMonobankTransactions,
+);
+transactionRouter.delete(
+  "/monobank",
+  authenticateToken,
+  requireVerifiedUser,
+  deleteMonobankTransactions,
 );
 transactionRouter.post(
   "/",

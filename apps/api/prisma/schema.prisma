@@ -18,6 +18,18 @@ enum TransactionType {
     EXPENSE
 }
 
+enum TransactionSource {
+    MANUAL
+    MONOBANK
+}
+
+enum CurrencyCode {
+    USD
+    UAH
+    RUB
+    EUR
+}
+
 enum AuthType {
     EMAIL
     TELEGRAM
@@ -35,16 +47,24 @@ enum AiProvider {
 }
 
 model Transaction {
-    id         String          @id @default(uuid())
-    title      String          @db.VarChar(50)
-    type       TransactionType
-    amount     Decimal         @default(0)
-    created_at DateTime        @default(now())
-    updated_at DateTime        @updatedAt
+    id                  String            @id @default(uuid())
+    title               String            @db.VarChar(50)
+    type                TransactionType
+    amount              Decimal           @default(0)
+    currencyCode        CurrencyCode      @default(USD)
+    source              TransactionSource @default(MANUAL)
+    sourceTransactionId String?
+    sourceAccountId     String?
+    importedAt          DateTime?
+    created_at          DateTime          @default(now())
+    updated_at          DateTime          @updatedAt
     // relations
-    location   Location?
-    user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-    userId     String
+    location            Location?
+    user                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId              String
+
+    @@index([userId, source])
+    @@unique([userId, source, sourceAccountId, sourceTransactionId])
 }
 
 model Location {
