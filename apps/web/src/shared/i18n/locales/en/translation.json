@@ -3,7 +3,8 @@
     "dashboard": "Dashboard",
     "analytics": "Analytics",
     "transactions": "Transactions",
-    "monobank": "Monobank API"
+    "monobank": "Monobank API",
+    "admin": "Admin Panel"
   },
   "common": {
     "loading": "Loading...",
@@ -134,5 +135,73 @@
     "aiAllFailedDesc": "All AI keys are unavailable. Please add your own Groq or Gemini key.",
     "aiUsingDefault": "Using default AI key",
     "aiUsingDefaultDesc": "Your personal API key is not active now. FinTrack will use the default AI key for this request."
+  },
+  "admin": {
+    "title": "ADMIN PANEL",
+    "subtitle": "Manage roles, sessions, user metrics, and client error logs.",
+    "accessDenied": "Access denied. This page is available only for administrators.",
+    "loadingPanel": "Loading admin panel...",
+    "loadingStats": "Loading stats...",
+    "errorBoundary": {
+      "title": "Failed to load admin panel",
+      "unexpected": "Unexpected admin panel error."
+    },
+    "metrics": {
+      "totalUsers": "Total users",
+      "admins": "Admins",
+      "verifiedUsers": "Verified users",
+      "newUsers7d": "New users (7d)",
+      "activeSessions": "Active sessions",
+      "openErrors": "Open errors"
+    },
+    "users": {
+      "title": "Users",
+      "logoutAllSessions": "Logout all sessions",
+      "loggingOutAll": "Logging out all...",
+      "loading": "Loading users...",
+      "loadError": "Failed to load users",
+      "empty": "No users found.",
+      "yes": "Yes",
+      "no": "No",
+      "makeAdmin": "Make admin",
+      "removeAdmin": "Remove admin",
+      "logoutUser": "Logout user",
+      "columns": {
+        "name": "Name",
+        "contact": "Contact",
+        "role": "Role",
+        "verified": "Verified",
+        "created": "Created",
+        "actions": "Actions"
+      }
+    },
+    "errors": {
+      "title": "Error logs",
+      "open": "Open",
+      "resolved": "Resolved",
+      "all": "All",
+      "loading": "Loading error logs...",
+      "loadError": "Failed to load logs",
+      "empty": "No error logs found.",
+      "source": "Source",
+      "userAgent": "User Agent",
+      "resolvedAt": "Resolved",
+      "markResolved": "Mark resolved",
+      "markOpen": "Mark open"
+    },
+    "charts": {
+      "title": "Admin insights",
+      "subtitle": "Visual overview of users and error activity.",
+      "loading": "Loading charts...",
+      "admins": "Admins",
+      "users": "Users",
+      "verified": "Verified",
+      "unverified": "Unverified",
+      "newUsers": "New users",
+      "newErrors": "New errors",
+      "rolesBreakdown": "Roles breakdown",
+      "verificationBreakdown": "Verification breakdown",
+      "activity14d": "New users and errors (14 days)"
+    }
   }
 }

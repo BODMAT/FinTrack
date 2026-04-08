@@ -5,6 +5,11 @@ import { useSession, signOut } from "next-auth/react";
 import { exchangeGoogleSession } from "@/api/auth";
 import { useAuthStore } from "@/store/useAuthStore";
 import { queryClient } from "@/api/queryClient";
+import {
+  clearProcessedGoogleIdToken,
+  getProcessedGoogleIdToken,
+  setProcessedGoogleIdToken,
+} from "@/lib/oauthBridge";
 
 export function OAuthBridge() {
   const { data: session, status } = useSession();
@@ -17,6 +22,7 @@ export function OAuthBridge() {
     const idToken = session?.googleIdToken;
     if (!idToken) return;
     if (lastProcessedIdTokenRef.current === idToken) return;
+    if (getProcessedGoogleIdToken() === idToken) return;
 
     lastProcessedIdTokenRef.current = idToken;
 
@@ -24,9 +30,11 @@ export function OAuthBridge() {
       setBootstrapping(true);
       try {
         await exchangeGoogleSession(idToken);
+        setProcessedGoogleIdToken(idToken);
         setAuthenticated(true);
         await queryClient.invalidateQueries({ queryKey: ["user", "me"] });
       } catch {
+        clearProcessedGoogleIdToken();
         await signOut({ redirect: false });
       } finally {
         setBootstrapping(false);

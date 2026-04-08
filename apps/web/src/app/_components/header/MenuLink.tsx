@@ -12,12 +12,17 @@ export function MenuLink({ name }: { name: string }) {
   const pathname = usePathname();
   const isActive = pathname.endsWith(`/${name}`);
   const monobankLabel = t("nav.monobank");
+  const adminLabel = t("nav.admin");
   const label =
-    name === "monobank"
-      ? monobankLabel === "nav.monobank"
-        ? "Monobank API"
-        : monobankLabel
-      : t(`nav.${name}`);
+    name === "admin"
+      ? adminLabel === "nav.admin"
+        ? "Admin Panel"
+        : adminLabel
+      : name === "monobank"
+        ? monobankLabel === "nav.monobank"
+          ? "Monobank API"
+          : monobankLabel
+        : t(`nav.${name}`);
 
   const handleClick = () => {
     if (isMobile) closeBurger();
@@ -39,6 +44,11 @@ export function MenuLink({ name }: { name: string }) {
         {name === "transactions" && <TransactionsFrame />}
         {name === "monobank" && (
           <MonobankFrame className="h-5 w-5 text-(--color-fixed-text) transition-colors group-hover:text-(--color-hover)" />
+        )}
+        {name === "admin" && (
+          <span className="flex h-5 w-5 items-center justify-center rounded-[6px] border border-(--color-fixed-text) text-[10px] leading-none font-black transition-colors group-hover:border-(--color-hover) group-hover:text-(--color-hover)">
+            AD
+          </span>
         )}
 
         {label}

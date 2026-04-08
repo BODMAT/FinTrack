@@ -38,6 +38,20 @@ export async function findSessionByTokenHash(tokenHash: string) {
   });
 }
 
+export async function findSessionById(sessionId: string) {
+  return prisma.session.findUnique({
+    where: {
+      sessionId,
+    },
+    select: {
+      sessionId: true,
+      userId: true,
+      revokedAt: true,
+      expiresAt: true,
+    },
+  });
+}
+
 export async function rotateSession(
   currentSessionId: string,
   newSessionData: Prisma.SessionUncheckedCreateInput,

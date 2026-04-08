@@ -18,6 +18,7 @@ export function RegisterPopup() {
   } = useAuth();
 
   const [registerSuccess, setRegisterSuccess] = useState(false);
+  const [passwordValidationError, setPasswordValidationError] = useState("");
   const [userLocalInfo, setUserLocalInfo] = useState<User>({
     name: "",
     photo_url: null,
@@ -37,16 +38,16 @@ export function RegisterPopup() {
   const handleLogout = async () => {
     try {
       await logout();
-    } catch (error) {
-      console.error(error);
+    } catch {
+      void 0;
     }
   };
 
   const handleLogoutAll = async () => {
     try {
       await logoutAll();
-    } catch (error) {
-      console.error(error);
+    } catch {
+      void 0;
     }
   };
 
@@ -60,6 +61,7 @@ export function RegisterPopup() {
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setRegisterSuccess(false);
+    setPasswordValidationError("");
 
     const payload: User = {
       name: userLocalInfo.name.trim(),
@@ -96,6 +98,16 @@ export function RegisterPopup() {
       return;
     }
 
+    if (
+      emailMethod?.type === "EMAIL" &&
+      !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}/.test(emailMethod.password)
+    ) {
+      setPasswordValidationError(
+        "Password must contain uppercase, lowercase letters and a number",
+      );
+      return;
+    }
+
     try {
       await register(payload);
       setRegisterSuccess(true);
@@ -127,9 +139,8 @@ export function RegisterPopup() {
           },
         ],
       });
-    } catch (error) {
+    } catch {
       setRegisterSuccess(false);
-      console.error("Registration failed", error);
     } finally {
       setTimeout(() => {
         setRegisterSuccess(false);
@@ -241,6 +252,9 @@ export function RegisterPopup() {
         </div>
 
         <div className="">
+          {passwordValidationError && (
+            <span className="text-red-500">{passwordValidationError}</span>
+          )}
           {registerSuccess && (
             <span className="text-green-500">{t("auth.registerSuccess")}</span>
           )}

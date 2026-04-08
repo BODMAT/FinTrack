@@ -1,4 +1,6 @@
 "use client";
+import { useEffect } from "react";
+import { captureClientError } from "@/lib/errorCapture";
 import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
 
 interface DashboardErrorProps {
@@ -8,6 +10,14 @@ interface DashboardErrorProps {
 
 export default function DashboardError({ error, reset }: DashboardErrorProps) {
   const { t } = useSafeTranslation();
+
+  useEffect(() => {
+    captureClientError({
+      source: "route:dashboard:error-boundary",
+      title: "Dashboard route error",
+      error,
+    });
+  }, [error]);
 
   return (
     <div className="flex min-h-[260px] flex-col items-center justify-center gap-[16px] rounded-[10px] border border-(--color-fixed-text) p-[24px] text-center">

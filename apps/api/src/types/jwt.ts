@@ -4,4 +4,5 @@ export interface JwtPayload {
   telegram_id: string | null;
   role: "USER" | "ADMIN";
   isVerified: boolean;
+  sessionId?: string;
 }
