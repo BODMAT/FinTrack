@@ -87,14 +87,13 @@ async function issueUserSession(
   userId: string,
   payload: JwtPayload,
 ) {
-  const accessToken = generateAccessToken(payload);
   const refreshToken = generateSecureToken();
   const refreshTokenHash = hashToken(refreshToken);
   const refreshTokenExpirationDate = new Date(
     Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
   );
 
-  await authService.createSession({
+  const createdSession = await authService.createSession({
     tokenHash: refreshTokenHash,
     familyId: generateFamilyId(),
     expiresAt: refreshTokenExpirationDate,
@@ -105,6 +104,11 @@ async function issueUserSession(
       null,
     lastUsedAt: new Date(),
     userId,
+  });
+
+  const accessToken = generateAccessToken({
+    ...payload,
+    sessionId: createdSession.sessionId,
   });
 
   setAuthCookies(res, accessToken, refreshToken, refreshTokenExpirationDate);
@@ -166,7 +170,7 @@ export function authenticateToken(
   res: Response,
   next: NextFunction,
 ) {
-  try {
+  (async () => {
     const authHeader = req.headers.authorization?.split(" ")[1];
     const token = authHeader || req.cookies?.[ACCESS_TOKEN_COOKIE];
     if (!token) throw new AppError("Missing access token", 401);
@@ -178,12 +182,22 @@ export function authenticateToken(
       telegram_id: z.string().nullable(),
       role: z.enum(["USER", "ADMIN"]),
       isVerified: z.boolean(),
+      sessionId: z.string().uuid(),
     });
 
     const payload = JwtPayloadSchema.parse(decoded);
+    const session = await authService.findSessionById(payload.sessionId);
+    if (!session || session.userId !== payload.id) {
+      throw new AppError("Invalid access token session", 401);
+    }
+
+    if (session.revokedAt || session.expiresAt <= new Date()) {
+      throw new AppError("Session revoked or expired", 401);
+    }
+
     req.user = payload;
     next();
-  } catch (err) {
+  })().catch((err) => {
     if (err instanceof jwt.TokenExpiredError) {
       return next(new AppError("Access token expired", 401));
     }
@@ -191,7 +205,7 @@ export function authenticateToken(
       return next(new AppError("Invalid access token", 401));
     }
     next(err);
-  }
+  });
 }
 
 export async function token(req: Request, res: Response, next: NextFunction) {
@@ -235,29 +249,32 @@ export async function token(req: Request, res: Response, next: NextFunction) {
 
     const payload = buildPayload(user);
 
-    const accessToken = generateAccessToken(payload);
     const nextRefreshToken = generateSecureToken();
     const nextRefreshTokenHash = hashToken(nextRefreshToken);
     const nextRefreshTokenExpirationDate = new Date(
       Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
     );
 
+    let rotatedSession: Awaited<ReturnType<typeof authService.rotateSession>>;
     try {
-      await authService.rotateSession(existingSession.sessionId, {
-        tokenHash: nextRefreshTokenHash,
-        familyId: existingSession.familyId,
-        parentSessionId: existingSession.sessionId,
-        expiresAt: nextRefreshTokenExpirationDate,
-        userAgent: req.headers["user-agent"]?.slice(0, 512) || null,
-        ip:
-          extractClientIp(
-            req.headers["x-forwarded-for"] as string | undefined,
-          ) ||
-          req.ip ||
-          null,
-        lastUsedAt: new Date(),
-        userId: existingSession.userId,
-      });
+      rotatedSession = await authService.rotateSession(
+        existingSession.sessionId,
+        {
+          tokenHash: nextRefreshTokenHash,
+          familyId: existingSession.familyId,
+          parentSessionId: existingSession.sessionId,
+          expiresAt: nextRefreshTokenExpirationDate,
+          userAgent: req.headers["user-agent"]?.slice(0, 512) || null,
+          ip:
+            extractClientIp(
+              req.headers["x-forwarded-for"] as string | undefined,
+            ) ||
+            req.ip ||
+            null,
+          lastUsedAt: new Date(),
+          userId: existingSession.userId,
+        },
+      );
     } catch (rotationError) {
       await authService.revokeSessionFamily(existingSession.familyId);
       clearAuthCookies(res);
@@ -269,6 +286,11 @@ export async function token(req: Request, res: Response, next: NextFunction) {
       });
       throw rotationError;
     }
+
+    const accessToken = generateAccessToken({
+      ...payload,
+      sessionId: rotatedSession.sessionId,
+    });
 
     setAuthCookies(
       res,

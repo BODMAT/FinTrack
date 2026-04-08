@@ -1,4 +1,6 @@
 "use client";
+import { useEffect } from "react";
+import { captureClientError } from "@/lib/errorCapture";
 import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
 
 interface TransactionsErrorProps {
@@ -11,6 +13,14 @@ export default function TransactionsError({
   reset,
 }: TransactionsErrorProps) {
   const { t } = useSafeTranslation();
+
+  useEffect(() => {
+    captureClientError({
+      source: "route:transactions:error-boundary",
+      title: "Transactions route error",
+      error,
+    });
+  }, [error]);
 
   return (
     <div className="flex min-h-[260px] flex-col items-center justify-center gap-[16px] rounded-[10px] border border-(--color-fixed-text) p-[24px] text-center">

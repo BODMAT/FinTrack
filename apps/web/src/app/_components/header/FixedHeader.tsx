@@ -5,9 +5,11 @@ import { SwitchLanguage } from "./SwitchLanguage";
 import Logo from "@/assets/finance-icon.svg?react";
 import { useBurgerStore } from "@/store/burger";
 import { ProfileInfo } from "./ProfileInfo";
+import { useAuth } from "@/hooks/useAuth";
 export function FixedHeader() {
   const { isBurgerOpen, toggleBurger, isMobile, setIsMobile } =
     useBurgerStore();
+  const { user } = useAuth();
 
   useEffect(() => {
     if (isMobile && isBurgerOpen) {
@@ -89,6 +91,7 @@ export function FixedHeader() {
             <MenuLink name="analytics" />
             <MenuLink name="transactions" />
             <MenuLink name="monobank" />
+            {user?.role === "ADMIN" && <MenuLink name="admin" />}
           </ul>
           <div className="mt-3 py-3 px-2.5 flex justify-center">
             <div className="w-auto max-w-55">

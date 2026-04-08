@@ -29,6 +29,12 @@ const userStub: UserStub = {
 describe("Auth Integration", () => {
   beforeEach(() => {
     jest.restoreAllMocks();
+    jest.spyOn(authService, "findSessionById").mockResolvedValue({
+      sessionId: "e6594ef2-7a59-4f7a-99f9-862758f624b2",
+      userId: userStub.id,
+      revokedAt: null,
+      expiresAt: new Date(Date.now() + 60_000),
+    });
   });
 
   it("returns 401 for /api/users/me without auth cookie", async () => {
@@ -166,6 +172,7 @@ describe("Auth Integration", () => {
       telegram_id: null,
       role: "USER",
       isVerified: true,
+      sessionId: "e6594ef2-7a59-4f7a-99f9-862758f624b2",
     });
 
     jest.spyOn(userService, "getUser").mockResolvedValue(userStub);

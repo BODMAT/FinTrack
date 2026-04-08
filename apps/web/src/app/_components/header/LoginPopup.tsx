@@ -8,6 +8,7 @@ import { queryClient } from "@/api/queryClient";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { APP_BASE_PATH } from "@/config/constants";
+import { clearProcessedGoogleIdToken } from "@/lib/oauthBridge";
 
 function normalizeLocalPath(path: string | null) {
   if (!path) return null;
@@ -56,9 +57,8 @@ export function LoginPopup() {
         email: "",
         password: "",
       });
-    } catch (error) {
+    } catch {
       setLoginSuccess(false);
-      console.error("Login failed", error);
     } finally {
       setTimeout(() => {
         setLoginSuccess(false);
@@ -69,16 +69,16 @@ export function LoginPopup() {
   const handleLogout = async () => {
     try {
       await logout();
-    } catch (error) {
-      console.error(error);
+    } catch {
+      void 0;
     }
   };
 
   const handleLogoutAll = async () => {
     try {
       await logoutAll();
-    } catch (error) {
-      console.error(error);
+    } catch {
+      void 0;
     }
   };
 
@@ -129,11 +129,12 @@ export function LoginPopup() {
         </button>
         <button
           type="button"
-          onClick={() =>
-            signIn("google", {
+          onClick={() => {
+            clearProcessedGoogleIdToken();
+            void signIn("google", {
               callbackUrl: `${APP_BASE_PATH}/dashboard`,
-            })
-          }
+            });
+          }}
           className="custom-btn"
         >
           Continue with Google

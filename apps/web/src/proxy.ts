@@ -14,7 +14,6 @@ export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const normalizedPathname = normalizePathname(pathname);
   const isLoginPath = normalizedPathname === "/login";
-
   const hasBackendAuthCookie =
     !!request.cookies.get("fintrack_refresh_token") ||
     !!request.cookies.get("fintrack_access_token");

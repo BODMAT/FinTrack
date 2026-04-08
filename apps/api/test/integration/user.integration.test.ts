@@ -2,6 +2,7 @@ import request from "supertest";
 import { app } from "../../src/app.js";
 import { generateAccessToken } from "../../src/modules/auth/controller.js";
 import * as userService from "../../src/modules/user/service.js";
+import * as authService from "../../src/modules/auth/service.js";
 import { AppError } from "../../src/middleware/errorHandler.js";
 
 describe("User Integration", () => {
@@ -19,6 +20,13 @@ describe("User Integration", () => {
       telegram_id: null,
       role: "USER",
       isVerified: true,
+      sessionId: "5c8dff72-a6f7-4293-af7a-7c7f6190c020",
+    });
+    jest.spyOn(authService, "findSessionById").mockResolvedValue({
+      sessionId: "5c8dff72-a6f7-4293-af7a-7c7f6190c020",
+      userId: currentUserId,
+      revokedAt: null,
+      expiresAt: new Date(Date.now() + 60_000),
     });
 
     const deleteSpy = jest
@@ -43,6 +51,13 @@ describe("User Integration", () => {
       telegram_id: null,
       role: "USER",
       isVerified: true,
+      sessionId: "97552032-a5b4-4be3-90f8-b2e9f22ab44f",
+    });
+    jest.spyOn(authService, "findSessionById").mockResolvedValue({
+      sessionId: "97552032-a5b4-4be3-90f8-b2e9f22ab44f",
+      userId: currentUserId,
+      revokedAt: null,
+      expiresAt: new Date(Date.now() + 60_000),
     });
 
     jest

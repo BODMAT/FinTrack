@@ -46,6 +46,11 @@ enum AiProvider {
     GEMINI
 }
 
+enum ErrorLogStatus {
+    OPEN
+    RESOLVED
+}
+
 model Transaction {
     id                  String            @id @default(uuid())
     title               String            @db.VarChar(50)
@@ -99,6 +104,8 @@ model User {
     transactions Transaction[]
     messages     Message[]
     apiKeys      UserApiKey[]
+    errorLogs    ErrorLog[]     @relation("ErrorLogReporter")
+    resolvedLogs ErrorLog[]     @relation("ErrorLogResolver")
 }
 
 model AuthMethod {
@@ -148,4 +155,28 @@ model UserApiKey {
     userId    String
 
     @@unique([userId, provider])
+}
+
+model ErrorLog {
+    id                String         @id @default(uuid())
+    title             String         @db.VarChar(200)
+    message           String         @db.Text
+    stack             String?        @db.Text
+    source            String?        @db.VarChar(200)
+    userAgent         String?        @db.VarChar(512)
+    status            ErrorLogStatus @default(OPEN)
+    resolutionNote    String?        @db.Text
+    context           Json?
+    createdAt         DateTime       @default(now())
+    updatedAt         DateTime       @updatedAt
+    resolvedAt        DateTime?
+    // relations
+    user              User           @relation("ErrorLogReporter", fields: [userId], references: [id], onDelete: Cascade)
+    userId            String
+    resolvedByAdmin   User?          @relation("ErrorLogResolver", fields: [resolvedByAdminId], references: [id], onDelete: SetNull)
+    resolvedByAdminId String?
+
+    @@index([userId, createdAt])
+    @@index([status, createdAt])
+    @@index([resolvedByAdminId])
 }

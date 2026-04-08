@@ -9,12 +9,10 @@ export function ProtectedClientGate({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, isLoading } = useAuth();
-  const { status, data: session } = useSession();
+  const { isLoading } = useAuth();
+  const { status } = useSession();
 
-  const shouldWaitForOAuth =
-    status === "loading" ||
-    (status === "authenticated" && Boolean(session?.googleIdToken) && !user);
+  const shouldWaitForOAuth = status === "loading";
   if (isLoading || shouldWaitForOAuth) {
     return <Spinner />;
   }
