@@ -70,6 +70,7 @@
     "@types/express-serve-static-core": "4.19.0"
   },
   "optionalDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "^4.57.1"
+    "@rollup/rollup-linux-x64-gnu": "^4.57.1",
+    "lightningcss-linux-x64-gnu": "*"
   }
 }
