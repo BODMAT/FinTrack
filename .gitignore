@@ -10,7 +10,6 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Env
-# Env
 .env
 .env.local
 .env.*.local
@@ -36,4 +35,5 @@ test-results/
 cypress/videos/
 cypress/screenshots/
 
-*dump*.txt
+# Dumps (e.g. database dumps, codebase dumps, etc.)
+dumps/
