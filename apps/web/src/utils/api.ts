@@ -1,5 +1,6 @@
 import type { AxiosResponse } from "axios";
-import type { ApiError } from "../types/api";
+import type { ApiError } from "@/types/api";
+import { captureClientError } from "@/lib/errorCapture";
 import type z from "zod";
 import axios from "axios";
 
@@ -11,6 +12,37 @@ function isApiError(error: unknown): error is ApiError {
     "message" in error &&
     "code" in error
   );
+}
+
+function shouldReportApiError(params: {
+  requestUrl: string;
+  status?: number;
+  axiosCode?: string;
+  rawMessage?: string;
+}) {
+  const url = params.requestUrl;
+  const status = params.status;
+  const code = (params.axiosCode ?? "").toLowerCase();
+  const msg = (params.rawMessage ?? "").toLowerCase();
+
+  if (url.includes("/admin/error-logs/report")) return false;
+
+  // Network instability / canceled requests are noisy and expected.
+  if (
+    code === "err_canceled" ||
+    msg.includes("canceled") ||
+    msg.includes("aborted") ||
+    msg.includes("network error") ||
+    msg.includes("failed to fetch") ||
+    msg.includes("timeout")
+  ) {
+    return false;
+  }
+
+  // Keep only server-side failures by default.
+  if (typeof status === "number" && status < 500) return false;
+
+  return true;
 }
 
 export async function handleRequest<T>(
@@ -42,17 +74,21 @@ export async function handleRequest<T>(
     if (axios.isAxiosError(err)) {
       const serverData = err.response?.data as ApiError | undefined;
       const status = err.response?.status;
+      const requestUrl = String(err.config?.url ?? "");
 
       const errorObject: ApiError = {
         message: serverData?.message || "An unexpected error occurred",
         error: serverData?.error || err.message || "Unknown error",
         code: status || 500,
+        backendCode: serverData?.backendCode ?? serverData?.code,
       };
 
       if (status === 409) {
         errorObject.message = "A user with these credentials already exists";
       } else if (status === 401) {
-        errorObject.message = "Invalid email or password";
+        errorObject.message = requestUrl.includes("/auth/login")
+          ? "Invalid email or password"
+          : serverData?.error || "Unauthorized";
       } else if (status === 400) {
         errorObject.message =
           serverData?.error || serverData?.message || "Invalid request data";
@@ -60,6 +96,26 @@ export async function handleRequest<T>(
         errorObject.message =
           "Server is unreachable. Please check your connection";
         errorObject.code = 0;
+      }
+
+      if (
+        shouldReportApiError({
+          requestUrl,
+          status,
+          axiosCode: err.code,
+          rawMessage: err.message,
+        })
+      ) {
+        captureClientError({
+          source: `api:${requestUrl || "unknown"}`,
+          title: "API request failed",
+          error: `${errorObject.code}: ${errorObject.error}`,
+          context: {
+            status,
+            backendCode: errorObject.backendCode,
+            message: errorObject.message,
+          },
+        });
       }
 
       throw errorObject;
@@ -70,6 +126,13 @@ export async function handleRequest<T>(
       error: err instanceof Error ? err.message : "Unknown error",
       code: 500,
     };
+
+    captureClientError({
+      source: "api:unexpected",
+      title: "Unexpected API handler error",
+      error: unexpectedError.error,
+    });
+
     throw unexpectedError;
   }
 }

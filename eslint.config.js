@@ -11,6 +11,7 @@ import { defineConfig, globalIgnores } from "eslint/config";
 export default defineConfig([
   globalIgnores([
     "**/dist/**",
+    "**/.next/**",
     "**/node_modules/**",
     "**/build/**",
     "**/.turbo/**",
@@ -19,10 +20,10 @@ export default defineConfig([
     "apps/web/dist/**",
   ]),
 
-  // API (Node.js, TypeScript)
+  // API & BOT (Node.js, TypeScript)
   {
-    files: ["apps/api/**/*.ts"],
-    ignores: ["*.test.ts", "*.spec.ts"],
+    files: ["apps/api/**/*.ts", "apps/bot/**/*.ts"],
+    ignores: ["apps/api/test/**/*.ts", "apps/bot/test/**/*.ts"],
     extends: [
       js.configs.recommended,
       tseslint.configs.recommended,
@@ -36,7 +37,37 @@ export default defineConfig([
       },
       parserOptions: {
         tsconfigRootDir: process.cwd(),
-        project: "./apps/api/tsconfig.json",
+        project: ["./apps/api/tsconfig.json", "./apps/bot/tsconfig.json"],
+      },
+    },
+    rules: {
+      semi: ["error", "always"],
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        { argsIgnorePattern: "^_", varsIgnorePattern: "^_" },
+      ],
+    },
+  },
+
+  // API tests (TypeScript + Jest)
+  {
+    files: ["apps/api/test/**/*.ts"],
+    extends: [
+      js.configs.recommended,
+      tseslint.configs.recommended,
+      eslintConfigPrettier,
+    ],
+    languageOptions: {
+      ecmaVersion: 2020,
+      sourceType: "module",
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+      },
+      parserOptions: {
+        tsconfigRootDir: process.cwd(),
+        project: "./apps/api/test/tsconfig.json",
       },
     },
     rules: {

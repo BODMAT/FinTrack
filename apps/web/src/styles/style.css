@@ -1,0 +1,83 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Manrope:wght@400..800&family=Roboto:ital,wght@0,100..900;1,100..900&family=Sora:wght@400..700&display=swap");
+
+.roboto {
+  font-family: "Roboto", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+.inter {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+.manrope {
+  font-family: "Manrope", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+.sora {
+  font-family: "Sora", sans-serif;
+  font-optical-sizing: auto;
+  font-style: normal;
+}
+
+body {
+  font-family: "Manrope", "Inter", sans-serif;
+}
+
+h1,
+h2,
+h3 {
+  font-family: "Sora", "Manrope", sans-serif;
+}
+
+.wrapper {
+  min-height: 100vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.wrapper::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      640px 360px at 82% 2%,
+      color-mix(in srgb, var(--color-hover) 14%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      520px 320px at 8% 45%,
+      color-mix(in srgb, var(--color-hover) 8%, transparent),
+      transparent 72%
+    );
+}
+
+.glass-soft {
+  background: color-mix(in srgb, var(--color-card) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-fixed-text) 32%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.neon-outline {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--color-hover) 25%, transparent),
+    0 14px 38px color-mix(in srgb, var(--color-hover) 18%, transparent);
+}
+
+.neon-text {
+  color: var(--color-hover);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--color-hover) 40%, transparent);
+}
+
+.no-scroll-popup {
+  overflow: hidden;
+  height: 100vh;
+}

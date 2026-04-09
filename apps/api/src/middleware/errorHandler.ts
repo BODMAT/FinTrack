@@ -4,10 +4,9 @@ import { ZodError } from "zod";
 
 export class AppError extends Error {
   statusCode: number;
-  details?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  details?: unknown;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  constructor(message: string, statusCode: number, details?: any) {
+  constructor(message: string, statusCode: number, details?: unknown) {
     super(message);
     this.statusCode = statusCode;
     this.details = details;
@@ -17,7 +16,7 @@ export class AppError extends Error {
 
 interface ErrorResponse {
   error: string;
-  details?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+  details?: unknown;
 }
 
 export function errorHandler(

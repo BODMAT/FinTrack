@@ -1,55 +1,42 @@
 import axios from "axios";
-import { useAuthStore } from "../store/useAuthStore";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const api = axios.create({
-  baseURL:
-    import.meta.env.VITE_API_URL || "https://fintrack-irxy.onrender.com/api",
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  withCredentials: true,
   headers: {
     "Content-Type": "application/json",
   },
 });
 
-api.interceptors.request.use(
-  (config) => {
-    const token = useAuthStore.getState().token;
-
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  },
-);
-
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const requestUrl = String(originalRequest?.url ?? "");
+    const isAuthEndpoint =
+      requestUrl.includes("/auth/token") ||
+      requestUrl.includes("/auth/login") ||
+      requestUrl.includes("/auth/google/exchange");
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      !originalRequest?._retry &&
+      !isAuthEndpoint &&
+      useAuthStore.getState().isAuthenticated
+    ) {
       originalRequest._retry = true;
 
       try {
-        const refreshToken = useAuthStore.getState().refreshToken;
-
-        if (!refreshToken) {
-          useAuthStore.getState().logout();
-          return Promise.reject(error);
-        }
-
-        const { data } = await axios.post(
-          `${api.defaults.baseURL}/auth/refresh`,
+        await axios.post(
+          `${api.defaults.baseURL}/auth/token`,
+          {},
           {
-            refreshToken: refreshToken,
+            withCredentials: true,
           },
         );
 
-        useAuthStore.getState().setTokens(data.accessToken, data.refreshToken);
-
-        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+        useAuthStore.getState().setAuthenticated(true);
         return api(originalRequest);
       } catch (refreshError) {
         useAuthStore.getState().logout();

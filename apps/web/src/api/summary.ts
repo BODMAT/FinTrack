@@ -5,17 +5,37 @@ import {
   type ISummary,
   type Range,
 } from "@fintrack/types";
-import { handleRequest } from "../utils/api";
+import { handleRequest } from "@/utils/api";
 import api from "./api";
+import type { TransactionSource } from "@/types/monobank";
 
-export const getSummary = async (): Promise<ISummary> => {
-  return handleRequest(api.get("/summary"), AllSummarySchema);
+type SummaryOptions = {
+  source?: TransactionSource;
 };
 
-export const getChartData = async (range: Range): Promise<IChartData> => {
+export const getSummary = async (
+  options?: SummaryOptions,
+): Promise<ISummary> => {
+  return handleRequest(
+    api.get("/summary", {
+      params: {
+        ...(options?.source ? { source: options.source } : {}),
+      },
+    }),
+    AllSummarySchema,
+  );
+};
+
+export const getChartData = async (
+  range: Range,
+  options?: SummaryOptions,
+): Promise<IChartData> => {
   return handleRequest(
     api.get("/summary/chart", {
-      params: { range },
+      params: {
+        range,
+        ...(options?.source ? { source: options.source } : {}),
+      },
     }),
     ChartDataSchema,
   );

@@ -1,4 +1,4 @@
-import { handleRequest } from "../utils/api";
+import { handleRequest } from "@/utils/api";
 import {
   UserResponseSchema,
   type CreateUserBody,

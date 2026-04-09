@@ -1,0 +1,241 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --bg-page:
+      radial-gradient(
+        980px 560px at 86% -4%,
+        rgb(40 194 226 / 28%),
+        transparent 62%
+      ),
+      radial-gradient(
+        780px 480px at -6% 45%,
+        rgb(98 222 255 / 16%),
+        transparent 68%
+      ),
+      linear-gradient(180deg, #e9f7ff 0%, #d7edf9 100%);
+    --bg-surface: rgb(245 252 255 / 82%);
+    --bg-surface-strong: #ffffff;
+    --bg-sidebar: rgb(235 250 255 / 78%);
+    --bg-input: rgb(239 250 255 / 84%);
+
+    --stroke-soft: rgb(46 140 170 / 23%);
+    --stroke-strong: rgb(18 113 141 / 42%);
+
+    --text-primary: #0b2e3a;
+    --text-secondary: #375f6d;
+    --text-muted: #5c8391;
+
+    --accent: #10bfd9;
+    --accent-strong: #0f9bb1;
+    --accent-soft: rgb(16 191 217 / 18%);
+
+    --success: #11c875;
+    --success-soft: rgb(17 200 117 / 18%);
+    --danger: #f95667;
+    --danger-soft: rgb(249 86 103 / 19%);
+
+    --glow: 0 0 0 1px rgb(16 191 217 / 22%), 0 18px 46px rgb(14 116 144 / 14%);
+    --shadow-soft: 0 12px 32px rgb(4 44 63 / 9%);
+    --shadow-hover: 0 16px 40px rgb(5 54 76 / 15%);
+
+    --radius-surface: 16px;
+    --radius-chip: 12px;
+
+    --scrollbar-thumb: rgb(25 132 160 / 62%);
+    --scrollbar-thumb-hover: rgb(12 109 135 / 85%);
+
+    --chart-income: #00c07a;
+    --chart-outcome: #ff6678;
+  }
+
+  :where(.dark, .dark *) {
+    --bg-page:
+      radial-gradient(
+        980px 560px at 86% -8%,
+        rgb(16 191 217 / 24%),
+        transparent 66%
+      ),
+      radial-gradient(
+        760px 440px at -10% 46%,
+        rgb(0 190 255 / 12%),
+        transparent 70%
+      ),
+      linear-gradient(180deg, #041a26 0%, #072535 52%, #0a2b3d 100%);
+    --bg-surface: rgb(9 45 61 / 74%);
+    --bg-surface-strong: #0b3345;
+    --bg-sidebar: rgb(5 34 48 / 87%);
+    --bg-input: rgb(5 41 56 / 90%);
+
+    --stroke-soft: rgb(137 213 238 / 24%);
+    --stroke-strong: rgb(141 229 255 / 43%);
+
+    --text-primary: #eaf8ff;
+    --text-secondary: #a6c7d5;
+    --text-muted: #7ca3b2;
+
+    --accent: #37d4f1;
+    --accent-strong: #1ab9d6;
+    --accent-soft: rgb(55 212 241 / 18%);
+
+    --success: #1ddd8b;
+    --success-soft: rgb(29 221 139 / 20%);
+    --danger: #ff7280;
+    --danger-soft: rgb(255 114 128 / 21%);
+
+    --glow: 0 0 0 1px rgb(74 214 239 / 36%), 0 22px 62px rgb(9 97 126 / 30%);
+    --shadow-soft: 0 18px 48px rgb(0 5 10 / 35%);
+    --shadow-hover: 0 24px 70px rgb(0 10 20 / 45%);
+
+    --scrollbar-thumb: rgb(87 181 209 / 64%);
+    --scrollbar-thumb-hover: rgb(126 212 236 / 88%);
+  }
+
+  :root,
+  :where(.dark, .dark *) {
+    --color-main: var(--bg-page);
+    --color-text: var(--text-primary);
+    --color-placeholder: var(--text-muted);
+    --color-title: var(--text-primary);
+    --color-background: var(--bg-surface-strong);
+
+    --color-fixed: var(--bg-sidebar);
+    --color-fixed-text: var(--text-secondary);
+
+    --color-hover: var(--accent);
+    --color-hover-reverse: var(--accent-soft);
+    --color-card: var(--bg-surface);
+    --color-input: var(--bg-input);
+    --color-red: var(--danger);
+
+    --text-green: var(--success);
+    --bg-green: var(--success-soft);
+
+    --text-red: var(--danger);
+    --bg-red: var(--danger-soft);
+  }
+
+  html,
+  body {
+    background: var(--color-main);
+    color: var(--color-text);
+  }
+
+  ul,
+  ol {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+  }
+
+  li {
+    margin: 0;
+    padding: 0;
+  }
+
+  .transitioned {
+    @apply transition-all duration-500 ease-[cubic-bezier(0.075,0.82,0.165,1)];
+  }
+
+  .scrollable {
+    @apply overflow-y-auto;
+  }
+
+  .scrollable::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  .scrollable::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollable::-webkit-scrollbar-thumb {
+    background-color: var(--scrollbar-thumb);
+    border-radius: 10px;
+  }
+
+  .scrollable::-webkit-scrollbar-thumb:hover {
+    background-color: var(--scrollbar-thumb-hover);
+  }
+}
+
+@layer components {
+  .neo-panel {
+    border: 1px solid var(--stroke-soft);
+    background: var(--color-card);
+    backdrop-filter: blur(10px);
+    box-shadow: var(--shadow-soft);
+    border-radius: var(--radius-surface);
+  }
+
+  .neo-panel:hover {
+    box-shadow: var(--shadow-hover);
+  }
+
+  .neo-panel-glow {
+    border: 1px solid var(--stroke-strong);
+    box-shadow: var(--glow);
+  }
+
+  .neo-input {
+    @apply w-full rounded-[10px] px-[12px] py-[10px] outline-none transition-all duration-500 ease-[cubic-bezier(0.075,0.82,0.165,1)];
+    background: var(--color-input);
+    color: var(--color-text);
+    border: 1px solid var(--stroke-soft);
+  }
+
+  .neo-input::placeholder {
+    color: var(--color-placeholder);
+  }
+
+  .neo-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+
+  .neo-chip {
+    @apply inline-flex items-center rounded-[12px] px-[10px] py-[4px] text-[13px] font-semibold;
+    background: var(--accent-soft);
+    color: var(--accent);
+    border: 1px solid var(--stroke-soft);
+  }
+
+  .custom-btn {
+    @apply w-full rounded-[10px] p-2;
+    @apply text-(--color-text) text-[16px] font-semibold;
+    @apply transition-all duration-200 border;
+    @apply disabled:cursor-not-allowed;
+    border-color: var(--stroke-soft);
+    background: var(--color-card);
+
+    &:not(:disabled) {
+      @apply cursor-pointer;
+    }
+
+    &:not(:disabled):hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      box-shadow: var(--glow);
+    }
+  }
+
+  .custom-input {
+    @apply w-full text-(--color-text) p-2 rounded-[10px];
+    @apply border;
+    background: var(--color-input);
+    border-color: var(--stroke-soft);
+
+    @apply placeholder:text-(--color-placeholder);
+
+    @apply transition-all duration-200;
+
+    &:focus {
+      @apply outline-none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+    }
+
+    @apply invalid:border-red-500/50;
+  }
+}

@@ -1,5 +1,7 @@
 import z from "zod";
-import { AIResponseSchema } from "@fintrack/types";
+import { AIResponseSchema, type AiErrorCode } from "@fintrack/types";
+
+export type { AiErrorCode };
 
 export const AIResponseWithDiffSchema = AIResponseSchema.extend({
   getted_at: z.date(),

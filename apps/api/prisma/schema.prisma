@@ -18,22 +18,58 @@ enum TransactionType {
     EXPENSE
 }
 
+enum TransactionSource {
+    MANUAL
+    MONOBANK
+}
+
+enum CurrencyCode {
+    USD
+    UAH
+    RUB
+    EUR
+}
+
 enum AuthType {
     EMAIL
     TELEGRAM
+    GOOGLE
+}
+
+enum UserRole {
+    USER
+    ADMIN
+}
+
+enum AiProvider {
+    GROQ
+    GEMINI
+}
+
+enum ErrorLogStatus {
+    OPEN
+    RESOLVED
 }
 
 model Transaction {
-    id         String          @id @default(uuid())
-    title      String          @db.VarChar(50)
-    type       TransactionType
-    amount     Decimal         @default(0)
-    created_at DateTime        @default(now())
-    updated_at DateTime        @updatedAt
+    id                  String            @id @default(uuid())
+    title               String            @db.VarChar(50)
+    type                TransactionType
+    amount              Decimal           @default(0)
+    currencyCode        CurrencyCode      @default(USD)
+    source              TransactionSource @default(MANUAL)
+    sourceTransactionId String?
+    sourceAccountId     String?
+    importedAt          DateTime?
+    created_at          DateTime          @default(now())
+    updated_at          DateTime          @updatedAt
     // relations
-    location   Location?
-    user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-    userId     String
+    location            Location?
+    user                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId              String
+
+    @@index([userId, source])
+    @@unique([userId, source, sourceAccountId, sourceTransactionId])
 }
 
 model Location {
@@ -45,16 +81,31 @@ model Location {
     transactionId String      @unique
 }
 
+model Message {
+    id         String   @id @default(uuid())
+    role       String // "user" або "assistant"
+    content    String   @db.Text
+    created_at DateTime @default(now())
+    user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId     String
+}
+
 model User {
     id           String         @id @default(uuid())
     name         String         @db.VarChar(200)
     photo_url    String?
+    isVerified   Boolean        @default(false)
+    role         UserRole       @default(USER)
     created_at   DateTime       @default(now())
     updated_at   DateTime       @updatedAt
     // relations
     authMethods  AuthMethod[]
-    refreshToken RefreshToken[]
+    sessions     Session[]
     transactions Transaction[]
+    messages     Message[]
+    apiKeys      UserApiKey[]
+    errorLogs    ErrorLog[]     @relation("ErrorLogReporter")
+    resolvedLogs ErrorLog[]     @relation("ErrorLogResolver")
 }
 
 model AuthMethod {
@@ -63,16 +114,69 @@ model AuthMethod {
     email         String?  @unique @db.VarChar(200)
     password_hash String?
     telegram_id   String?  @unique
+    google_sub    String?  @unique
     // relations
     user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId        String
 }
 
-model RefreshToken {
-    id        String   @id @default(uuid())
-    token     String   @unique
-    expiresAt DateTime
+model Session {
+    sessionId       String    @id @default(uuid())
+    tokenHash       String    @unique @db.VarChar(128)
+    familyId        String    @db.VarChar(64)
+    parentSessionId String?
+    expiresAt       DateTime
+    revokedAt       DateTime?
+    userAgent       String?   @db.VarChar(512)
+    ip              String?   @db.VarChar(64)
+    lastUsedAt      DateTime  @default(now())
+    createdAt       DateTime  @default(now())
+    updatedAt       DateTime  @updatedAt
     // relations
-    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+    user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId          String
+    parentSession   Session?  @relation("SessionRotation", fields: [parentSessionId], references: [sessionId], onDelete: SetNull)
+    childSessions   Session[] @relation("SessionRotation")
+
+    @@index([userId])
+    @@index([familyId])
+    @@index([expiresAt])
+    @@index([revokedAt])
+}
+
+model UserApiKey {
+    id        String     @id @default(uuid())
+    provider  AiProvider
+    apiKey    String     @db.Text
+    isActive  Boolean    @default(true)
+    createdAt DateTime   @default(now())
+    updatedAt DateTime   @updatedAt
+    user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId    String
+
+    @@unique([userId, provider])
+}
+
+model ErrorLog {
+    id                String         @id @default(uuid())
+    title             String         @db.VarChar(200)
+    message           String         @db.Text
+    stack             String?        @db.Text
+    source            String?        @db.VarChar(200)
+    userAgent         String?        @db.VarChar(512)
+    status            ErrorLogStatus @default(OPEN)
+    resolutionNote    String?        @db.Text
+    context           Json?
+    createdAt         DateTime       @default(now())
+    updatedAt         DateTime       @updatedAt
+    resolvedAt        DateTime?
+    // relations
+    user              User           @relation("ErrorLogReporter", fields: [userId], references: [id], onDelete: Cascade)
+    userId            String
+    resolvedByAdmin   User?          @relation("ErrorLogResolver", fields: [resolvedByAdminId], references: [id], onDelete: SetNull)
+    resolvedByAdminId String?
+
+    @@index([userId, createdAt])
+    @@index([status, createdAt])
+    @@index([resolvedByAdminId])
 }

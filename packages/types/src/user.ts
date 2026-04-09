@@ -26,9 +26,10 @@ export const UpdateAuthMethodSchema = z.discriminatedUnion("type", [
 
 export const AuthMethodResponseSchema = z.object({
   id: z.string().uuid(),
-  type: z.enum(["EMAIL", "TELEGRAM"]),
+  type: z.enum(["EMAIL", "TELEGRAM", "GOOGLE"]),
   email: z.string().email().nullable(),
   telegram_id: z.string().nullable(),
+  google_sub: z.string().nullable().optional(),
 });
 
 export const СreateUserSchema = z.object({
@@ -61,6 +62,8 @@ export const UserResponseSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
   photo_url: z.string().nullable(),
+  isVerified: z.boolean(),
+  role: z.enum(["USER", "ADMIN"]),
   created_at: z.coerce.date(),
   updated_at: z.coerce.date(),
   authMethods: z.array(AuthMethodResponseSchema),

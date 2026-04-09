@@ -1,0 +1,290 @@
+import { useState } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import type { CreateUserBody as User } from "@fintrack/types";
+import { usePopupStore } from "@/store/popup";
+import { LoginPopup } from "./LoginPopup";
+import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
+import { queryClient } from "@/api/queryClient";
+import { useRouter } from "next/navigation";
+
+export function RegisterPopup() {
+  const { t } = useSafeTranslation();
+  const router = useRouter();
+  const { open, close } = usePopupStore();
+  const {
+    user,
+    status: { registerError, isRegistering, isLoggingOutAll, logoutAllError },
+    actions: { register, logout, login, logoutAll },
+  } = useAuth();
+
+  const [registerSuccess, setRegisterSuccess] = useState(false);
+  const [passwordValidationError, setPasswordValidationError] = useState("");
+  const [userLocalInfo, setUserLocalInfo] = useState<User>({
+    name: "",
+    photo_url: null,
+    authMethods: [
+      {
+        type: "EMAIL",
+        email: "",
+        password: "",
+      },
+      {
+        type: "TELEGRAM",
+        telegram_id: "",
+      },
+    ],
+  });
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch {
+      void 0;
+    }
+  };
+
+  const handleLogoutAll = async () => {
+    try {
+      await logoutAll();
+    } catch {
+      void 0;
+    }
+  };
+
+  const handleOpenLoginPopup = () => {
+    close();
+    setTimeout(() => {
+      open(t("auth.loginTitle"), <LoginPopup />);
+    }, 300);
+  };
+
+  const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setRegisterSuccess(false);
+    setPasswordValidationError("");
+
+    const payload: User = {
+      name: userLocalInfo.name.trim(),
+      photo_url: userLocalInfo.photo_url?.trim() || null,
+      authMethods: [],
+    };
+
+    const emailMethod = userLocalInfo.authMethods.find(
+      (m) => m.type === "EMAIL",
+    );
+    if (
+      emailMethod?.type === "EMAIL" &&
+      emailMethod.email &&
+      emailMethod.password
+    ) {
+      payload.authMethods.push({
+        type: "EMAIL",
+        email: emailMethod.email.trim(),
+        password: emailMethod.password,
+      });
+    }
+
+    const tgMethod = userLocalInfo.authMethods.find(
+      (m) => m.type === "TELEGRAM",
+    );
+    if (tgMethod?.type === "TELEGRAM" && tgMethod.telegram_id) {
+      payload.authMethods.push({
+        type: "TELEGRAM",
+        telegram_id: tgMethod.telegram_id.trim(),
+      });
+    }
+
+    if (payload.authMethods.length === 0) {
+      return;
+    }
+
+    if (
+      emailMethod?.type === "EMAIL" &&
+      !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}/.test(emailMethod.password)
+    ) {
+      setPasswordValidationError(
+        "Password must contain uppercase, lowercase letters and a number",
+      );
+      return;
+    }
+
+    try {
+      await register(payload);
+      setRegisterSuccess(true);
+
+      //! if email - auto login ======================================
+      if (emailMethod) {
+        await login({
+          email: emailMethod.email,
+          password: emailMethod.password,
+        });
+      }
+      //!=============================================================
+      await queryClient.invalidateQueries();
+      router.refresh();
+      close();
+
+      setUserLocalInfo({
+        name: "",
+        photo_url: null,
+        authMethods: [
+          {
+            type: "EMAIL",
+            email: "",
+            password: "",
+          },
+          {
+            type: "TELEGRAM",
+            telegram_id: "",
+          },
+        ],
+      });
+    } catch {
+      setRegisterSuccess(false);
+    } finally {
+      setTimeout(() => {
+        setRegisterSuccess(false);
+      }, 5000);
+    }
+  };
+
+  return (
+    <section className="flex items-center flex-col gap-[20px] w-full">
+      <form
+        onSubmit={(e) => {
+          handleRegister(e);
+        }}
+        className="flex flex-col gap-[20px] w-full"
+      >
+        <input
+          required
+          value={userLocalInfo.name}
+          type="text"
+          placeholder={t("auth.name")}
+          onChange={(e) =>
+            setUserLocalInfo({
+              ...userLocalInfo,
+              name: e.target.value,
+            })
+          }
+          className="custom-input"
+        />
+        <input
+          type="url"
+          value={userLocalInfo.photo_url || ""}
+          placeholder={t("auth.photoUrlOptional")}
+          onChange={(e) =>
+            setUserLocalInfo({
+              ...userLocalInfo,
+              photo_url: e.target.value,
+            })
+          }
+          className="custom-input"
+        />
+        <span className="h-[2px] w-full bg-(--color-background) rounded" />
+        <div className="flex justify-between gap-[20px] text-center flex-col">
+          <input
+            required
+            type="email"
+            placeholder={t("auth.email")}
+            value={
+              userLocalInfo.authMethods.find((m) => m.type === "EMAIL")
+                ?.email || ""
+            }
+            onChange={(e) => {
+              const newValue = e.target.value;
+              setUserLocalInfo((prev) => ({
+                ...prev,
+                authMethods: prev.authMethods.map((method) =>
+                  method.type === "EMAIL"
+                    ? { ...method, email: newValue }
+                    : method,
+                ),
+              }));
+            }}
+            className="custom-input"
+          />
+          <input
+            required
+            minLength={8}
+            type="password"
+            placeholder={t("auth.password")}
+            value={
+              userLocalInfo.authMethods.find((m) => m.type === "EMAIL")
+                ?.password || ""
+            }
+            onChange={(e) => {
+              const newValue = e.target.value;
+              setUserLocalInfo((prev) => ({
+                ...prev,
+                authMethods: prev.authMethods.map((method) =>
+                  method.type === "EMAIL"
+                    ? { ...method, password: newValue }
+                    : method,
+                ),
+              }));
+            }}
+            className="custom-input"
+          />
+          <input
+            type="text"
+            placeholder={t("auth.telegramOptional")}
+            value={
+              userLocalInfo.authMethods.find((m) => m.type === "TELEGRAM")
+                ?.telegram_id || ""
+            }
+            onChange={(e) => {
+              const newValue = e.target.value;
+              setUserLocalInfo((prev) => ({
+                ...prev,
+                authMethods: prev.authMethods.map((method) =>
+                  method.type === "TELEGRAM"
+                    ? { ...method, telegram_id: newValue }
+                    : method,
+                ),
+              }));
+            }}
+            className="custom-input"
+          />
+          <button type="submit" disabled={isRegistering} className="custom-btn">
+            {t("auth.registerNewAccount")}
+          </button>
+        </div>
+
+        <div className="">
+          {passwordValidationError && (
+            <span className="text-red-500">{passwordValidationError}</span>
+          )}
+          {registerSuccess && (
+            <span className="text-green-500">{t("auth.registerSuccess")}</span>
+          )}
+          {registerError && (
+            <span className="text-red-500">{registerError}</span>
+          )}
+          {isRegistering && <span>{t("common.loading")}</span>}
+        </div>
+        <span className="h-[2px] w-full bg-(--color-background) rounded" />
+      </form>
+      <div className="w-full flex gap-[20px] justify-space-between">
+        {user && (
+          <>
+            <button onClick={handleLogout} className="custom-btn">
+              {t("auth.logout")}
+            </button>
+            <button
+              onClick={handleLogoutAll}
+              disabled={isLoggingOutAll}
+              className="custom-btn"
+            >
+              {t("auth.logoutAllSessions")}
+            </button>
+          </>
+        )}
+        <button onClick={handleOpenLoginPopup} className="custom-btn">
+          {t("auth.loginTitle")}
+        </button>
+      </div>
+      {logoutAllError && <span className="text-red-500">{logoutAllError}</span>}
+    </section>
+  );
+}
