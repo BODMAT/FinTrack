@@ -20,6 +20,7 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
+          cache-dependency-path: package-lock.json
 
       # Крок 3: Встановлюємо залежності з кореня проєкту
       - name: Install dependencies
