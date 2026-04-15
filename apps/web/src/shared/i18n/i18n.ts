@@ -4,14 +4,14 @@ import { FALLBACK_LANGUAGE, SUPPORTED_LANGUAGES } from "./config";
 
 import en from "./locales/en/translation.json";
 import uk from "./locales/uk/translation.json";
-import ru from "./locales/ru/translation.json";
+import de from "./locales/de/translation.json";
 
 if (!i18n.isInitialized) {
   i18n.use(initReactI18next).init({
     resources: {
       en: { translation: en },
       uk: { translation: uk },
-      ru: { translation: ru },
+      de: { translation: de },
     },
     lng: FALLBACK_LANGUAGE,
     fallbackLng: FALLBACK_LANGUAGE,

@@ -26,7 +26,6 @@ enum TransactionSource {
 enum CurrencyCode {
     USD
     UAH
-    RUB
     EUR
 }
 

@@ -14,14 +14,12 @@ const ONE_HOUR_MS = 60 * 60 * 1000;
 const DEFAULT_RATES: SupportedRates = {
   USD: 1,
   UAH: 1,
-  RUB: 1,
   EUR: 1,
 };
 
 function normalizeCurrency(value?: string): CurrencyCode {
   const normalized = value?.trim().toUpperCase();
   if (normalized === "UAH") return "UAH";
-  if (normalized === "RUB") return "RUB";
   if (normalized === "EUR") return "EUR";
   return "USD";
 }
@@ -68,7 +66,6 @@ async function fetchRatesFromApi(): Promise<CachedRatesPayload> {
     rates: {
       USD: Number(rates.USD) || 1,
       UAH: Number(rates.UAH) || 1,
-      RUB: Number(rates.RUB) || 1,
       EUR: Number(rates.EUR) || 1,
     },
   };
@@ -79,7 +76,7 @@ async function fetchRatesFromApi(): Promise<CachedRatesPayload> {
 
 function getLocaleByLanguage(language: string) {
   if (language === "uk") return "uk-UA";
-  if (language === "ru") return "ru-RU";
+  if (language === "de") return "de-DE";
   return "en-US";
 }
 
