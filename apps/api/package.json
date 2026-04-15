@@ -7,7 +7,7 @@
   "scripts": {
     "build": "rimraf dist && npx tsc",
     "start": "node dist/server.js",
-    "test": "jest --runInBand",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
     "test:watch": "jest --watch",
     "predev": "npm run build",
     "dev": "concurrently \"npx tsc -w\" \"nodemon --ext js,yml dist/server.js\"",
