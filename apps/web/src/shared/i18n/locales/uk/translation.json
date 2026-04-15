@@ -3,7 +3,8 @@
     "dashboard": "Дашборд",
     "analytics": "Аналітика",
     "transactions": "Транзакції",
-    "admin": "Панель адміна"
+    "admin": "Панель адміна",
+    "donation": "Donation Stripe"
   },
   "common": {
     "loading": "Завантаження...",
@@ -201,6 +202,40 @@
       "rolesBreakdown": "Розподіл ролей",
       "verificationBreakdown": "Розподіл верифікації",
       "activity14d": "Нові користувачі та помилки (14 днів)"
+    }
+  },
+  "donation": {
+    "notLoggedIn": "Будь ласка, увійдіть у свій акаунт, щоб відкрити сторінку Donation Stripe.",
+    "pageTitle": "Donation Stripe",
+    "pageDescription": "Донати допомагають підтримувати FinTrack і відкривають необмежений AI-аналіз для вашого акаунта.",
+    "benefitsTitle": "Що ви отримуєте",
+    "benefit1": "Необмежені AI-запити в Аналітиці.",
+    "benefit2": "Пріоритетну підтримку розвитку проєкту.",
+    "benefit3": "Швидку активацію після підтвердження webhook Stripe.",
+    "donateButton": "Задонатити через Stripe",
+    "redirectingButton": "Переадресація до Stripe...",
+    "accessStatusTitle": "Статус доступу",
+    "leaderboardTitle": "Топ донатерів",
+    "leaderboardSubtitle": "Живий рейтинг за сумою донатів.",
+    "leaderboardEmpty": "Поки немає донатів. Станьте першим підтримувачем.",
+    "totalDonated": "Задоначено всього",
+    "currentTier": "Поточний план",
+    "unlimitedActive": "Необмежений доступ активний.",
+    "remainingAttempts": "Залишилось AI-спроб: {{remaining}} з {{limit}}",
+    "faq": "FAQ: Доступ активується подією webhook checkout.session.completed. Якщо ви закрили сторінку, просто відкрийте Аналітику через кілька секунд.",
+    "failedTitle": "Помилка донату",
+    "failedPopupTitle": "Не вдалося створити checkout session",
+    "failedPopupMessage": "Спробуйте ще раз через кілька секунд.",
+    "successTitle": "Донат успішний",
+    "successPopupTitle": "Дякуємо за підтримку",
+    "successPopupMessage": "Платіж прийнято. Необмежений AI-доступ активується після підтвердження webhook.",
+    "canceledTitle": "Донат скасовано",
+    "canceledPopupTitle": "Оплату скасовано",
+    "canceledPopupMessage": "Списання не відбулося. Ви можете повторити донат у будь-який момент.",
+    "tier": {
+      "admin": "Адмін без ліміту",
+      "donor": "Донор без ліміту",
+      "user": "Безкоштовний план"
     }
   }
 }

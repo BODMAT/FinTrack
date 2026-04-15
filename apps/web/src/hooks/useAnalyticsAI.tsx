@@ -47,7 +47,10 @@ export function useAnalyticsAI() {
       };
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey });
+      void Promise.all([
+        queryClient.invalidateQueries({ queryKey }),
+        queryClient.invalidateQueries({ queryKey: ["ai-access"] }),
+      ]);
     },
   });
 

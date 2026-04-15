@@ -13,6 +13,12 @@ const userStub: UserStub = {
   photo_url: null,
   isVerified: true,
   role: "USER",
+  aiAnalysisUsed: 0,
+  aiAnalysisLimit: 10,
+  donationStatus: "NONE",
+  donationGrantedAt: null,
+  donationExpiresAt: null,
+  stripeCustomerId: null,
   created_at: new Date(),
   updated_at: new Date(),
   authMethods: [

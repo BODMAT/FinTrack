@@ -1,7 +1,13 @@
 import type { Request, Response, NextFunction } from "express";
 import { AppError } from "../../middleware/errorHandler.js";
 import { prisma } from "../../prisma/client.js";
-import { getAiResponse, AiServiceError } from "./service.js";
+import {
+  getAiResponse,
+  AiServiceError,
+  ensureAiAccessOrThrow,
+  getAiAccessStatus,
+  incrementAiAnalysisUsage,
+} from "./service.js";
 
 export async function getAIHistory(
   req: Request,
@@ -54,13 +60,41 @@ export async function ai(req: Request, res: Response, next: NextFunction) {
     if (!prompt || !data)
       throw new AppError("Invalid input data or prompt", 400);
 
+    const access = await ensureAiAccessOrThrow(userId);
     const response = await getAiResponse(userId, prompt, data, model);
+    await incrementAiAnalysisUsage(userId, access);
     return res.json(response);
   } catch (err) {
     if (err instanceof AiServiceError) {
       // фронт читает `code` для показа нужного попапа
       return res.status(503).json({ error: err.message, code: err.code });
     }
+    next(err);
+  }
+}
+
+export async function getAiAccess(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const userId = req.user?.id;
+    if (!userId)
+      throw new AppError("Unauthorized: User not found in request", 401);
+
+    const access = await getAiAccessStatus(userId);
+    return res.json({
+      role: access.role,
+      tier: access.tier,
+      donationStatus: access.donationStatus,
+      donationExpiresAt: access.donationExpiresAt,
+      aiAnalysisUsed: access.aiAnalysisUsed,
+      aiAnalysisLimit: access.aiAnalysisLimit,
+      remainingAttempts: access.remainingAttempts,
+      isUnlimited: access.isUnlimited,
+    });
+  } catch (err) {
     next(err);
   }
 }

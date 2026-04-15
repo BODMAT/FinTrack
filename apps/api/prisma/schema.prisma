@@ -40,9 +40,22 @@ enum UserRole {
     ADMIN
 }
 
+enum DonationStatus {
+    NONE
+    ACTIVE
+    EXPIRED
+}
+
 enum AiProvider {
     GROQ
     GEMINI
+}
+
+enum DonationPaymentStatus {
+    PENDING
+    SUCCEEDED
+    CANCELED
+    FAILED
 }
 
 enum ErrorLogStatus {
@@ -90,21 +103,28 @@ model Message {
 }
 
 model User {
-    id           String         @id @default(uuid())
-    name         String         @db.VarChar(200)
-    photo_url    String?
-    isVerified   Boolean        @default(false)
-    role         UserRole       @default(USER)
-    created_at   DateTime       @default(now())
-    updated_at   DateTime       @updatedAt
+    id              String           @id @default(uuid())
+    name            String           @db.VarChar(200)
+    photo_url       String?
+    isVerified      Boolean          @default(false)
+    role            UserRole         @default(USER)
+    aiAnalysisUsed  Int              @default(0)
+    aiAnalysisLimit Int              @default(10)
+    donationStatus  DonationStatus   @default(NONE)
+    donationGrantedAt DateTime?
+    donationExpiresAt DateTime?
+    stripeCustomerId  String?        @unique @db.VarChar(255)
+    created_at      DateTime         @default(now())
+    updated_at      DateTime         @updatedAt
     // relations
-    authMethods  AuthMethod[]
-    sessions     Session[]
-    transactions Transaction[]
-    messages     Message[]
-    apiKeys      UserApiKey[]
-    errorLogs    ErrorLog[]     @relation("ErrorLogReporter")
-    resolvedLogs ErrorLog[]     @relation("ErrorLogResolver")
+    authMethods      AuthMethod[]
+    sessions         Session[]
+    transactions     Transaction[]
+    messages         Message[]
+    apiKeys          UserApiKey[]
+    donationPayments DonationPayment[]
+    errorLogs        ErrorLog[]       @relation("ErrorLogReporter")
+    resolvedLogs     ErrorLog[]       @relation("ErrorLogResolver")
 }
 
 model AuthMethod {
@@ -178,4 +198,29 @@ model ErrorLog {
     @@index([userId, createdAt])
     @@index([status, createdAt])
     @@index([resolvedByAdminId])
+}
+
+model DonationPayment {
+    id                     String                @id @default(uuid())
+    amount                 Int?
+    currency               String?               @db.VarChar(16)
+    status                 DonationPaymentStatus @default(PENDING)
+    stripeCheckoutSessionId String               @unique @db.VarChar(255)
+    stripePaymentIntentId  String?               @unique @db.VarChar(255)
+    createdAt              DateTime              @default(now())
+    updatedAt              DateTime              @updatedAt
+    completedAt            DateTime?
+    // relations
+    user                   User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId                 String
+
+    @@index([userId, createdAt])
+    @@index([status, createdAt])
+}
+
+model StripeWebhookEvent {
+    id            String   @id @default(uuid())
+    stripeEventId String   @unique @db.VarChar(255)
+    eventType     String   @db.VarChar(120)
+    createdAt     DateTime @default(now())
 }

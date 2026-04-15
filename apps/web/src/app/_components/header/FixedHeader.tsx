@@ -91,6 +91,7 @@ export function FixedHeader() {
             <MenuLink name="analytics" />
             <MenuLink name="transactions" />
             <MenuLink name="monobank" />
+            <MenuLink name="donation" />
             {user?.role === "ADMIN" && <MenuLink name="admin" />}
           </ul>
           <div className="mt-3 py-3 px-2.5 flex justify-center">

@@ -31,3 +31,21 @@ export const registrationLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: "Too many registration attempts. Try again later." },
 });
+
+export const donationCheckoutLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: {
+    error: "Too many donation attempts. Please wait and try again.",
+  },
+});
+
+export const donationWebhookLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 120,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many webhook requests." },
+});

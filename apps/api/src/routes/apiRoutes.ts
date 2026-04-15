@@ -7,6 +7,7 @@ import { aiRouter } from "../modules/ai/route.js";
 import { summaryRouter } from "../modules/summary/route.js";
 import { userApiKeyRouter } from "../modules/user-api-key/route.js";
 import { adminRouter } from "../modules/admin/route.js";
+import { donationRouter } from "../modules/donation/route.js";
 
 export const apiRouter = express.Router();
 
@@ -17,6 +18,7 @@ apiRouter.use("/ai", aiRouter);
 apiRouter.use("/summary", summaryRouter);
 apiRouter.use("/user-api-keys", userApiKeyRouter);
 apiRouter.use("/admin", adminRouter);
+apiRouter.use("/donations", donationRouter);
 
 // apiRouter.all("*", (req: Request, res: Response, next: NextFunction) => {
 // 	res.status(404).json({ error: "Endpoint not found" });

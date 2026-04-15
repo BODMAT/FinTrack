@@ -21,7 +21,27 @@ const GROQAPITOKENS = Object.keys(process.env)
   .filter((token): token is string => Boolean(token));
 
 if (GROQAPITOKENS.length === 0) {
-  console.warn("⚠️ Warning: No Groq API tokens (GROQ_API_KEY_x) found in .env");
+  console.warn("Warning: No Groq API tokens (GROQ_API_KEY_x) found in .env");
+}
+
+if (
+  process.env.STRIPE_DONATION_AMOUNT &&
+  Number.isNaN(Number(process.env.STRIPE_DONATION_AMOUNT))
+) {
+  throw new AppError(
+    "Invalid STRIPE_DONATION_AMOUNT. It must be a number in minor units.",
+    500,
+  );
+}
+
+if (
+  process.env.STRIPE_DONATION_DURATION_DAYS &&
+  Number.isNaN(Number(process.env.STRIPE_DONATION_DURATION_DAYS))
+) {
+  throw new AppError(
+    "Invalid STRIPE_DONATION_DURATION_DAYS. It must be a number.",
+    500,
+  );
 }
 
 export const ENV = {
@@ -35,6 +55,18 @@ export const ENV = {
   ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET as string,
   GROQAPITOKENS,
   API_KEY_ENCRYPTION_SECRET: process.env.API_KEY_ENCRYPTION_SECRET as string,
+  STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY ?? "",
+  STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET ?? "",
+  STRIPE_DONATION_PRICE_ID: process.env.STRIPE_DONATION_PRICE_ID ?? "",
+  STRIPE_DONATION_SUCCESS_URL: process.env.STRIPE_DONATION_SUCCESS_URL ?? "",
+  STRIPE_DONATION_CANCEL_URL: process.env.STRIPE_DONATION_CANCEL_URL ?? "",
+  STRIPE_DONATION_CURRENCY: process.env.STRIPE_DONATION_CURRENCY ?? "usd",
+  STRIPE_DONATION_AMOUNT: process.env.STRIPE_DONATION_AMOUNT
+    ? Number(process.env.STRIPE_DONATION_AMOUNT)
+    : undefined,
+  STRIPE_DONATION_DURATION_DAYS: process.env.STRIPE_DONATION_DURATION_DAYS
+    ? Number(process.env.STRIPE_DONATION_DURATION_DAYS)
+    : undefined,
 } as const;
 
 export type EnvConfig = typeof ENV;

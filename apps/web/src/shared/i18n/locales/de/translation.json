@@ -4,7 +4,8 @@
     "analytics": "Analytik",
     "transactions": "Transaktionen",
     "monobank": "Monobank API",
-    "admin": "Admin-Panel"
+    "admin": "Admin-Panel",
+    "donation": "Donation Stripe"
   },
   "common": {
     "loading": "Laedt...",
@@ -202,6 +203,40 @@
       "rolesBreakdown": "Rollenverteilung",
       "verificationBreakdown": "Verifizierungsverteilung",
       "activity14d": "Neue Benutzer und Fehler (14 Tage)"
+    }
+  },
+  "donation": {
+    "notLoggedIn": "Bitte melden Sie sich an, um die Seite Donation Stripe zu oeffnen.",
+    "pageTitle": "Donation Stripe",
+    "pageDescription": "Spenden helfen uns, FinTrack weiterzuentwickeln, und schalten unbegrenzte AI-Analysen fuer Ihr Konto frei.",
+    "benefitsTitle": "Was Sie erhalten",
+    "benefit1": "Unbegrenzte AI-Anfragen in der Analytik.",
+    "benefit2": "Priorisierte Unterstuetzung der Projektentwicklung.",
+    "benefit3": "Schnelle Aktivierung nach Stripe-Webhook-Bestaetigung.",
+    "donateButton": "Mit Stripe spenden",
+    "redirectingButton": "Weiterleitung zu Stripe...",
+    "accessStatusTitle": "Zugriffsstatus",
+    "leaderboardTitle": "Top-Spender",
+    "leaderboardSubtitle": "Live-Ranking nach gesamter Spendensumme.",
+    "leaderboardEmpty": "Noch keine Spenden. Werden Sie der erste Unterstuetzer.",
+    "totalDonated": "Insgesamt gespendet",
+    "currentTier": "Aktueller Plan",
+    "unlimitedActive": "Unbegrenzter Zugriff ist aktiv.",
+    "remainingAttempts": "Verbleibende AI-Versuche: {{remaining}} von {{limit}}",
+    "faq": "FAQ: Der Zugriff wird durch das Webhook-Event checkout.session.completed aktiviert. Wenn Sie die Seite geschlossen haben, oeffnen Sie die Analytik nach einigen Sekunden erneut.",
+    "failedTitle": "Spende fehlgeschlagen",
+    "failedPopupTitle": "Checkout-Session konnte nicht erstellt werden",
+    "failedPopupMessage": "Bitte versuchen Sie es in einigen Sekunden erneut.",
+    "successTitle": "Spende erfolgreich",
+    "successPopupTitle": "Vielen Dank fuer Ihre Unterstuetzung",
+    "successPopupMessage": "Die Zahlung wurde akzeptiert. Unbegrenzter AI-Zugriff wird nach Webhook-Bestaetigung aktiviert.",
+    "canceledTitle": "Spende abgebrochen",
+    "canceledPopupTitle": "Zahlung wurde abgebrochen",
+    "canceledPopupMessage": "Es wurde nichts abgebucht. Sie koennen die Spende jederzeit erneut starten.",
+    "tier": {
+      "admin": "Admin unbegrenzt",
+      "donor": "Spender unbegrenzt",
+      "user": "Kostenloser Plan"
     }
   }
 }

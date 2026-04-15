@@ -1,5 +1,6 @@
 import api from "./api";
 import { handleRequest } from "@/utils/api";
+import { AiAccessSchema, type AiAccess } from "@/types/ai";
 import {
   type AIRequest,
   type AIResponse,
@@ -24,4 +25,8 @@ export async function getAIHistory(): Promise<MessageFromDB[]> {
     api.get("/ai/history"),
     MessageFromDBSchema.array(),
   );
+}
+
+export async function getAIAccess(): Promise<AiAccess> {
+  return handleRequest<AiAccess>(api.get("/ai/access"), AiAccessSchema);
 }
