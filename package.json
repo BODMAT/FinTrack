@@ -29,13 +29,25 @@
     "dev:bot": "turbo run dev --filter=fintrack-bot",
     "test:api:prod": "npm --prefix apps/api run prod",
     "api:prisma:generate": "npm --prefix apps/api run prisma:generate",
+    "api:prisma:migrate:dev": "npm --prefix apps/api run prisma:migrate:dev",
+    "api:prisma:migrate:deploy": "npm --prefix apps/api run prisma:migrate:deploy",
+    "api:prisma:studio": "npm --prefix apps/api run prisma:studio",
+    "api:prisma:seed": "npm --prefix apps/api run prisma:seed",
     "build": "turbo run build",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "lint:fix": "eslint --fix .",
     "lint": "eslint .",
+    "fix": "npm run format && npm run lint:fix",
     "check": "npm run format:check && npm run lint",
+    "tidy": "npm run fix && npm run check",
     "check-types": "turbo run check-types",
-    "test:api": "npm --prefix apps/api run test"
+    "test:api": "npm --prefix apps/api run test",
+    "dump": "bash scripts/codebase-dump.sh",
+    "dump:api": "bash scripts/codebase-dump.sh apps/api",
+    "dump:web": "bash scripts/codebase-dump.sh apps/web",
+    "dump:bot": "bash scripts/codebase-dump.sh apps/bot",
+    "dump:db": "bash scripts/db-dump.sh apps/api/.env"
   },
   "dependencies": {
     "axios": "^1.15.0",
@@ -54,7 +66,6 @@
     "typescript-eslint": "^8.52.0"
   },
   "overrides": {
-    "zod": "^3.23.8",
     "@types/express": "4.17.21",
     "@types/express-serve-static-core": "4.19.0",
     "next": "^16.2.3",
@@ -62,6 +73,8 @@
     "prisma": "^6.19.3"
   },
   "optionalDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "^4.57.1"
+    "@rollup/rollup-linux-x64-gnu": "^4.57.1",
+    "lightningcss-linux-x64-gnu": "*",
+    "@tailwindcss/oxide-linux-x64-gnu": "*"
   }
 }
