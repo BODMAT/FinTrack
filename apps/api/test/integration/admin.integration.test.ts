@@ -1,13 +1,43 @@
+import { jest } from "@jest/globals";
 import request from "supertest";
-import { app } from "../../src/app.js";
-import { generateAccessToken } from "../../src/modules/auth/controller.js";
-import * as adminService from "../../src/modules/admin/service.js";
-import * as authService from "../../src/modules/auth/service.js";
+
+import type { app as AppType } from "../../src/app.js";
+import type * as AdminServiceTypes from "../../src/modules/admin/service.js";
+import type * as AuthServiceTypes from "../../src/modules/auth/service.js";
+import type { generateAccessToken as GenerateAccessTokenType } from "../../src/modules/auth/controller.js";
+
+jest.unstable_mockModule("../../src/modules/auth/service.js", () => ({
+  findSessionById: jest.fn(),
+  findSessionByTokenHash: jest.fn(),
+  revokeSessionFamily: jest.fn(),
+  loginWithGoogle: jest.fn(),
+  createSession: jest.fn(),
+}));
+
+jest.unstable_mockModule("../../src/modules/admin/service.js", () => ({
+  getAdminStats: jest.fn(),
+  reportErrorLog: jest.fn(),
+  revokeUserSessions: jest.fn(),
+  revokeAllSessions: jest.fn(),
+}));
+
+let app: typeof AppType;
+let authService: typeof AuthServiceTypes;
+let adminService: typeof AdminServiceTypes;
+let generateAccessToken: typeof GenerateAccessTokenType;
+
+beforeAll(async () => {
+  ({ app } = await import("../../src/app.js"));
+  authService = await import("../../src/modules/auth/service.js");
+  adminService = await import("../../src/modules/admin/service.js");
+  ({ generateAccessToken } =
+    await import("../../src/modules/auth/controller.js"));
+});
 
 describe("Admin Integration", () => {
   beforeEach(() => {
-    jest.restoreAllMocks();
-    jest.spyOn(authService, "findSessionById").mockResolvedValue({
+    jest.resetAllMocks();
+    jest.mocked(authService.findSessionById).mockResolvedValue({
       sessionId: "e5af2f58-5f09-4c64-8e13-f5b9323248d0",
       userId: "1772f0ba-450d-4b81-bb7c-df6f0a7483c3",
       revokedAt: null,
@@ -31,7 +61,8 @@ describe("Admin Integration", () => {
       isVerified: true,
       sessionId: "86f97690-d689-4fd8-9bf9-5fbf9f4cce59",
     });
-    jest.spyOn(authService, "findSessionById").mockResolvedValue({
+
+    jest.mocked(authService.findSessionById).mockResolvedValue({
       sessionId: "86f97690-d689-4fd8-9bf9-5fbf9f4cce59",
       userId: "6e562f73-df6c-4ef0-b830-cdc5e4cd43ef",
       revokedAt: null,
@@ -56,7 +87,7 @@ describe("Admin Integration", () => {
       sessionId: "e5af2f58-5f09-4c64-8e13-f5b9323248d0",
     });
 
-    jest.spyOn(adminService, "getAdminStats").mockResolvedValue({
+    jest.mocked(adminService.getAdminStats).mockResolvedValue({
       users: { total: 10, admins: 1, verified: 8, newLast7Days: 3 },
       sessions: { active: 5 },
       errors: { open: 2 },
@@ -81,21 +112,20 @@ describe("Admin Integration", () => {
       isVerified: true,
       sessionId: "f2945050-c0f7-4a4b-a117-775370a2fed0",
     });
-    jest.spyOn(authService, "findSessionById").mockResolvedValue({
+
+    jest.mocked(authService.findSessionById).mockResolvedValue({
       sessionId: "f2945050-c0f7-4a4b-a117-775370a2fed0",
       userId,
       revokedAt: null,
       expiresAt: new Date(Date.now() + 60_000),
     });
 
-    const createSpy = jest
-      .spyOn(adminService, "reportErrorLog")
-      .mockResolvedValue({
-        id: "87eecaf5-00d5-46b4-9f55-51f0402bc201",
-        title: "Dashboard crash",
-        status: "OPEN",
-        createdAt: new Date("2026-04-08T15:00:00.000Z"),
-      } as Awaited<ReturnType<typeof adminService.reportErrorLog>>);
+    jest.mocked(adminService.reportErrorLog).mockResolvedValue({
+      id: "87eecaf5-00d5-46b4-9f55-51f0402bc201",
+      title: "Dashboard crash",
+      status: "OPEN",
+      createdAt: new Date("2026-04-08T15:00:00.000Z"),
+    } as Awaited<ReturnType<typeof adminService.reportErrorLog>>);
 
     const response = await request(app)
       .post("/api/admin/error-logs/report")
@@ -107,7 +137,7 @@ describe("Admin Integration", () => {
       });
 
     expect(response.status).toBe(201);
-    expect(createSpy).toHaveBeenCalledWith(
+    expect(adminService.reportErrorLog).toHaveBeenCalledWith(
       expect.objectContaining({
         userId,
         title: "Dashboard crash",
@@ -128,15 +158,15 @@ describe("Admin Integration", () => {
       sessionId: "2f06ee39-6fb3-483c-9a7c-20ef60eafbce",
     });
 
-    jest.spyOn(authService, "findSessionById").mockResolvedValue({
+    jest.mocked(authService.findSessionById).mockResolvedValue({
       sessionId: "2f06ee39-6fb3-483c-9a7c-20ef60eafbce",
       userId: adminId,
       revokedAt: null,
       expiresAt: new Date(Date.now() + 60_000),
     });
 
-    const revokeSpy = jest
-      .spyOn(adminService, "revokeUserSessions")
+    jest
+      .mocked(adminService.revokeUserSessions)
       .mockResolvedValue({ revokedCount: 3 });
 
     const response = await request(app)
@@ -145,7 +175,7 @@ describe("Admin Integration", () => {
 
     expect(response.status).toBe(200);
     expect(response.body.revokedCount).toBe(3);
-    expect(revokeSpy).toHaveBeenCalledWith(targetUserId);
+    expect(adminService.revokeUserSessions).toHaveBeenCalledWith(targetUserId);
   });
 
   it("revokes sessions for all users", async () => {
@@ -159,15 +189,15 @@ describe("Admin Integration", () => {
       sessionId: "6fba9450-ee14-4e5f-89f0-112d5a9883d0",
     });
 
-    jest.spyOn(authService, "findSessionById").mockResolvedValue({
+    jest.mocked(authService.findSessionById).mockResolvedValue({
       sessionId: "6fba9450-ee14-4e5f-89f0-112d5a9883d0",
       userId: adminId,
       revokedAt: null,
       expiresAt: new Date(Date.now() + 60_000),
     });
 
-    const revokeSpy = jest
-      .spyOn(adminService, "revokeAllSessions")
+    jest
+      .mocked(adminService.revokeAllSessions)
       .mockResolvedValue({ revokedCount: 7 });
 
     const response = await request(app)
@@ -176,6 +206,6 @@ describe("Admin Integration", () => {
 
     expect(response.status).toBe(200);
     expect(response.body.revokedCount).toBe(7);
-    expect(revokeSpy).toHaveBeenCalled();
+    expect(adminService.revokeAllSessions).toHaveBeenCalled();
   });
 });

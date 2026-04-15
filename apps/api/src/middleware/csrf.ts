@@ -23,6 +23,7 @@ export function csrfProtection(allowedOrigins: string[]) {
 
   return (req: Request, _res: Response, next: NextFunction) => {
     if (ENV.NODE_ENV !== "production") return next();
+    if (req.path === "/donations/webhook") return next();
     if (SAFE_METHODS.has(req.method)) return next();
 
     const requestOrigin = getRequestOrigin(req);

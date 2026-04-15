@@ -1,9 +1,38 @@
+import { jest } from "@jest/globals";
 import request from "supertest";
-import { app } from "../../src/app.js";
-import { AppError } from "../../src/middleware/errorHandler.js";
-import { generateAccessToken } from "../../src/modules/auth/controller.js";
-import * as authService from "../../src/modules/auth/service.js";
-import * as userService from "../../src/modules/user/service.js";
+
+import type { app as AppType } from "../../src/app.js";
+import type * as AuthServiceTypes from "../../src/modules/auth/service.js";
+import type * as UserServiceTypes from "../../src/modules/user/service.js";
+import type { AppError as AppErrorType } from "../../src/middleware/errorHandler.js";
+import type { generateAccessToken as GenerateAccessTokenType } from "../../src/modules/auth/controller.js";
+
+jest.unstable_mockModule("../../src/modules/auth/service.js", () => ({
+  findSessionById: jest.fn(),
+  findSessionByTokenHash: jest.fn(),
+  revokeSessionFamily: jest.fn(),
+  loginWithGoogle: jest.fn(),
+  createSession: jest.fn(),
+}));
+
+jest.unstable_mockModule("../../src/modules/user/service.js", () => ({
+  getUser: jest.fn(),
+}));
+
+let app: typeof AppType;
+let authService: typeof AuthServiceTypes;
+let userService: typeof UserServiceTypes;
+let generateAccessToken: typeof GenerateAccessTokenType;
+let AppError: typeof AppErrorType;
+
+beforeAll(async () => {
+  ({ app } = await import("../../src/app.js"));
+  authService = await import("../../src/modules/auth/service.js");
+  userService = await import("../../src/modules/user/service.js");
+  ({ generateAccessToken } =
+    await import("../../src/modules/auth/controller.js"));
+  ({ AppError } = await import("../../src/middleware/errorHandler.js"));
+});
 
 type UserStub = NonNullable<Awaited<ReturnType<typeof userService.getUser>>>;
 
@@ -13,6 +42,12 @@ const userStub: UserStub = {
   photo_url: null,
   isVerified: true,
   role: "USER",
+  aiAnalysisUsed: 0,
+  aiAnalysisLimit: 10,
+  donationStatus: "NONE",
+  donationGrantedAt: null,
+  donationExpiresAt: null,
+  stripeCustomerId: null,
   created_at: new Date(),
   updated_at: new Date(),
   authMethods: [
@@ -28,8 +63,8 @@ const userStub: UserStub = {
 
 describe("Auth Integration", () => {
   beforeEach(() => {
-    jest.restoreAllMocks();
-    jest.spyOn(authService, "findSessionById").mockResolvedValue({
+    jest.resetAllMocks();
+    jest.mocked(authService.findSessionById).mockResolvedValue({
       sessionId: "e6594ef2-7a59-4f7a-99f9-862758f624b2",
       userId: userStub.id,
       revokedAt: null,
@@ -67,12 +102,10 @@ describe("Auth Integration", () => {
       userId: userStub.id,
     };
 
-    const findSessionSpy = jest
-      .spyOn(authService, "findSessionByTokenHash")
+    jest
+      .mocked(authService.findSessionByTokenHash)
       .mockResolvedValue(revokedSession);
-    const revokeFamilySpy = jest
-      .spyOn(authService, "revokeSessionFamily")
-      .mockResolvedValue();
+    jest.mocked(authService.revokeSessionFamily).mockResolvedValue(undefined);
 
     const response = await request(app)
       .post("/api/auth/token")
@@ -80,8 +113,8 @@ describe("Auth Integration", () => {
 
     expect(response.status).toBe(401);
     expect(response.body.error).toBe("Refresh token reuse detected");
-    expect(findSessionSpy).toHaveBeenCalled();
-    expect(revokeFamilySpy).toHaveBeenCalledWith("fam-123");
+    expect(authService.findSessionByTokenHash).toHaveBeenCalled();
+    expect(authService.revokeSessionFamily).toHaveBeenCalledWith("fam-123");
   });
 
   it("returns 400 for /api/auth/google/exchange with invalid payload", async () => {
@@ -105,7 +138,7 @@ describe("Auth Integration", () => {
     } as Response);
 
     jest
-      .spyOn(authService, "loginWithGoogle")
+      .mocked(authService.loginWithGoogle)
       .mockRejectedValue(new AppError("Item already exists", 409));
 
     const response = await request(app)
@@ -128,8 +161,8 @@ describe("Auth Integration", () => {
       }),
     } as Response);
 
-    jest.spyOn(authService, "loginWithGoogle").mockResolvedValue(userStub);
-    jest.spyOn(authService, "createSession").mockResolvedValue({
+    jest.mocked(authService.loginWithGoogle).mockResolvedValue(userStub);
+    jest.mocked(authService.createSession).mockResolvedValue({
       sessionId: "e6594ef2-7a59-4f7a-99f9-862758f624b2",
       tokenHash: "hash",
       familyId: "fam-1",
@@ -150,6 +183,7 @@ describe("Auth Integration", () => {
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({ authenticated: true });
+
     const setCookieHeader = response.headers["set-cookie"];
     const cookies = Array.isArray(setCookieHeader)
       ? setCookieHeader
@@ -157,12 +191,12 @@ describe("Auth Integration", () => {
         ? [setCookieHeader]
         : [];
 
-    expect(
-      cookies.some((cookie) => cookie.includes("fintrack_access_token=")),
-    ).toBe(true);
-    expect(
-      cookies.some((cookie) => cookie.includes("fintrack_refresh_token=")),
-    ).toBe(true);
+    expect(cookies.some((c) => c.includes("fintrack_access_token="))).toBe(
+      true,
+    );
+    expect(cookies.some((c) => c.includes("fintrack_refresh_token="))).toBe(
+      true,
+    );
   });
 
   it("returns 200 for /api/users/me with valid access token cookie", async () => {
@@ -175,7 +209,7 @@ describe("Auth Integration", () => {
       sessionId: "e6594ef2-7a59-4f7a-99f9-862758f624b2",
     });
 
-    jest.spyOn(userService, "getUser").mockResolvedValue(userStub);
+    jest.mocked(userService.getUser).mockResolvedValue(userStub);
 
     const response = await request(app)
       .get("/api/users/me")

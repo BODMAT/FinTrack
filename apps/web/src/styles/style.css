@@ -81,3 +81,12 @@ h3 {
   overflow: hidden;
   height: 100vh;
 }
+
+@keyframes marqueeScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}

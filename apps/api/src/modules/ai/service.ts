@@ -2,10 +2,12 @@ import OpenAI from "openai";
 import { ENV } from "../../config/env.js";
 import { prisma } from "../../prisma/client.js";
 import { decryptApiKey } from "../../utils/crypto.js";
-import type { AiProvider } from "@prisma/client";
+import type { AiProvider, DonationStatus, UserRole } from "@prisma/client";
 import type { AiErrorCode } from "@fintrack/types";
+import { AppError } from "../../middleware/errorHandler.js";
 
 const CONTEXT_LIMIT = 20;
+const DEFAULT_ANALYSIS_LIMIT = 10;
 
 export const systemContent = `You are a personal finance assistant.
 CRITICAL: Detect the language of the user question below and reply ONLY in that exact language.
@@ -15,6 +17,19 @@ Format rules: plain text only, no markdown, no tables, no bold, no emojis, no bu
 
 type ServiceAiErrorCode = Exclude<AiErrorCode, "USING_DEFAULT_KEY">;
 
+export type AiAccessTier = "user" | "donor" | "admin";
+
+export interface AiAccessStatus {
+  role: UserRole;
+  tier: AiAccessTier;
+  donationStatus: DonationStatus;
+  donationExpiresAt: Date | null;
+  aiAnalysisUsed: number;
+  aiAnalysisLimit: number;
+  remainingAttempts: number | null;
+  isUnlimited: boolean;
+}
+
 export class AiServiceError extends Error {
   constructor(
     public readonly code: ServiceAiErrorCode,
@@ -23,6 +38,123 @@ export class AiServiceError extends Error {
     super(message);
     this.name = "AiServiceError";
   }
+}
+
+function isDonationActive(donationExpiresAt: Date | null): boolean {
+  if (!donationExpiresAt) return true;
+  return donationExpiresAt.getTime() > Date.now();
+}
+
+function buildAccessStatus(data: {
+  role: UserRole;
+  donationStatus: DonationStatus;
+  donationExpiresAt: Date | null;
+  aiAnalysisUsed: number;
+  aiAnalysisLimit: number;
+}): AiAccessStatus {
+  const normalizedLimit =
+    data.aiAnalysisLimit > 0 ? data.aiAnalysisLimit : DEFAULT_ANALYSIS_LIMIT;
+  const donorActive =
+    data.donationStatus === "ACTIVE" &&
+    isDonationActive(data.donationExpiresAt);
+  const isUnlimited = data.role === "ADMIN" || donorActive;
+
+  const tier: AiAccessTier =
+    data.role === "ADMIN" ? "admin" : donorActive ? "donor" : "user";
+  const remainingAttempts = isUnlimited
+    ? null
+    : Math.max(normalizedLimit - data.aiAnalysisUsed, 0);
+
+  return {
+    role: data.role,
+    tier,
+    donationStatus: donorActive ? "ACTIVE" : data.donationStatus,
+    donationExpiresAt: data.donationExpiresAt,
+    aiAnalysisUsed: data.aiAnalysisUsed,
+    aiAnalysisLimit: normalizedLimit,
+    remainingAttempts,
+    isUnlimited,
+  };
+}
+
+async function syncExpiredDonationIfNeeded(
+  userId: string,
+  accessStatus: AiAccessStatus,
+): Promise<AiAccessStatus> {
+  const hasExpiredDonation =
+    accessStatus.donationStatus === "ACTIVE" &&
+    accessStatus.donationExpiresAt &&
+    accessStatus.donationExpiresAt.getTime() <= Date.now();
+
+  if (!hasExpiredDonation) return accessStatus;
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      donationStatus: "EXPIRED",
+      donationExpiresAt: null,
+    },
+  });
+
+  return {
+    ...accessStatus,
+    tier: accessStatus.role === "ADMIN" ? "admin" : "user",
+    donationStatus: "EXPIRED",
+    donationExpiresAt: null,
+    isUnlimited: accessStatus.role === "ADMIN",
+    remainingAttempts:
+      accessStatus.role === "ADMIN"
+        ? null
+        : Math.max(
+            accessStatus.aiAnalysisLimit - accessStatus.aiAnalysisUsed,
+            0,
+          ),
+  };
+}
+
+export async function getAiAccessStatus(
+  userId: string,
+): Promise<AiAccessStatus> {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    select: {
+      role: true,
+      donationStatus: true,
+      donationExpiresAt: true,
+      aiAnalysisUsed: true,
+      aiAnalysisLimit: true,
+    },
+  });
+
+  if (!user) throw new AppError("User not found", 404);
+
+  const access = buildAccessStatus(user);
+  return await syncExpiredDonationIfNeeded(userId, access);
+}
+
+export async function ensureAiAccessOrThrow(
+  userId: string,
+): Promise<AiAccessStatus> {
+  const access = await getAiAccessStatus(userId);
+  if (!access.isUnlimited && (access.remainingAttempts ?? 0) <= 0) {
+    throw new AppError(
+      "AI analysis limit reached. Please make a donation to unlock unlimited access.",
+      403,
+    );
+  }
+  return access;
+}
+
+export async function incrementAiAnalysisUsage(
+  userId: string,
+  access: AiAccessStatus,
+) {
+  if (access.isUnlimited) return;
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: { aiAnalysisUsed: { increment: 1 } },
+  });
 }
 
 async function callGroq(

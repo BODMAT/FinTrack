@@ -11,5 +11,5 @@
     "noEmit": true,
     "rootDir": ".."
   },
-  "include": ["./**/*.ts", "../src/types/express.d.ts"]
+  "include": ["./**/*.ts", "../src/types/express.d.ts", "setup.cjs"]
 }

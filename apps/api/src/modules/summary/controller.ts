@@ -28,7 +28,10 @@ function convertToIData(
   return transactionsData.data.map((t) => ({
     ...t,
     amount: Number(t.amount),
-    currencyCode: t.currencyCode,
+    currencyCode:
+      t.currencyCode === "UAH" || t.currencyCode === "EUR"
+        ? t.currencyCode
+        : "USD",
     created_at: new Date(t.created_at),
     updated_at: new Date(t.updated_at),
     location: t.location || undefined,

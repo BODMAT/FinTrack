@@ -7,13 +7,8 @@ export const locationSchema = z.object({
 
 export const transactionSourceSchema = z.enum(["MANUAL", "MONOBANK"]);
 export const transactionTypeSchema = z.enum(["INCOME", "EXPENSE"]);
-export const transactionCurrencyCodeSchema = z.enum([
-  "USD",
-  "UAH",
-  "RUB",
-  "EUR",
-]);
-export const manualCurrencyCodeSchema = z.enum(["USD", "UAH", "RUB"]);
+export const transactionCurrencyCodeSchema = z.enum(["USD", "UAH", "EUR"]);
+export const manualCurrencyCodeSchema = z.enum(["USD", "UAH", "EUR"]);
 export const currencyCodeSchema = transactionCurrencyCodeSchema;
 
 export const createTransactionSchema = z.object({

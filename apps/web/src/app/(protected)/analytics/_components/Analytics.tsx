@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
 import { CustomMessage, NoData, Spinner } from "@/shared/ui/Helpers";
 import { motion } from "framer-motion";
@@ -10,9 +11,12 @@ import { useTransactionsAll } from "@/hooks/useTransactions";
 import { useUserApiKey } from "@/hooks/useUserApiKey";
 import { ApiKeyPopup } from "./ApiKeyPopup";
 import { AiErrorPopup } from "./AiErrorPopup";
+import { AiLimitPopup } from "./AiLimitPopup";
 import type { AIResponseWithDiff, AiErrorCode } from "@/types/ai";
 import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
 import { usePopupStore } from "@/store/popup";
+import { useAiAccess } from "@/hooks/useAiAccess";
+import type { ApiError } from "@/types/api";
 
 export function Analytics() {
   const { t } = useSafeTranslation();
@@ -23,6 +27,10 @@ export function Analytics() {
   const { user, isLoading } = useAuth();
   const { hasActiveKey } = useUserApiKey();
   const { open } = usePopupStore();
+  const { data: access } = useAiAccess();
+  const isLimitReached = access
+    ? !access.isUnlimited && (access.remainingAttempts ?? 0) <= 0
+    : false;
 
   const {
     data: transactionData,
@@ -79,6 +87,12 @@ export function Analytics() {
       });
       setPrompt("");
     } catch (err: unknown) {
+      const statusCode = (err as ApiError)?.code;
+      if (statusCode === 403) {
+        open("AI limit reached", <AiLimitPopup />);
+        return;
+      }
+
       const code = (err as { backendCode?: unknown; code?: unknown })
         ?.backendCode;
       const fallbackCode = (err as { code?: unknown })?.code;
@@ -96,6 +110,7 @@ export function Analytics() {
     handleOpenErrorPopup,
     hasActiveKey,
     hasShownDefaultKeyNotice,
+    open,
     prompt,
     transactionData,
   ]);
@@ -163,6 +178,46 @@ export function Analytics() {
             )}
           </button>
         </div>
+
+        <div className="mb-[20px] rounded-[12px] border border-(--stroke-soft) bg-(--color-input) p-[14px]">
+          {access?.isUnlimited ? (
+            <p className="text-[14px] font-semibold text-(--text-green)">
+              Unlimited AI analytics access is active.
+            </p>
+          ) : (
+            <div className="flex flex-wrap items-center justify-between gap-[10px]">
+              <p className="text-[14px] text-(--color-text)">
+                Remaining attempts:{" "}
+                <span className="font-semibold text-(--color-hover)">
+                  {access?.remainingAttempts ?? 0}
+                </span>{" "}
+                of {access?.aiAnalysisLimit ?? 10}
+              </p>
+              <Link
+                href="/donation"
+                className="rounded-[10px] border border-(--color-fixed-text) px-[12px] py-[7px] text-[13px] font-semibold text-(--color-text) transition-all hover:border-(--color-hover) hover:text-(--color-hover)"
+              >
+                Donation Stripe
+              </Link>
+            </div>
+          )}
+        </div>
+
+        {isLimitReached && (
+          <div className="mb-[18px] rounded-[12px] border border-(--text-red) bg-(--bg-red) p-[14px]">
+            <div className="flex flex-wrap items-center justify-between gap-[10px]">
+              <p className="text-[14px] font-semibold text-(--text-red)">
+                Free AI limit is exhausted. Donate to unlock unlimited access.
+              </p>
+              <Link
+                href="/donation"
+                className="rounded-[10px] border border-(--text-red) px-[12px] py-[7px] text-[13px] font-semibold text-(--text-red) transition-all hover:opacity-80"
+              >
+                Open Donation Stripe
+              </Link>
+            </div>
+          </div>
+        )}
 
         {isLoadingAI && (
           <div className="h-[120px] w-[120px] overflow-hidden flex justify-center items-center mx-auto">
@@ -240,7 +295,7 @@ export function Analytics() {
               <button
                 onClick={() => void handleAnalyze()}
                 type="button"
-                disabled={isLoadingAI || !prompt.trim()}
+                disabled={isLoadingAI || !prompt.trim() || isLimitReached}
                 className="w-full sm:w-auto sm:min-w-[120px] h-[48px] border border-[var(--color-fixed-text)] rounded-[10px] px-[16px]
                               text-[var(--color-text)] cursor-pointer transition-all
                               hover:bg-[var(--color-fixed-text)] hover:text-[var(--color-card)]

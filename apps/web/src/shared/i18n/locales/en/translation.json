@@ -4,7 +4,8 @@
     "analytics": "Analytics",
     "transactions": "Transactions",
     "monobank": "Monobank API",
-    "admin": "Admin Panel"
+    "admin": "Admin Panel",
+    "donation": "Donation Stripe"
   },
   "common": {
     "loading": "Loading...",
@@ -202,6 +203,40 @@
       "rolesBreakdown": "Roles breakdown",
       "verificationBreakdown": "Verification breakdown",
       "activity14d": "New users and errors (14 days)"
+    }
+  },
+  "donation": {
+    "notLoggedIn": "Please log in to open the Donation Stripe page.",
+    "pageTitle": "Donation Stripe",
+    "pageDescription": "Donations help us maintain FinTrack and unlock unlimited AI analytics for your account.",
+    "benefitsTitle": "What you get",
+    "benefit1": "Unlimited AI requests in Analytics.",
+    "benefit2": "Priority support of ongoing project development.",
+    "benefit3": "Fast activation after Stripe webhook confirmation.",
+    "donateButton": "Donate via Stripe",
+    "redirectingButton": "Redirecting to Stripe...",
+    "accessStatusTitle": "Access status",
+    "leaderboardTitle": "Top Donors",
+    "leaderboardSubtitle": "Live ranking by total donation amount.",
+    "leaderboardEmpty": "No donations yet. Be the first supporter.",
+    "totalDonated": "Total donated",
+    "currentTier": "Current tier",
+    "unlimitedActive": "Unlimited access is active.",
+    "remainingAttempts": "Remaining AI attempts: {{remaining}} of {{limit}}",
+    "faq": "FAQ: Access is activated by webhook event checkout.session.completed. If you closed the page, just reopen Analytics after a few seconds.",
+    "failedTitle": "Donation failed",
+    "failedPopupTitle": "Failed to create checkout session",
+    "failedPopupMessage": "Please try again in a few seconds.",
+    "successTitle": "Donation success",
+    "successPopupTitle": "Thank you for your support",
+    "successPopupMessage": "Payment was accepted. Unlimited AI analytics access will be activated after webhook confirmation.",
+    "canceledTitle": "Donation canceled",
+    "canceledPopupTitle": "Payment was canceled",
+    "canceledPopupMessage": "No charge was made. You can start donation again whenever you want.",
+    "tier": {
+      "admin": "Admin unlimited",
+      "donor": "Donor unlimited",
+      "user": "Free user plan"
     }
   }
 }

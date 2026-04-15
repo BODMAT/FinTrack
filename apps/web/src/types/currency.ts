@@ -14,5 +14,5 @@ export type CachedRatesPayload = {
 export const LANGUAGE_TO_CURRENCY = {
   en: "USD",
   uk: "UAH",
-  ru: "RUB",
+  de: "EUR",
 } as const;

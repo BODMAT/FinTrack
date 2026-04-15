@@ -18,9 +18,9 @@ import { useNumericValidator } from "@/hooks/useNumericValidator";
 import { useCurrentLocation } from "@/hooks/useCurrentLocation";
 import { useCurrency } from "@/hooks/useCurrency";
 
-function toManualCurrencyCode(currencyCode: string): "USD" | "UAH" | "RUB" {
+function toManualCurrencyCode(currencyCode: string): "USD" | "UAH" | "EUR" {
   if (currencyCode === "UAH") return "UAH";
-  if (currencyCode === "RUB") return "RUB";
+  if (currencyCode === "EUR") return "EUR";
   return "USD";
 }
 

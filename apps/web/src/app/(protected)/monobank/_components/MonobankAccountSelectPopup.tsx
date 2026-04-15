@@ -28,7 +28,6 @@ function numericToAlpha(code?: number) {
   if (code === 980) return "UAH";
   if (code === 840) return "USD";
   if (code === 978) return "EUR";
-  if (code === 643) return "RUB";
   return "USD";
 }
 

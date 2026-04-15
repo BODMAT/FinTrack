@@ -43,6 +43,10 @@ app.use(
   }),
 );
 app.use(cookieParser());
+app.use(
+  "/api/donations/webhook",
+  express.raw({ type: "application/json", limit: "256kb" }),
+);
 app.use(express.json({ limit: "32kb" }));
 app.use(express.urlencoded({ extended: true, limit: "32kb" }));
 app.use("/api", csrfProtection(allowedOrigins));

@@ -7,7 +7,7 @@
   "scripts": {
     "build": "rimraf dist && npx tsc",
     "start": "node dist/server.js",
-    "test": "jest --runInBand",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
     "test:watch": "jest --watch",
     "predev": "npm run build",
     "dev": "concurrently \"npx tsc -w\" \"nodemon --ext js,yml dist/server.js\"",
@@ -49,6 +49,7 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "openai": "^5.18.1",
+    "stripe": "^22.0.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "zod": "^4.1.3"
