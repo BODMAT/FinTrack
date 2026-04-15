@@ -17,6 +17,7 @@ export default defineConfig([
     "**/.turbo/**",
     "**/temp/**",
     "apps/api/dist/**",
+    "apps/api/prisma.config.ts",
     "apps/web/dist/**",
   ]),
 

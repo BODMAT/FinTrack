@@ -20,16 +20,23 @@ jobs:
         with:
           node-version: 20
           cache: 'npm'
+          cache-dependency-path: package-lock.json
+      
+      # Крок 3: Вимикаємо corepack щоб Next.js не намагався використати yarn замість npm
+      - name: Disable corepack
+        run: corepack disable
 
-      # Крок 3: Встановлюємо залежності з кореня проєкту
+      # Крок 4: Встановлюємо залежності з кореня проєкту
       - name: Install dependencies
         run: npm ci
 
-      # Крок 4: Створюємо білд для веб-додатку
+      # Крок 5: Створюємо білд для веб-додатку
       - name: Build the web app
         run: npx turbo run build --filter=fintrack-web
+        env:
+          COREPACK_ENABLE_STRICT: "0"
 
-      # Крок 5: Деплой на gh-pages
+      # Крок 6: Деплой на gh-pages
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
