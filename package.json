@@ -34,7 +34,8 @@
     "format:check": "prettier --check .",
     "lint": "eslint .",
     "check": "npm run format:check && npm run lint",
-    "check-types": "turbo run check-types"
+    "check-types": "turbo run check-types",
+    "test:api": "npm --prefix apps/api run test"
   },
   "dependencies": {
     "axios": "^1.15.0",
