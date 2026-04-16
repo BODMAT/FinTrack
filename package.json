@@ -47,7 +47,9 @@
     "dump:api": "bash scripts/codebase-dump.sh -d apps/api",
     "dump:web": "bash scripts/codebase-dump.sh -d apps/web",
     "dump:bot": "bash scripts/codebase-dump.sh -d apps/bot",
-    "dump:db": "bash scripts/db-dump.sh -e apps/api/.env"
+    "dump:db": "bash scripts/db-dump.sh -e apps/api/.env",
+    "restore:db": "bash scripts/db-restore.sh -e apps/api/.env",
+    "restore:db:reset": "bash scripts/db-restore.sh -e apps/api/.env --reset"
   },
   "dependencies": {
     "axios": "^1.15.0",
