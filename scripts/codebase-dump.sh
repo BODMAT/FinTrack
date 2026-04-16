@@ -2,14 +2,22 @@
 # ================================================================
 #  codebase-dump.sh — AI-ready full project codebase dump
 #  Respects .gitignore | skips lock-files | skips binaries
-#  Usage:  bash codebase-dump.sh                      (full project)
-#          bash codebase-dump.sh src/components       (subfolder, recursive)
-#          bash codebase-dump.sh . false              (root files only)
-#          bash codebase-dump.sh src/components false (subfolder, top-level only)
+#  Usage: bash codebase-dump.sh                                    (full project)
+#         bash codebase-dump.sh -d src/components                  (subfolder, recursive)
+#         bash codebase-dump.sh --no-recursive                     (root files only)
+#         bash codebase-dump.sh -d src/components --no-recursive   (subfolder, top-level only)
 # ================================================================
 
-TARGET_DIR="${1:-.}"
-RECURSIVE="${2:-true}"
+TARGET_DIR="."
+RECURSIVE="true"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -d|--dir)          TARGET_DIR="$2"; shift 2 ;;
+    -R|--no-recursive) RECURSIVE="false";  shift   ;;
+    *) echo "❌  Unknown argument: $1" >&2; exit 1 ;;
+  esac
+done
 
 DUMPS_DIR="dumps/codebase"
 mkdir -p "$DUMPS_DIR"
