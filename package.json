@@ -44,10 +44,10 @@
     "check-types": "turbo run check-types",
     "test:api": "npm --prefix apps/api run test",
     "dump": "bash scripts/codebase-dump.sh",
-    "dump:api": "bash scripts/codebase-dump.sh apps/api",
-    "dump:web": "bash scripts/codebase-dump.sh apps/web",
-    "dump:bot": "bash scripts/codebase-dump.sh apps/bot",
-    "dump:db": "bash scripts/db-dump.sh apps/api/.env"
+    "dump:api": "bash scripts/codebase-dump.sh -d apps/api",
+    "dump:web": "bash scripts/codebase-dump.sh -d apps/web",
+    "dump:bot": "bash scripts/codebase-dump.sh -d apps/bot",
+    "dump:db": "bash scripts/db-dump.sh -e apps/api/.env"
   },
   "dependencies": {
     "axios": "^1.15.0",
