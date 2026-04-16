@@ -22,6 +22,7 @@
     "packages/*"
   ],
   "scripts": {
+    "prepare": "husky",
     "setup": "turbo run build --filter=@fintrack/types",
     "dev": "npm run setup && turbo run dev",
     "dev:web": "turbo run dev --filter=fintrack-web",
@@ -44,10 +45,21 @@
     "check-types": "turbo run check-types",
     "test:api": "npm --prefix apps/api run test",
     "dump": "bash scripts/codebase-dump.sh",
-    "dump:api": "bash scripts/codebase-dump.sh apps/api",
-    "dump:web": "bash scripts/codebase-dump.sh apps/web",
-    "dump:bot": "bash scripts/codebase-dump.sh apps/bot",
-    "dump:db": "bash scripts/db-dump.sh apps/api/.env"
+    "dump:api": "bash scripts/codebase-dump.sh -d apps/api",
+    "dump:web": "bash scripts/codebase-dump.sh -d apps/web",
+    "dump:bot": "bash scripts/codebase-dump.sh -d apps/bot",
+    "dump:db": "bash scripts/db-dump.sh -e apps/api/.env",
+    "restore:db": "bash scripts/db-restore.sh -e apps/api/.env",
+    "restore:db:reset": "bash scripts/db-restore.sh -e apps/api/.env --reset"
+  },
+  "lint-staged": {
+    "**/*.{ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "**/*.{json,md,yml}": [
+      "prettier --write"
+    ]
   },
   "dependencies": {
     "axios": "^1.15.0",
@@ -60,6 +72,8 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "globals": "^17.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "prettier": "^3.6.2",
     "turbo": "^2.5.6",
     "typescript": "5.9.2",
@@ -74,7 +88,7 @@
   },
   "optionalDependencies": {
     "@rollup/rollup-linux-x64-gnu": "^4.57.1",
-    "lightningcss-linux-x64-gnu": "*",
-    "@tailwindcss/oxide-linux-x64-gnu": "*"
+    "@tailwindcss/oxide-linux-x64-gnu": "*",
+    "lightningcss-linux-x64-gnu": "*"
   }
 }

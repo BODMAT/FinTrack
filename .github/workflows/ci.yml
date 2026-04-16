@@ -53,8 +53,29 @@ jobs:
         run: npm run api:prisma:migrate:deploy
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/fintrack_test
-
+          
       - name: Run API tests
         run: npm --prefix apps/api run test
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/fintrack_test
+
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image (web)
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          push: false
+          build-args: |
+            NEXT_PUBLIC_API_URL=http://localhost:8000/api
+          tags: fintrack-web:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
