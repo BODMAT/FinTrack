@@ -44,6 +44,8 @@
     "tidy": "npm run fix && npm run check",
     "check-types": "turbo run check-types",
     "test:api": "npm --prefix apps/api run test",
+    "test:web": "npm --prefix apps/web run test",
+    "test": "npm run test:api && npm run test:web",
     "dump": "bash scripts/codebase-dump.sh",
     "dump:api": "bash scripts/codebase-dump.sh -d apps/api",
     "dump:web": "bash scripts/codebase-dump.sh -d apps/web",

@@ -1,0 +1,80 @@
+components:
+  schemas:
+    DonationCheckoutSession:
+      type: object
+      properties:
+        checkoutUrl:
+          type: string
+          format: uri
+        checkoutSessionId:
+          type: string
+
+    DonationLeaderboardItem:
+      type: object
+      properties:
+        userId:
+          type: string
+        name:
+          type: string
+        photoUrl:
+          type: [string, 'null']
+        totalAmountMinor:
+          type: integer
+        currency:
+          type: string
+
+paths:
+  /donations/checkout-session:
+    post:
+      tags: [Donation]
+      summary: Create Stripe checkout session for donation
+      parameters:
+        - in: header
+          name: x-idempotency-key
+          required: false
+          schema:
+            type: string
+      responses:
+        '201':
+          description: Checkout session created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DonationCheckoutSession'
+
+  /donations/leaderboard:
+    get:
+      tags: [Donation]
+      summary: Get donation leaderboard
+      responses:
+        '200':
+          description: Leaderboard items
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/DonationLeaderboardItem'
+
+  /donations/webhook:
+    post:
+      tags: [Donation]
+      summary: Stripe webhook endpoint
+      security: []
+      responses:
+        '200':
+          description: Webhook processed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  received:
+                    type: boolean
+                  duplicate:
+                    type: boolean
+        '400':
+          description: Invalid signature or payload

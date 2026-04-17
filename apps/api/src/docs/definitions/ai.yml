@@ -1,108 +1,105 @@
-# ==================================
-#         COMPONENTS — AI
-# ==================================
 components:
   schemas:
-    # --- Schemas for Request Bodies ---
     AIRequestInput:
       type: object
-      description: Input data for AI-powered transaction analysis or insight generation.
       properties:
         model:
           type: string
-          description: Optional model identifier to use for inference. Defaults to `llama-3.1-8b-instant`.
-          example: "llama-3.1-8b-instant"
         prompt:
           type: string
-          description: Instruction or question for the AI model.
-          example: "Analyze the following transaction history and summarize spending habits."
         data:
           type: object
-          description: Additional structured data (such as transactions) to provide context for the AI model.
-          example:
-            transactions:
-              - title: "Groceries"
-                amount: 54.20
-                type: "EXPENSE"
-              - title: "Salary"
-                amount: 1200.00
-                type: "INCOME"
-      required:
-        - prompt
-        - data
+      required: [prompt, data]
 
-    # --- Schemas for Responses ---
     AIResponse:
       type: object
-      description: AI model response containing analytical text or generated insight.
       properties:
         model:
           type: string
-          description: The model used to generate the response.
-          example: "llama-3.1-8b-instant"
         result:
           type: string
-          description: The AI-generated text result.
-          example: "You spent 40% of your income on food and transportation last month."
 
-    # --- Schemas for Errors ---
-    Error:
+    AIHistoryItem:
       type: object
-      description: Standard error response.
       properties:
-        error:
+        id:
           type: string
-          description: Error message.
-      example:
-        error: "Something went wrong"
+        prompt:
+          type: string
+        result:
+          type: string
+        created_at:
+          type: string
+          format: date-time
 
-# ==================================
-#         PATHS — AI
-# ==================================
+    AIAccess:
+      type: object
+      properties:
+        role:
+          type: string
+          enum: [USER, ADMIN]
+        tier:
+          type: string
+          enum: [user, donor, admin]
+        donationStatus:
+          type: string
+        donationExpiresAt:
+          type: [string, 'null']
+          format: date-time
+        aiAnalysisUsed:
+          type: integer
+        aiAnalysisLimit:
+          type: integer
+        remainingAttempts:
+          type: [integer, 'null']
+        isUnlimited:
+          type: boolean
+
 paths:
   /ai:
     post:
-      tags:
-        - AI
+      tags: [AI]
       summary: Analyze financial data with AI
-      description:
-        Sends structured transaction data and an instruction prompt to the AI model for automated insights or recommendations.
-        This endpoint requires authentication and may return text-based analysis.
       requestBody:
         required: true
-        description: Input data and analysis request for the AI model.
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/AIRequestInput"
+              $ref: '#/components/schemas/AIRequestInput'
       responses:
-        "200":
-          description: Successful AI-generated response.
+        '200':
+          description: AI response
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AIResponse"
-        "400":
-          description: Invalid input data or prompt.
+                $ref: '#/components/schemas/AIResponse'
+        '403':
+          description: AI limit reached
+        '503':
+          description: AI provider unavailable or key-related error
+
+  /ai/history:
+    get:
+      tags: [AI]
+      summary: Get AI prompts/results history for current user
+      responses:
+        '200':
+          description: History list
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-              example:
-                error: "Invalid input data or prompt"
-        "401":
-          description: Unauthorized (missing or invalid token).
+                type: array
+                items:
+                  $ref: '#/components/schemas/AIHistoryItem'
+
+  /ai/access:
+    get:
+      tags: [AI]
+      summary: Get current AI access tier and limits
+      responses:
+        '200':
+          description: Access status
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-              example:
-                error: "Unauthorized"
-        "500":
-          description: AI service unavailable or all Groq API keys failed.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-              example:
-                error: "AI service unavailable"
+                $ref: '#/components/schemas/AIAccess'

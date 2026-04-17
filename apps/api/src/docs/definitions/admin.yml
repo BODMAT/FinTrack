@@ -1,0 +1,85 @@
+paths:
+  /admin/error-logs/report:
+    post:
+      tags: [Admin]
+      summary: Report client/runtime error from authenticated user
+      responses:
+        '201':
+          description: Error report created
+
+  /admin/users:
+    get:
+      tags: [Admin]
+      summary: List users (admin only)
+      responses:
+        '200':
+          description: Users list
+
+  /admin/users/{userId}/role:
+    patch:
+      tags: [Admin]
+      summary: Update user role (admin only)
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User role updated
+
+  /admin/sessions/revoke-user/{userId}:
+    post:
+      tags: [Admin]
+      summary: Revoke active sessions for specific user (admin only)
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Revocation result
+
+  /admin/sessions/revoke-all:
+    post:
+      tags: [Admin]
+      summary: Revoke active sessions for all users (admin only)
+      responses:
+        '200':
+          description: Revocation result
+
+  /admin/stats:
+    get:
+      tags: [Admin]
+      summary: Get admin dashboard stats
+      responses:
+        '200':
+          description: Stats payload
+
+  /admin/error-logs:
+    get:
+      tags: [Admin]
+      summary: List error logs (admin only)
+      responses:
+        '200':
+          description: Error logs list
+
+  /admin/error-logs/{errorLogId}/resolve:
+    patch:
+      tags: [Admin]
+      summary: Mark error log resolved/unresolved (admin only)
+      parameters:
+        - in: path
+          name: errorLogId
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Updated error log status
