@@ -15,6 +15,30 @@ Ukrainian → Ukrainian. English → English. NEVER mention the language, NEVER 
 NEVER meta-comment. Just answer directly.
 Format rules: plain text only, no markdown, no tables, no bold, no emojis, no bullet points. 2–3 sentences max. Use exact numbers from the data.`;
 
+function truncateData(data: object, maxTokens = 1500): string {
+  const full = JSON.stringify(data);
+  const maxChars = maxTokens * 4;
+
+  if (full.length <= maxChars) return full;
+
+  if (Array.isArray(data)) {
+    const result = [];
+    let totalChars = 0;
+    for (const item of data) {
+      const itemStr = JSON.stringify(item);
+      if (totalChars + itemStr.length > maxChars) break;
+      result.push(item);
+      totalChars += itemStr.length;
+    }
+    return (
+      JSON.stringify(result) +
+      ` /* +${data.length - result.length} more items truncated */`
+    );
+  }
+
+  return full.slice(0, maxChars) + "... [truncated]";
+}
+
 type ServiceAiErrorCode = Exclude<AiErrorCode, "USING_DEFAULT_KEY">;
 
 export type AiAccessTier = "user" | "donor" | "admin";
@@ -197,7 +221,10 @@ async function callGroq(
     messages: [
       { role: "system", content: systemContent },
       ...contextMessages,
-      { role: "user", content: `${prompt}\n\nData:\n${JSON.stringify(data)}` },
+      {
+        role: "user",
+        content: `${prompt}\n\nData:\n${truncateData(data, 1500)}`,
+      },
     ],
   });
   return completion;
@@ -219,7 +246,10 @@ async function callGemini(
     messages: [
       { role: "system", content: systemContent },
       ...contextMessages,
-      { role: "user", content: `${prompt}\n\nData:\n${JSON.stringify(data)}` },
+      {
+        role: "user",
+        content: `${prompt}\n\nData:\n${truncateData(data, 4000)}`,
+      },
     ],
   });
   return completion;
@@ -263,21 +293,21 @@ export async function getAiResponse(
   data: object,
   model?: string,
 ) {
+  const activeUserKey = await prisma.userApiKey.findFirst({
+    where: { userId, isActive: true },
+    orderBy: { updatedAt: "desc" },
+  });
+
   const historyMessages = await prisma.message.findMany({
     where: { userId },
     orderBy: { created_at: "desc" },
-    take: CONTEXT_LIMIT,
+    take: activeUserKey?.provider === "GROQ" ? 6 : CONTEXT_LIMIT,
   });
   historyMessages.reverse();
   const contextMessages = historyMessages.map((msg) => ({
     role: msg.role as "user" | "assistant",
     content: msg.content,
   }));
-
-  const activeUserKey = await prisma.userApiKey.findFirst({
-    where: { userId, isActive: true },
-    orderBy: { updatedAt: "desc" },
-  });
 
   if (activeUserKey) {
     try {
@@ -320,29 +350,46 @@ export async function getAiResponse(
       await saveMessages(userId, prompt, content);
       return { model: completion.model, result: content };
     } catch (err: unknown) {
+      console.error("[AI] Provider error:", {
+        status: (err as { status?: number }).status,
+        code: (err as { code?: string }).code,
+        message: err instanceof Error ? err.message : String(err),
+        userId,
+      });
       const msg = err instanceof Error ? err.message : String(err);
       const status = (err as { status?: number }).status;
-      if (status === 429 || msg.includes("rate_limit")) {
+
+      const code = (err as { code?: string }).code;
+      if (
+        status === 429 ||
+        code === "rate_limit_exceeded" ||
+        msg.includes("rate_limit")
+      ) {
         throw new AiServiceError(
           "USER_KEY_LIMIT",
           "Your API key has reached its rate limit.",
         );
       }
-      if (
-        status === 400 ||
-        status === 401 ||
-        status === 403 ||
-        status === 404
-      ) {
+      if (status === 401 || status === 403) {
         throw new AiServiceError(
           "USER_KEY_INVALID",
-          "Your API key is invalid, unauthorized, or model access is unavailable.",
+          "Your API key is invalid or unauthorized.",
         );
       }
-      throw new AiServiceError(
-        "USER_KEY_INVALID",
-        "Your API key is invalid or expired.",
-      );
+      if (status === 404) {
+        throw new AiServiceError(
+          "USER_KEY_INVALID",
+          "Model not found. Check your selected model.",
+        );
+      }
+      if (status === 400) {
+        throw new AiServiceError(
+          "USER_KEY_INVALID",
+          "Bad request to AI provider.",
+        );
+      }
+      // Network / unknown — не кажемо "invalid key"
+      throw new AiServiceError("USER_KEY_INVALID", `AI provider error: ${msg}`);
     }
   }
 
