@@ -6,6 +6,9 @@ import { LoginPopup } from "./LoginPopup";
 import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
 import { queryClient } from "@/api/queryClient";
 import { useRouter } from "next/navigation";
+import { RegisterPopupForm } from "./RegisterPopupForm";
+import { RegisterPopupActions } from "./RegisterPopupActions";
+import { createInitialUserLocalInfo } from "@/utils/register";
 
 export function RegisterPopup() {
   const { t } = useSafeTranslation();
@@ -19,21 +22,9 @@ export function RegisterPopup() {
 
   const [registerSuccess, setRegisterSuccess] = useState(false);
   const [passwordValidationError, setPasswordValidationError] = useState("");
-  const [userLocalInfo, setUserLocalInfo] = useState<User>({
-    name: "",
-    photo_url: null,
-    authMethods: [
-      {
-        type: "EMAIL",
-        email: "",
-        password: "",
-      },
-      {
-        type: "TELEGRAM",
-        telegram_id: "",
-      },
-    ],
-  });
+  const [userLocalInfo, setUserLocalInfo] = useState<User>(
+    createInitialUserLocalInfo(),
+  );
 
   const handleLogout = async () => {
     try {
@@ -124,21 +115,7 @@ export function RegisterPopup() {
       router.refresh();
       close();
 
-      setUserLocalInfo({
-        name: "",
-        photo_url: null,
-        authMethods: [
-          {
-            type: "EMAIL",
-            email: "",
-            password: "",
-          },
-          {
-            type: "TELEGRAM",
-            telegram_id: "",
-          },
-        ],
-      });
+      setUserLocalInfo(createInitialUserLocalInfo());
     } catch {
       setRegisterSuccess(false);
     } finally {
@@ -156,100 +133,11 @@ export function RegisterPopup() {
         }}
         className="flex flex-col gap-[20px] w-full"
       >
-        <input
-          required
-          value={userLocalInfo.name}
-          type="text"
-          placeholder={t("auth.name")}
-          onChange={(e) =>
-            setUserLocalInfo({
-              ...userLocalInfo,
-              name: e.target.value,
-            })
-          }
-          className="custom-input"
+        <RegisterPopupForm
+          userLocalInfo={userLocalInfo}
+          setUserLocalInfo={setUserLocalInfo}
+          isRegistering={isRegistering}
         />
-        <input
-          type="url"
-          value={userLocalInfo.photo_url || ""}
-          placeholder={t("auth.photoUrlOptional")}
-          onChange={(e) =>
-            setUserLocalInfo({
-              ...userLocalInfo,
-              photo_url: e.target.value,
-            })
-          }
-          className="custom-input"
-        />
-        <span className="h-[2px] w-full bg-(--color-background) rounded" />
-        <div className="flex justify-between gap-[20px] text-center flex-col">
-          <input
-            required
-            type="email"
-            placeholder={t("auth.email")}
-            value={
-              userLocalInfo.authMethods.find((m) => m.type === "EMAIL")
-                ?.email || ""
-            }
-            onChange={(e) => {
-              const newValue = e.target.value;
-              setUserLocalInfo((prev) => ({
-                ...prev,
-                authMethods: prev.authMethods.map((method) =>
-                  method.type === "EMAIL"
-                    ? { ...method, email: newValue }
-                    : method,
-                ),
-              }));
-            }}
-            className="custom-input"
-          />
-          <input
-            required
-            minLength={8}
-            type="password"
-            placeholder={t("auth.password")}
-            value={
-              userLocalInfo.authMethods.find((m) => m.type === "EMAIL")
-                ?.password || ""
-            }
-            onChange={(e) => {
-              const newValue = e.target.value;
-              setUserLocalInfo((prev) => ({
-                ...prev,
-                authMethods: prev.authMethods.map((method) =>
-                  method.type === "EMAIL"
-                    ? { ...method, password: newValue }
-                    : method,
-                ),
-              }));
-            }}
-            className="custom-input"
-          />
-          <input
-            type="text"
-            placeholder={t("auth.telegramOptional")}
-            value={
-              userLocalInfo.authMethods.find((m) => m.type === "TELEGRAM")
-                ?.telegram_id || ""
-            }
-            onChange={(e) => {
-              const newValue = e.target.value;
-              setUserLocalInfo((prev) => ({
-                ...prev,
-                authMethods: prev.authMethods.map((method) =>
-                  method.type === "TELEGRAM"
-                    ? { ...method, telegram_id: newValue }
-                    : method,
-                ),
-              }));
-            }}
-            className="custom-input"
-          />
-          <button type="submit" disabled={isRegistering} className="custom-btn">
-            {t("auth.registerNewAccount")}
-          </button>
-        </div>
 
         <div className="">
           {passwordValidationError && (
@@ -265,25 +153,17 @@ export function RegisterPopup() {
         </div>
         <span className="h-[2px] w-full bg-(--color-background) rounded" />
       </form>
-      <div className="w-full flex gap-[20px] justify-space-between">
-        {user && (
-          <>
-            <button onClick={handleLogout} className="custom-btn">
-              {t("auth.logout")}
-            </button>
-            <button
-              onClick={handleLogoutAll}
-              disabled={isLoggingOutAll}
-              className="custom-btn"
-            >
-              {t("auth.logoutAllSessions")}
-            </button>
-          </>
-        )}
-        <button onClick={handleOpenLoginPopup} className="custom-btn">
-          {t("auth.loginTitle")}
-        </button>
-      </div>
+      <RegisterPopupActions
+        user={user}
+        isLoggingOutAll={isLoggingOutAll}
+        onLogout={() => {
+          void handleLogout();
+        }}
+        onLogoutAll={() => {
+          void handleLogoutAll();
+        }}
+        onOpenLoginPopup={handleOpenLoginPopup}
+      />
       {logoutAllError && <span className="text-red-500">{logoutAllError}</span>}
     </section>
   );

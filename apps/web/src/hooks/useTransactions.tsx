@@ -52,16 +52,18 @@ export const useTransactionsInfinite = ({
 interface UseTransactionsAllProps {
   userId?: string;
   source?: TransactionSource;
+  enabled?: boolean;
 }
 
 export const useTransactionsAll = ({
   userId,
   source,
+  enabled = true,
 }: UseTransactionsAllProps) => {
   return useQuery({
     queryKey: ["transactions", "all", userId, source],
     queryFn: ({ signal }) => getTransactions({ source }, signal),
-    enabled: !!userId,
+    enabled: !!userId && enabled,
     staleTime: 1000 * 60 * 5,
   });
 };

@@ -3,13 +3,13 @@ WORKDIR /app
 
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
+ENV HUSKY=0
 
 COPY package.json package-lock.json turbo.json ./
 COPY apps/web/package.json apps/web/package.json
 COPY packages/types/package.json packages/types/package.json
 
 RUN npm ci --include=dev --install-strategy=nested
-RUN npm ci --workspace fintrack-web --include=dev --install-strategy=nested
 
 FROM base AS builder
 ENV NEXT_TELEMETRY_DISABLED=1

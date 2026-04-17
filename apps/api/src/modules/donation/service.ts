@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { Prisma } from "@prisma/client";
+import type { DonationLeaderboardItem } from "@fintrack/types";
 import { ENV } from "../../config/env.js";
 import { prisma } from "../../prisma/client.js";
 import { AppError } from "../../middleware/errorHandler.js";
@@ -178,14 +179,6 @@ export async function createDonationCheckoutSession(
     checkoutUrl: checkoutSession.url,
     checkoutSessionId: checkoutSession.id,
   };
-}
-
-export interface DonationLeaderboardItem {
-  userId: string;
-  name: string;
-  photoUrl: string | null;
-  totalAmountMinor: number;
-  currency: string;
 }
 
 export async function getDonationLeaderboard(

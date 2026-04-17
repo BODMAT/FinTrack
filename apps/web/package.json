@@ -49,6 +49,9 @@
     "typescript-eslint": "^8.35.1"
   },
   "optionalDependencies": {
-    "lightningcss-linux-x64-gnu": "*"
+    "lightningcss-linux-x64-gnu": "*",
+    "lightningcss-linux-x64-musl": "*",
+    "@tailwindcss/oxide-linux-x64-gnu": "*",
+    "@tailwindcss/oxide-linux-x64-musl": "*"
   }
 }

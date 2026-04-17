@@ -29,7 +29,12 @@ export function Transactions() {
   const flatInfiniteData =
     infiniteTransactions?.pages.flatMap((page) => page.data) ?? [];
 
-  const { data: allTransactions } = useTransactionsAll({ userId: user?.id });
+  const isSearchMode = debouncedSearchQuery.trim().length > 0;
+
+  const { data: allTransactions } = useTransactionsAll({
+    userId: user?.id,
+    enabled: isSearchMode,
+  });
 
   const cursorRef = useIntersection(() => {
     if (hasNextPage && !isFetchingNextPage) {
@@ -69,7 +74,7 @@ export function Transactions() {
       </div>
       <div className="flex flex-col gap-[16px]">
         {/* input empty - data from infinity */}
-        {user?.id && !debouncedSearchQuery && (
+        {user?.id && !isSearchMode && (
           <>
             {flatInfiniteData.map((item: ResponseTransaction) => (
               <TransactionsCard key={item.id} data={item} />
@@ -90,7 +95,7 @@ export function Transactions() {
         )}
 
         {/* has input - data from all (filtered) */}
-        {debouncedSearchQuery && (
+        {isSearchMode && (
           <>
             {filteredData && filteredData.data.length > 0 ? (
               filteredData.data.map((item) => (
