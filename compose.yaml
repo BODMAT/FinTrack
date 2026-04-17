@@ -1,0 +1,106 @@
+services:
+
+  # ── PostgreSQL ─────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: fintrack
+      POSTGRES_PASSWORD: fintrack
+      POSTGRES_DB: fintrack
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      # Expose to the host so you can connect with pgAdmin desktop or
+      # the pgadmin service below: localhost:5432
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U fintrack -d fintrack" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── pgAdmin ────────────────────────────────────────────────────────────────
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@fintrack.local
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      # Open http://localhost:5050 in a browser to access pgAdmin
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ── API ────────────────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    env_file:
+      # Copy apps/api/.env.docker.example → apps/api/.env.docker and fill in
+      # your values before running docker compose up.
+      - apps/api/.env.docker
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Run migrations automatically on every startup, then start the server.
+    command: >
+      sh -c "node node_modules/.bin/prisma migrate deploy --schema
+      prisma/schema.prisma && node dist/server.js"
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -qO- http://localhost:8000/api/health || exit 1" ]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ── Telegram bot ───────────────────────────────────────────────────────────
+  bot:
+    build:
+      context: .
+      dockerfile: apps/bot/Dockerfile
+    restart: unless-stopped
+    env_file:
+      # Copy apps/bot/.env.example → apps/bot/.env.docker and set BOT_API_KEY
+      - apps/bot/.env.docker
+    depends_on:
+      api:
+        condition: service_healthy
+
+  # ── Next.js web ────────────────────────────────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        # Nginx forwards /api/* → api:8000, so the browser always calls its
+        # own origin (/api/…) and never needs the internal service address.
+        NEXT_PUBLIC_API_URL: /api
+    restart: unless-stopped
+    env_file:
+      - apps/web/.env.docker
+    depends_on:
+      api:
+        condition: service_healthy
+
+  # ── Nginx reverse proxy ────────────────────────────────────────────────────
+  nginx:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - web
+      - api
+
+volumes:
+  postgres_data:
+  pgadmin_data:
