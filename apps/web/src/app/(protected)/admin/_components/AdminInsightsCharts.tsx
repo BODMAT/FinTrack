@@ -11,10 +11,10 @@ import {
   Tooltip,
   type ChartData,
 } from "chart.js";
-import { Bar, Doughnut } from "react-chartjs-2";
 import { useMemo } from "react";
 import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
 import type { AdminErrorLog, AdminUser } from "@fintrack/types";
+import { AdminBarCard, AdminDoughnutCard } from "./AdminChartCard";
 
 ChartJS.register(
   CategoryScale,
@@ -156,89 +156,18 @@ export function AdminInsightsCharts({
         </p>
       ) : (
         <div className="mt-[14px] grid grid-cols-2 gap-[16px] max-[1200px]:grid-cols-1">
-          <div className="rounded-[12px] border border-(--stroke-soft) p-[12px]">
-            <p className="mb-[10px] text-[13px] font-semibold text-(--color-fixed-text)">
-              {t("admin.charts.rolesBreakdown")}
-            </p>
-            <div className="h-[240px] max-[1100px]:h-[220px]">
-              <Doughnut
-                data={roleChart}
-                options={{
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
-                      labels: {
-                        color: "#94a3b8",
-                      },
-                    },
-                  },
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="rounded-[12px] border border-(--stroke-soft) p-[12px]">
-            <p className="mb-[10px] text-[13px] font-semibold text-(--color-fixed-text)">
-              {t("admin.charts.verificationBreakdown")}
-            </p>
-            <div className="h-[240px] max-[1100px]:h-[220px]">
-              <Doughnut
-                data={verificationChart}
-                options={{
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
-                      labels: {
-                        color: "#94a3b8",
-                      },
-                    },
-                  },
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="col-span-2 rounded-[12px] border border-(--stroke-soft) p-[12px] max-[1200px]:col-span-1">
-            <p className="mb-[10px] text-[13px] font-semibold text-(--color-fixed-text)">
-              {t("admin.charts.activity14d")}
-            </p>
-            <div className="h-[300px] max-[1100px]:h-[260px]">
-              <Bar
-                data={activityBar}
-                options={{
-                  maintainAspectRatio: false,
-                  plugins: {
-                    legend: {
-                      labels: {
-                        color: "#94a3b8",
-                      },
-                    },
-                  },
-                  scales: {
-                    x: {
-                      ticks: {
-                        color: "#94a3b8",
-                        maxRotation: 0,
-                        autoSkip: true,
-                      },
-                      grid: {
-                        color: "rgba(148, 163, 184, 0.15)",
-                      },
-                    },
-                    y: {
-                      ticks: {
-                        color: "#94a3b8",
-                        precision: 0,
-                      },
-                      grid: {
-                        color: "rgba(148, 163, 184, 0.12)",
-                      },
-                    },
-                  },
-                }}
-              />
-            </div>
-          </div>
+          <AdminDoughnutCard
+            title={t("admin.charts.rolesBreakdown")}
+            data={roleChart}
+          />
+          <AdminDoughnutCard
+            title={t("admin.charts.verificationBreakdown")}
+            data={verificationChart}
+          />
+          <AdminBarCard
+            title={t("admin.charts.activity14d")}
+            data={activityBar}
+          />
         </div>
       )}
     </section>

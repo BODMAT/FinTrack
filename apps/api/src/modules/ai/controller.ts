@@ -1,8 +1,8 @@
 import type { Request, Response, NextFunction } from "express";
 import { AppError } from "../../middleware/errorHandler.js";
-import { prisma } from "../../prisma/client.js";
 import {
   getAiResponse,
+  getAIHistory as getAIHistoryFromService,
   AiServiceError,
   ensureAiAccessOrThrow,
   getAiAccessStatus,
@@ -19,27 +19,8 @@ export async function getAIHistory(
     if (!userId)
       throw new AppError("Unauthorized: User not found in request", 401);
 
-    const messages = await prisma.message.findMany({
-      where: { userId },
-      orderBy: { created_at: "asc" },
-    });
-
-    const paired = [];
-    for (let i = 0; i < messages.length; i++) {
-      const currentMsg = messages[i];
-      if (currentMsg && currentMsg.role === "user") {
-        const nextMsg = messages[i + 1];
-        paired.push({
-          id: currentMsg.id,
-          prompt: currentMsg.content,
-          result: nextMsg?.role === "assistant" ? nextMsg.content : "",
-          created_at: currentMsg.created_at,
-        });
-        if (nextMsg?.role === "assistant") i++;
-      }
-    }
-
-    return res.json(paired.reverse());
+    const history = await getAIHistoryFromService(userId);
+    return res.json(history);
   } catch (err) {
     next(err);
   }

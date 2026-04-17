@@ -157,6 +157,30 @@ export async function incrementAiAnalysisUsage(
   });
 }
 
+export async function getAIHistory(userId: string) {
+  const messages = await prisma.message.findMany({
+    where: { userId },
+    orderBy: { created_at: "asc" },
+  });
+
+  const paired = [];
+  for (let i = 0; i < messages.length; i++) {
+    const currentMsg = messages[i];
+    if (currentMsg && currentMsg.role === "user") {
+      const nextMsg = messages[i + 1];
+      paired.push({
+        id: currentMsg.id,
+        prompt: currentMsg.content,
+        result: nextMsg?.role === "assistant" ? nextMsg.content : "",
+        created_at: currentMsg.created_at,
+      });
+      if (nextMsg?.role === "assistant") i++;
+    }
+  }
+
+  return paired.reverse();
+}
+
 async function callGroq(
   apiKey: string,
   modelToUse: string,
