@@ -48,6 +48,18 @@ const options: swaggerJsdoc.Options = {
         name: "AI",
         description: "Integration with artificial intelligence for analysis",
       },
+      {
+        name: "User API Keys",
+        description: "Manage per-user AI provider API keys",
+      },
+      {
+        name: "Donation",
+        description: "Donation checkout, webhook and leaderboard",
+      },
+      {
+        name: "Admin",
+        description: "Administration and runtime error management",
+      },
     ],
     components: {
       securitySchemes: {

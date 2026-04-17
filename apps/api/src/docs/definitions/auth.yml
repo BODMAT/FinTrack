@@ -1,188 +1,131 @@
-# ==================================
-#         COMPONENTS — AUTH
-# ==================================
 components:
   schemas:
-    # --- Schemas for Request Bodies ---
-    LoginInput:
+    AuthLoginInput:
       type: object
-      description: User credentials for login via email and password.
       properties:
         email:
           type: string
-          description: Email address of the user.
           format: email
         password:
           type: string
-          description: User's password (minimum 8 characters).
           format: password
-          writeOnly: true
-          minLength: 8
-      required:
-        - email
-        - password
-      example:
-        email: "ivan@gmail.com"
-        password: "password1234"
+      required: [email, password]
 
-    RefreshTokenInput:
+    AuthGoogleExchangeInput:
       type: object
-      description: Request body containing a valid refresh token.
       properties:
-        token:
+        idToken:
           type: string
-          description: Refresh token used to obtain a new access token.
-      required:
-        - token
-      example:
-        token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      required: [idToken]
 
-    LogoutInput:
+    AuthAuthenticatedResponse:
       type: object
-      description: Request body containing a refresh token to invalidate.
       properties:
-        token:
-          type: string
-          description: Refresh token to be revoked.
-      required:
-        - token
-      example:
-        token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        authenticated:
+          type: boolean
+          example: true
 
-    # --- Schemas for Responses ---
-    Tokens:
+    AuthError:
       type: object
-      description: Pair of access and refresh tokens returned after login.
-      properties:
-        accessToken:
-          type: string
-          description: Access token (valid for 30 minutes).
-        refreshToken:
-          type: string
-          description: Refresh token (valid for 7 days).
-      example:
-        accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-        refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-
-    AccessToken:
-      type: object
-      description: A new access token obtained via refresh token.
-      properties:
-        accessToken:
-          type: string
-          description: A new access token (valid for 30 minutes).
-      example:
-        accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-
-    # --- Schemas for Errors ---
-    Error:
-      type: object
-      description: Standard error response.
       properties:
         error:
           type: string
-          description: Error message.
-      example:
-        error: "Something went wrong"
 
-# ==================================
-#         PATHS — AUTH
-# ==================================
 paths:
   /auth/login:
     post:
-      tags:
-        - Auth
-      summary: Log in using email and password
-      description: Authenticates a user and returns access and refresh tokens.
-        This endpoint is **public** and does not require authentication.
-      security: [] # Public endpoint
+      tags: [Auth]
+      summary: Log in with email and password
+      security: []
       requestBody:
         required: true
-        description: Email and password credentials for login.
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LoginInput"
+              $ref: '#/components/schemas/AuthLoginInput'
       responses:
-        "200":
-          description: Login successful — tokens returned.
+        '200':
+          description: Authenticated and cookies set
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Tokens"
-        "400":
-          description: Invalid credentials or validation error.
+                $ref: '#/components/schemas/AuthAuthenticatedResponse'
+        '401':
+          description: Invalid credentials
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-              example:
-                error: "Invalid credentials"
-        "404":
-          description: User with specified email not found.
+                $ref: '#/components/schemas/AuthError'
+
+  /auth/google/exchange:
+    post:
+      tags: [Auth]
+      summary: Exchange Google ID token for backend session
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthGoogleExchangeInput'
+      responses:
+        '200':
+          description: Authenticated and cookies set
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Error"
-              example:
-                error: "Not found"
+                $ref: '#/components/schemas/AuthAuthenticatedResponse'
+        '400':
+          description: Invalid payload
 
   /auth/token:
     post:
-      tags:
-        - Auth
-      summary: Refresh access token
-      description: Accepts a valid refresh token and returns a new access token.
-        This endpoint is **public** and does not require authentication.
+      tags: [Auth]
+      summary: Rotate refresh token and issue a fresh session
       security: []
       requestBody:
-        required: true
-        description: Refresh token payload.
+        required: false
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/RefreshTokenInput"
+              type: object
+              properties:
+                token:
+                  type: string
       responses:
-        "200":
-          description: Access token refreshed successfully.
+        '200':
+          description: Session rotated
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/AccessToken"
-        "401":
-          description: Invalid or expired refresh token.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-              example:
-                error: "Invalid or expired refresh token"
+                $ref: '#/components/schemas/AuthAuthenticatedResponse'
+        '401':
+          description: Invalid, expired or reused refresh token
 
   /auth/logout:
     delete:
-      tags:
-        - Auth
-      summary: Log out user and invalidate refresh token
-      description:
-        Removes the specified refresh token from the database, logging out the user.
-        This endpoint is **public** and does not require authentication.
+      tags: [Auth]
+      summary: Logout current refresh session
       security: []
       requestBody:
-        required: true
-        description: The refresh token to revoke.
+        required: false
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/LogoutInput"
+              type: object
+              properties:
+                token:
+                  type: string
       responses:
-        "204":
-          description: Logout successful (no content).
-        "401":
-          description: Invalid or missing refresh token.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-              example:
-                error: "Invalid or missing refresh token"
+        '204':
+          description: Logged out
+
+  /auth/logout-all:
+    post:
+      tags: [Auth]
+      summary: Logout from all sessions of current user
+      responses:
+        '204':
+          description: All sessions revoked
+        '401':
+          description: Unauthorized

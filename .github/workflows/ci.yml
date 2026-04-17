@@ -58,3 +58,8 @@ jobs:
         run: npm --prefix apps/api run test
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/fintrack_test
+
+      - name: Run Web tests
+        run: npm --prefix apps/web run test
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8000/api

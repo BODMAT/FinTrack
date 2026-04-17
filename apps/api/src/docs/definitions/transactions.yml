@@ -283,8 +283,6 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-              example:
-                message: "Unauthorized"
 
   /transactions/{id}:
     get:
@@ -320,24 +318,20 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Error"
-              example:
-                message: "Transaction not found"
 
     patch:
       tags:
         - Transaction
       summary: Update a transaction
-      description: Updates title, type, amount, or location of an existing transaction.
+      description: Updates title, type, amount, currency or location.
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: string
-          description: UUID of the transaction to update.
       requestBody:
         required: true
-        description: Transaction data to update.
         content:
           application/json:
             schema:
@@ -351,57 +345,101 @@ paths:
                 $ref: "#/components/schemas/Transaction"
         "400":
           description: Invalid request body.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-              example:
-                message: "Invalid request body"
         "401":
           description: Unauthorized.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-              example:
-                message: "Unauthorized"
         "404":
           description: Transaction not found.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-              example:
-                message: "Transaction not found"
 
     delete:
       tags:
         - Transaction
       summary: Delete a transaction
-      description: Permanently deletes a transaction by its ID.
       parameters:
         - in: path
           name: id
           required: true
           schema:
             type: string
-          description: UUID of the transaction to delete.
+
+  /transactions/monobank/accounts:
+    post:
+      tags:
+        - Transaction
+      summary: Fetch Monobank accounts by token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+              required: [token]
       responses:
-        "204":
-          description: Transaction deleted successfully.
+        "200":
+          description: Monobank accounts loaded
         "401":
-          description: Unauthorized.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-              example:
-                message: "Unauthorized"
-        "404":
-          description: Transaction not found.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Error"
-              example:
-                message: "Transaction not found"
+          description: Unauthorized or invalid Monobank token
+        "429":
+          description: Cooldown/rate limit reached
+
+  /transactions/monobank/fetch:
+    post:
+      tags:
+        - Transaction
+      summary: Fetch Monobank statement preview
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                accountId:
+                  type: string
+                accountCurrencyCode:
+                  type: integer
+                from:
+                  type: integer
+                to:
+                  type: integer
+              required: [token]
+      responses:
+        "200":
+          description: Statement preview returned
+        "400":
+          description: Invalid time range or payload
+        "429":
+          description: Cooldown/rate limit reached
+
+  /transactions/monobank/import:
+    post:
+      tags:
+        - Transaction
+      summary: Import Monobank transactions into storage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                transactions:
+                  type: array
+                  items:
+                    type: object
+      responses:
+        "200":
+          description: Import stats
+
+  /transactions/monobank:
+    delete:
+      tags:
+        - Transaction
+      summary: Delete all imported Monobank transactions for current user
+      responses:
+        "200":
+          description: Delete stats

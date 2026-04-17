@@ -1,0 +1,101 @@
+components:
+  schemas:
+    UserApiKeyInput:
+      type: object
+      properties:
+        provider:
+          type: string
+          enum: [GROQ, GEMINI]
+        apiKey:
+          type: string
+      required: [provider, apiKey]
+
+    UserApiKey:
+      type: object
+      properties:
+        id:
+          type: string
+        provider:
+          type: string
+          enum: [GROQ, GEMINI]
+        isActive:
+          type: boolean
+        maskedKey:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+paths:
+  /user-api-keys:
+    get:
+      tags: [User API Keys]
+      summary: List current user API keys
+      responses:
+        '200':
+          description: Keys list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserApiKey'
+
+    put:
+      tags: [User API Keys]
+      summary: Create or update a provider key
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserApiKeyInput'
+      responses:
+        '200':
+          description: Upserted key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserApiKey'
+
+  /user-api-keys/{provider}:
+    delete:
+      tags: [User API Keys]
+      summary: Delete provider key
+      parameters:
+        - in: path
+          name: provider
+          required: true
+          schema:
+            type: string
+            enum: [GROQ, GEMINI]
+      responses:
+        '204':
+          description: Deleted
+
+  /user-api-keys/{provider}/toggle:
+    patch:
+      tags: [User API Keys]
+      summary: Toggle provider key active state
+      parameters:
+        - in: path
+          name: provider
+          required: true
+          schema:
+            type: string
+            enum: [GROQ, GEMINI]
+      responses:
+        '200':
+          description: Updated state
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  isActive:
+                    type: boolean
+                  provider:
+                    type: string
