@@ -1,0 +1,256 @@
+#!/usr/bin/env bash
+# ================================================================
+#  dx — Docker eXecutioner CLI
+#  Works with any Docker Compose project.
+#
+#  First time:
+#    sh dx setup                             # copy .env.example files to .env
+#
+#  Daily dev:
+#    sh dx dev                               # start all containers
+#    sh dx logs api                          # watch API logs
+#    sh dx logs web                          # watch Next.js logs
+#    sh dx shell api                         # shell into API container
+#    sh dx shell postgres psql -U user       # open psql session
+#    sh dx run api:prisma:migrate:dev        # run a Prisma migration
+#    sh dx run api:prisma:generate           # regenerate Prisma client
+#    sh dx shell api npm run prisma:studio   # open Prisma Studio
+#    sh dx run test                          # run all tests
+#    sh dx run test:api                      # run API tests
+#    sh dx run check-types                   # run TS type checks
+#    sh dx run lint                          # lint the whole monorepo
+#    sh dx restart api                       # restart API after .env change
+#    sh dx down                              # stop and remove containers
+#
+#  Deploy (prod):
+#    sh dx pbuild                            # build all images
+#    sh dx prod                              # start prod stack
+#    sh dx plogs api                         # tail prod API logs
+#    sh dx pshell api                        # shell into prod API
+#    sh dx pshell postgres psql -U user      # psql into prod database
+#    sh dx prestart api                      # restart prod API after deploy
+#    sh dx ps                                # check container health
+#
+#  Docker commands run on the HOST.
+#  Everything else is proxied through the RUNNER container via npm.
+#  Run  sh dx help  for the full command reference.
+# ================================================================
+
+set -euo pipefail
+
+# ── Configuration (override via env vars) ────────────────────────
+DEV_COMPOSE="${DX_DEV_COMPOSE:-compose.dev.yaml}"
+PROD_COMPOSE="${DX_PROD_COMPOSE:-compose.yaml}"
+RUNNER_SERVICE="${DX_RUNNER:-runner}"
+RUNNER_PROFILE="${DX_RUNNER_PROFILE:-tools}"
+
+# ── Helpers ───────────────────────────────────────────────────────
+log()  { printf '\033[0;36m▸\033[0m %s\n' "$*"; }
+warn() { printf '\033[0;33m⚠\033[0m  %s\n' "$*" >&2; }
+die()  { printf '\033[0;31m✖\033[0m  %s\n' "$*" >&2; exit 1; }
+
+confirm() {
+  local msg="${1:-Are you sure?}"
+  printf "\033[0;33m⚠\033[0m %s [y/N] " "$msg"
+  read -r response
+  case "$response" in
+    [yY][eE][sS]|[yY]) return 0 ;;
+    *) log "Action cancelled."; exit 0 ;;
+  esac
+}
+
+require_cmd() {
+  command -v "$1" &>/dev/null || die "'$1' is not installed or not in PATH."
+}
+
+require_file() {
+  [[ -f "$1" ]] || die "File not found: $1"
+}
+
+dev_compose()  { require_file "$DEV_COMPOSE";  docker compose -f "$DEV_COMPOSE"  "$@"; }
+prod_compose() { require_file "$PROD_COMPOSE"; docker compose -f "$PROD_COMPOSE" "$@"; }
+
+runner() {
+  require_file "$DEV_COMPOSE"
+  docker compose \
+    -f "$DEV_COMPOSE" \
+    --profile "$RUNNER_PROFILE" \
+    run --rm "$RUNNER_SERVICE" "$@"
+}
+
+# shell_into <compose_fn> <prod?> <svc> [cmd...]
+# Tries exec first; falls back to run --rm for stopped dev containers.
+shell_into() {
+  local compose_fn="$1"
+  local is_prod="$2"
+  local svc="$3"
+  shift 3
+
+  if [[ $# -ge 1 ]]; then
+    # Explicit command — exec it directly.
+    "$compose_fn" exec "$svc" "$@"
+  elif "$compose_fn" exec "$svc" sh -c 'exit 0' 2>/dev/null; then
+    "$compose_fn" exec "$svc" sh
+  elif [[ "$is_prod" == "true" ]]; then
+    die "Container '$svc' is not running. Start it first with: sh dx prod"
+  else
+    warn "Container '$svc' is not running — starting a one-off instance instead."
+    "$compose_fn" run --rm "$svc" sh
+  fi
+}
+
+CMD="${1:-help}"
+shift || true
+
+# ── Commands ─────────────────────────────────────────────────────
+case "$CMD" in
+
+  # ── Help ────────────────────────────────────────────────────────
+  help|-h|--help)
+    cat <<'EOF'
+dx — Docker eXecutioner CLI
+
+  Commands target dev by default. Prefix any lifecycle or shell
+  command with [p] to run it against the production stack instead.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ENVIRONMENT OVERRIDES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  DX_DEV_COMPOSE      Dev compose file       (default: compose.dev.yaml)
+  DX_PROD_COMPOSE     Prod compose file      (default: compose.yaml)
+  DX_RUNNER           Runner service name    (default: runner)
+  DX_RUNNER_PROFILE   Runner profile name    (default: tools)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SETUP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  setup
+    Copy all *.example env files to their real counterparts.
+    Run once after cloning, then edit the generated files.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  LIFECYCLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [p]dev [args]            Start all containers in detached mode.
+  [p]stop [svc]            Stop running containers (keeps volumes).
+  [p]down [args]           Stop and remove containers.
+  [p]downv [args]          Stop and remove containers + volumes.
+  [p]restart [svc]         Restart one or all services.
+  [p]build [args]          Build images.
+  [p]rebuild [args]        Build images without cache.
+  [p]logs [svc]            Follow log output (Ctrl-C to stop).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  PROCESS STATUS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ps                       List containers with status and health.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SHELL & EXEC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  [p]shell <svc> [cmd...]  Open an interactive sh or run a command.
+                           Falls back to run --rm if not running (dev only).
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  RUNNER  (proxied through the runner container)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  run <script> [args]      npm run <script> at monorepo root.
+  exec <cmd> [args]        Run any arbitrary command in the runner.
+  sh                       Open an interactive shell in the runner.
+EOF
+    ;;
+
+  # ── First-time setup ────────────────────────────────────────────
+  setup)
+    log "Copying .env example files..."
+    count=0
+    while IFS= read -r -d '' example; do
+      target="${example%.example}"
+      if [[ "$target" == "$example" ]]; then continue; fi
+      if [[ -f "$target" ]]; then
+        warn "Skipping (already exists): $target"
+      else
+        cp "$example" "$target"
+        log "Created: $target"
+        count=$((count + 1))
+      fi
+    done < <(find . \
+      \( -path "*/node_modules" -o -path "*/.git" -o -path "*/.next" \) \
+      -prune -o \
+      -name "*.example" -print0)
+    log "Done. Created $count file(s). Review your .env files before starting."
+    ;;
+
+  # ── Dev lifecycle ───────────────────────────────────────────────
+  dev)       require_cmd docker; dev_compose up -d "$@" ;;
+  stop)      require_cmd docker; dev_compose stop "$@" ;;
+  down)      require_cmd docker; dev_compose down "$@" ;;
+  downv)     
+    require_cmd docker
+    confirm "This will REMOVE containers and VOLUMES (data loss). Continue?"
+    dev_compose down -v "$@" 
+    ;;
+  restart)   require_cmd docker; dev_compose restart "$@" ;;
+  build)     require_cmd docker; dev_compose build "$@" ;;
+  rebuild)   require_cmd docker; dev_compose build --no-cache "$@" ;;
+  logs)      require_cmd docker; dev_compose logs -f "$@" ;;
+  shell)
+    require_cmd docker
+    [[ $# -ge 1 ]] || die "Usage: sh dx shell <service> [command...]"
+    svc="$1"; shift
+    shell_into dev_compose false "$svc" "$@"
+    ;;
+
+  # ── Prod lifecycle ──────────────────────────────────────────────
+  prod)      require_cmd docker; prod_compose up -d "$@" ;;
+  pstop)     require_cmd docker; prod_compose stop "$@" ;;
+  pdown)     
+    require_cmd docker
+    confirm "Stop production service and remove containers? (Downtime)"
+    prod_compose down "$@" 
+    ;;
+  pdownv)    
+    require_cmd docker
+    confirm "EXTREME DANGER: Remove production containers AND VOLUMES? Continue?"
+    prod_compose down -v "$@" 
+    ;;
+  prestart)  require_cmd docker; prod_compose restart "$@" ;;
+  pbuild)    require_cmd docker; prod_compose build "$@" ;;
+  prebuild)  require_cmd docker; prod_compose build --no-cache "$@" ;;
+  plogs)     require_cmd docker; prod_compose logs -f "$@" ;;
+  pshell)
+    require_cmd docker
+    [[ $# -ge 1 ]] || die "Usage: sh dx pshell <service> [command...]"
+    svc="$1"; shift
+    shell_into prod_compose true "$svc" "$@"
+    ;;
+
+  # ── Process status ──────────────────────────────────────────────────────
+  ps)    require_cmd docker; docker compose ps -a "$@" ;;
+
+  # ── Runner ──────────────────────────────────────────────────────
+  run)
+    require_cmd docker
+    [[ $# -ge 1 ]] || die "Usage: sh dx run <npm-script> [args...]"
+    runner npm run "$@"
+    ;;
+
+  exec)
+    require_cmd docker
+    [[ $# -ge 1 ]] || die "Usage: sh dx exec <cmd> [args...]"
+    runner "$@"
+    ;;
+
+  sh)
+    require_cmd docker
+    runner sh
+    ;;
+
+  # ── Unknown ─────────────────────────────────────────────────────
+  *)
+    warn "Unknown command: '$CMD'"
+    printf 'Run  sh dx help  to see available commands.\n'
+    exit 1
+    ;;
+
+esac

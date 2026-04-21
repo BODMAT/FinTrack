@@ -1,0 +1,14 @@
+FROM node:22-alpine
+
+# Install essential tools for scripts:
+# - bash: for running .sh scripts
+# - git: for codebase-dump.sh
+# - postgresql-client: for db-dump.sh (pg_dump/psql)
+# - perl: for codebase-dump.sh binary check
+# - docker-cli: This allows the container to talk to the host's Docker
+RUN apk add --no-cache bash git postgresql-client perl docker-cli
+
+WORKDIR /app
+
+# Default to bash for interactive sessions
+CMD ["bash"]

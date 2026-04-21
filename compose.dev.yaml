@@ -1,0 +1,147 @@
+services:
+
+  # ── PostgreSQL ─────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: fintrack
+      POSTGRES_PASSWORD: fintrack
+      POSTGRES_DB: fintrack
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U fintrack -d fintrack" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── pgAdmin ────────────────────────────────────────────────────────────────
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@fintrack.dev
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ── Init (Dependency Installation & Preparation) ───────────────────────────
+  init:
+    image: node:22-alpine
+    working_dir: /app
+    volumes:
+      - .:/app
+      - root_node_modules:/app/node_modules
+      - api_node_modules:/app/apps/api/node_modules
+      - bot_node_modules:/app/apps/bot/node_modules
+      - web_node_modules:/app/apps/web/node_modules
+      - types_node_modules:/app/packages/types/node_modules
+    # npm install is used instead of ci to benefit from caching in named volumes.
+    command: sh -c "npm install && npm --prefix packages/types run build && npm
+      --prefix apps/api run prisma:generate"
+
+  # ── API ────────────────────────────────────────────────────────────────────
+  api:
+    image: node:22-alpine
+    working_dir: /app/apps/api
+    volumes:
+      - .:/app
+      - root_node_modules:/app/node_modules
+      - api_node_modules:/app/apps/api/node_modules
+      - types_node_modules:/app/packages/types/node_modules
+    ports:
+      - "8000:8000"
+      - "5555:5555" # Expose Prisma Studio port
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - apps/api/.env.docker
+    # Apply any pending migrations before starting the dev server.
+    # `migrate deploy` is safe to run repeatedly — it only applies new migrations.
+    command: sh -c "npm run prisma:migrate:deploy && npm run dev"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      init:
+        condition: service_completed_successfully
+
+  # ── Runner (CLI Tooling) ───────────────────────────────────────────────────
+  # Utility service for one-off commands (lint, test, seed, scripts).
+  # Use: docker compose -f compose.dev.yaml run --rm runner <command>
+  runner:
+    build:
+      context: .
+      dockerfile: scripts/Dockerfile.runner
+    working_dir: /app
+    profiles: [ "tools" ] # Prevent starting automatically with 'up'
+    volumes:
+      - .:/app
+      - root_node_modules:/app/node_modules
+      - api_node_modules:/app/apps/api/node_modules
+      - bot_node_modules:/app/apps/bot/node_modules
+      - web_node_modules:/app/apps/web/node_modules
+      - types_node_modules:/app/packages/types/node_modules
+    env_file:
+      - apps/api/.env.docker
+    # Interactive shell by default
+    command: bash
+
+  # ── Telegram bot ───────────────────────────────────────────────────────────
+  bot:
+    image: node:22-alpine
+    working_dir: /app/apps/bot
+    volumes:
+      - .:/app
+      - root_node_modules:/app/node_modules
+      - bot_node_modules:/app/apps/bot/node_modules
+      - types_node_modules:/app/packages/types/node_modules
+    environment:
+      - NODE_ENV=development
+    env_file:
+      - apps/bot/.env.docker
+    command: npm run dev
+    depends_on:
+      init:
+        condition: service_completed_successfully
+      api:
+        condition: service_started
+
+  # ── Next.js web ────────────────────────────────────────────────────────────
+  web:
+    image: node:22-alpine
+    working_dir: /app/apps/web
+    volumes:
+      - .:/app
+      - root_node_modules:/app/node_modules
+      - web_node_modules:/app/apps/web/node_modules
+      - types_node_modules:/app/packages/types/node_modules
+      - web_next:/app/apps/web/.next
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api
+    env_file:
+      - apps/web/.env.docker
+    command: npm run dev
+    depends_on:
+      init:
+        condition: service_completed_successfully
+      api:
+        condition: service_started
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+  root_node_modules:
+  api_node_modules:
+  bot_node_modules:
+  web_node_modules:
+  types_node_modules:
+  web_next:

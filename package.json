@@ -24,6 +24,7 @@
   "scripts": {
     "prepare": "husky",
     "setup": "turbo run build --filter=@fintrack/types",
+    "prod:shell:db": "docker compose -f compose.yaml exec postgres psql -U fintrack",
     "dev": "npm run setup && turbo run dev",
     "dev:web": "turbo run dev --filter=fintrack-web",
     "dev:api": "turbo run dev --filter=fintrack-api",

@@ -49,6 +49,7 @@ export const ENV = {
   ENABLE_SWAGGER_IN_PROD: process.env.ENABLE_SWAGGER_IN_PROD === "true",
   HOST: process.env.HOST ?? "localhost",
   PORT: process.env.PORT ? Number(process.env.PORT) : 8000,
+  SWAGGER_SERVER_URL: process.env.SWAGGER_SERVER_URL,
   CORS_ORIGINS: process.env.CORS_ORIGINS ?? "",
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? "",
   DATABASE_URL: process.env.DATABASE_URL as string,

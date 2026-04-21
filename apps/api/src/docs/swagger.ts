@@ -12,6 +12,8 @@ const { version } = JSON.parse(
   fs.readFileSync(path.resolve("./package.json"), "utf-8"),
 );
 
+const isDev = fs.existsSync(path.resolve("./src"));
+
 const options: swaggerJsdoc.Options = {
   definition: {
     openapi: "3.1.0",
@@ -23,7 +25,7 @@ const options: swaggerJsdoc.Options = {
     },
     servers: [
       {
-        url: `http://${HOST}:${PORT}/api`,
+        url: ENV.SWAGGER_SERVER_URL ?? `http://${HOST}:${PORT}/api`,
         description: "FinTrack REST API",
       },
     ],
@@ -76,7 +78,12 @@ const options: swaggerJsdoc.Options = {
       },
     ],
   },
-  apis: ["./src/docs/definitions/**/*.yml", "./src/modules/**/*.ts"],
+  apis: [
+    isDev
+      ? "./src/docs/definitions/**/*.yml"
+      : "./dist/docs/definitions/**/*.yml",
+    isDev ? "./src/modules/**/*.ts" : "./dist/modules/**/*.js",
+  ],
 };
 
 const swaggerSpec = swaggerJsdoc(options);

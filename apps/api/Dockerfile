@@ -26,6 +26,7 @@ COPY packages/types ./packages/types
 COPY apps/api       ./apps/api
 
 RUN npm --prefix packages/types run build
+RUN npm --prefix apps/api run prisma:generate
 RUN npm --prefix apps/api run build
 
 # ── runner ────────────────────────────────────────────────────────────────────
@@ -36,21 +37,32 @@ ENV NODE_ENV=production
 
 RUN addgroup -g 1001 -S nodejs && adduser -S apiuser -u 1001
 
-# Runtime dependencies only
-COPY --from=deps /app/apps/api/node_modules  ./node_modules
+# All root node_modules (contains effect, fast-check, pure-rand, etc. for prisma CLI)
+COPY --from=builder /app/node_modules ./node_modules
+
+# Floor — api-specific node_modules
+COPY --from=deps /app/apps/api/node_modules ./node_modules
+
+# Generated Prisma Client
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+
+# FIX: copy the compiled @fintrack/types as a regular package
+COPY --from=builder /app/packages/types/dist     ./node_modules/@fintrack/types/dist
+COPY --from=builder /app/packages/types/package.json ./node_modules/@fintrack/types/package.json
 
 # Built output
-COPY --from=builder /app/apps/api/dist       ./dist
+COPY --from=builder /app/apps/api/dist  ./dist
 
-# Prisma client + schema (needed at runtime for migrations and client generation)
-COPY --from=builder /app/apps/api/prisma     ./prisma
-COPY --from=builder /app/apps/api/node_modules/.prisma ./node_modules/.prisma
-COPY --from=builder /app/apps/api/node_modules/@prisma ./node_modules/@prisma
+# Copy Swagger definitions
+COPY --from=builder /app/apps/api/src/docs/definitions ./dist/docs/definitions
 
-# package.json is needed by Prisma CLI
+# Prisma schema
+COPY --from=builder /app/apps/api/prisma ./prisma
+
+# package.json needed by Prisma CLI
 COPY --from=builder /app/apps/api/package.json ./package.json
 
 USER apiuser
 EXPOSE 8000
 
-CMD ["node", "dist/server.js"]
+CMD ["npm", "run", "start:prod"]

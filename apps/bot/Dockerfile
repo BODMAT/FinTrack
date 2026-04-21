@@ -36,7 +36,12 @@ ENV NODE_ENV=production
 
 RUN addgroup -g 1001 -S nodejs && adduser -S botuser -u 1001
 
+# Root node_modules (includes dotenv and other lifting depots)
+COPY --from=deps /app/node_modules ./node_modules
+
+# Floor — bot-specific node_modules
 COPY --from=deps /app/apps/bot/node_modules ./node_modules
+
 COPY --from=builder /app/apps/bot/dist      ./dist
 COPY --from=builder /app/apps/bot/package.json ./package.json
 
