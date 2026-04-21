@@ -1,0 +1,105 @@
+name: Release — Build & Push Docker Images
+
+on:
+  push:
+    branches: [ master, main ]
+
+jobs:
+  build-and-push:
+    name: Build & Push to GHCR
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # ── API ─────────────────────────────────────────────────────────────────
+      - name: Build and push API
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/api/Dockerfile
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: |
+            ghcr.io/${{ github.repository }}-api:latest
+            ghcr.io/${{ github.repository }}-api:${{ github.sha }}
+
+      - name: Scan API image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/${{ github.repository }}-api:${{ github.sha }}
+          format: sarif
+          output: trivy-api.sarif
+          severity: CRITICAL,HIGH
+          exit-code: "0"
+
+      # ── Web ─────────────────────────────────────────────────────────────────
+      - name: Build and push Web
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/web/Dockerfile
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NEXT_PUBLIC_API_URL=/api
+          tags: |
+            ghcr.io/${{ github.repository }}-web:latest
+            ghcr.io/${{ github.repository }}-web:${{ github.sha }}
+
+      - name: Scan Web image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/${{ github.repository }}-web:${{ github.sha }}
+          format: sarif
+          output: trivy-web.sarif
+          severity: CRITICAL,HIGH
+          exit-code: "0"
+
+      # ── Bot ─────────────────────────────────────────────────────────────────
+      - name: Build and push Bot
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/bot/Dockerfile
+          push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          tags: |
+            ghcr.io/${{ github.repository }}-bot:latest
+            ghcr.io/${{ github.repository }}-bot:${{ github.sha }}
+
+      - name: Scan Bot image
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/${{ github.repository }}-bot:${{ github.sha }}
+          format: sarif
+          output: trivy-bot.sarif
+          severity: CRITICAL,HIGH
+          exit-code: "0"
+
+      # ── Upload scan results ─────────────────────────────────────────────────
+      - name: Upload Trivy results to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: |
+            trivy-api.sarif
+            trivy-web.sarif
+            trivy-bot.sarif
