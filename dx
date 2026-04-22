@@ -4,36 +4,36 @@
 #  Works with any Docker Compose project.
 #
 #  First time:
-#    sh dx setup                             # copy .env.example files to .env
+#    bash dx setup                             # copy .env.example files to .env
 #
 #  Daily dev:
-#    sh dx dev                               # start all containers
-#    sh dx logs api                          # watch API logs
-#    sh dx logs web                          # watch Next.js logs
-#    sh dx shell api                         # shell into API container
-#    sh dx shell postgres psql -U user       # open psql session
-#    sh dx run api:prisma:migrate:dev        # run a Prisma migration
-#    sh dx run api:prisma:generate           # regenerate Prisma client
-#    sh dx shell api npm run prisma:studio   # open Prisma Studio
-#    sh dx run test                          # run all tests
-#    sh dx run test:api                      # run API tests
-#    sh dx run check-types                   # run TS type checks
-#    sh dx run lint                          # lint the whole monorepo
-#    sh dx restart api                       # restart API after .env change
-#    sh dx down                              # stop and remove containers
+#    bash dx dev                               # start all containers
+#    bash dx logs api                          # watch API logs
+#    bash dx logs web                          # watch Next.js logs
+#    bash dx shell api                         # shell into API container
+#    bash dx shell postgres psql -U user       # open psql session
+#    bash dx run api:prisma:migrate:dev        # run a Prisma migration
+#    bash dx run api:prisma:generate           # regenerate Prisma client
+#    bash dx shell api npm run prisma:studio   # open Prisma Studio
+#    bash dx run test                          # run all tests
+#    bash dx run test:api                      # run API tests
+#    bash dx run check-types                   # run TS type checks
+#    bash dx run lint                          # lint the whole monorepo
+#    bash dx restart api                       # restart API after .env change
+#    bash dx down                              # stop and remove containers
 #
 #  Deploy (prod):
-#    sh dx pbuild                            # build all images
-#    sh dx prod                              # start prod stack
-#    sh dx plogs api                         # tail prod API logs
-#    sh dx pshell api                        # shell into prod API
-#    sh dx pshell postgres psql -U user      # psql into prod database
-#    sh dx prestart api                      # restart prod API after deploy
-#    sh dx ps                                # check container health
+#    bash dx pbuild                            # build all images
+#    bash dx prod                              # start prod stack
+#    bash dx plogs api                         # tail prod API logs
+#    bash dx pshell api                        # shell into prod API
+#    bash dx pshell postgres psql -U user      # psql into prod database
+#    bash dx prestart api                      # restart prod API after deploy
+#    bash dx ps                                # check container health
 #
 #  Docker commands run on the HOST.
 #  Everything else is proxied through the RUNNER container via npm.
-#  Run  sh dx help  for the full command reference.
+#  Run  bash dx help  for the full command reference.
 # ================================================================
 
 set -euo pipefail
@@ -92,7 +92,7 @@ shell_into() {
   elif "$compose_fn" exec "$svc" sh -c 'exit 0' 2>/dev/null; then
     "$compose_fn" exec "$svc" sh
   elif [[ "$is_prod" == "true" ]]; then
-    die "Container '$svc' is not running. Start it first with: sh dx prod"
+    die "Container '$svc' is not running. Start it first with: bash dx prod"
   else
     warn "Container '$svc' is not running — starting a one-off instance instead."
     "$compose_fn" run --rm "$svc" sh
@@ -196,7 +196,7 @@ EOF
   logs)      require_cmd docker; dev_compose logs -f "$@" ;;
   shell)
     require_cmd docker
-    [[ $# -ge 1 ]] || die "Usage: sh dx shell <service> [command...]"
+    [[ $# -ge 1 ]] || die "Usage: bash dx shell <service> [command...]"
     svc="$1"; shift
     shell_into dev_compose false "$svc" "$@"
     ;;
@@ -220,7 +220,7 @@ EOF
   plogs)     require_cmd docker; prod_compose logs -f "$@" ;;
   pshell)
     require_cmd docker
-    [[ $# -ge 1 ]] || die "Usage: sh dx pshell <service> [command...]"
+    [[ $# -ge 1 ]] || die "Usage: bash dx pshell <service> [command...]"
     svc="$1"; shift
     shell_into prod_compose true "$svc" "$@"
     ;;
@@ -231,13 +231,13 @@ EOF
   # ── Runner ──────────────────────────────────────────────────────
   run)
     require_cmd docker
-    [[ $# -ge 1 ]] || die "Usage: sh dx run <npm-script> [args...]"
+    [[ $# -ge 1 ]] || die "Usage: bash dx run <npm-script> [args...]"
     runner npm run "$@"
     ;;
 
   exec)
     require_cmd docker
-    [[ $# -ge 1 ]] || die "Usage: sh dx exec <cmd> [args...]"
+    [[ $# -ge 1 ]] || die "Usage: bash dx exec <cmd> [args...]"
     runner "$@"
     ;;
 
@@ -249,7 +249,7 @@ EOF
   # ── Unknown ─────────────────────────────────────────────────────
   *)
     warn "Unknown command: '$CMD'"
-    printf 'Run  sh dx help  to see available commands.\n'
+    printf 'Run  bash dx help  to see available commands.\n'
     exit 1
     ;;
 

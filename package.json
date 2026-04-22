@@ -52,8 +52,11 @@
     "dump:web": "bash scripts/codebase-dump.sh -d apps/web",
     "dump:bot": "bash scripts/codebase-dump.sh -d apps/bot",
     "dump:db": "bash scripts/db-dump.sh -e apps/api/.env",
+    "dump:db:docker": "bash scripts/db-dump.sh -e apps/api/.env.docker",
     "restore:db": "bash scripts/db-restore.sh -e apps/api/.env",
-    "restore:db:reset": "bash scripts/db-restore.sh -e apps/api/.env --reset"
+    "restore:db:docker": "bash scripts/db-restore.sh -e apps/api/.env.docker",
+    "restore:db:reset": "bash scripts/db-restore.sh -e apps/api/.env --reset",
+    "restore:db:reset:docker": "bash scripts/db-restore.sh -e apps/api/.env.docker --reset"
   },
   "lint-staged": {
     "**/*.{ts,tsx}": [

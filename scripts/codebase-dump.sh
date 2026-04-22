@@ -2,11 +2,15 @@
 # ================================================================
 #  codebase-dump.sh — AI-ready full project codebase dump
 #  Respects .gitignore | skips lock-files | skips binaries
-#  Usage: bash codebase-dump.sh                                    (full project)
-#         bash codebase-dump.sh -d src/components                  (subfolder, recursive)
-#         bash codebase-dump.sh --no-recursive                     (root files only)
-#         bash codebase-dump.sh -d src/components --no-recursive   (subfolder, top-level only)
+#
+#  Usage: 
+#    bash codebase-dump.sh                                    (full project)
+#    bash codebase-dump.sh -d src/components                  (subfolder, recursive)
+#    bash codebase-dump.sh --no-recursive                     (root files only)
+#    bash codebase-dump.sh -d src/components --no-recursive   (subfolder, top-level only)
 # ================================================================
+
+set -euo pipefail
 
 TARGET_DIR="."
 RECURSIVE="true"
@@ -113,6 +117,12 @@ echo "⏳  Collecting ${FILE_COUNT} files…"
     fi
   done
 } > "$OUTPUT"
+
+if [[ ! -s "$OUTPUT" ]]; then
+  echo "❌  Dump failed — output file is empty or missing" >&2
+  rm -f "$OUTPUT"
+  exit 1
+fi
 
 SIZE_KB=$(awk "BEGIN{printf \"%.1f\", $(wc -c < "$OUTPUT")/1024}")
 echo "✅  Dump saved → ./${OUTPUT}  (${FILE_COUNT} files, ${SIZE_KB} KB)"
