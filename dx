@@ -75,7 +75,9 @@ runner() {
   docker compose \
     -f "$DEV_COMPOSE" \
     --profile "$RUNNER_PROFILE" \
-    run --rm "$RUNNER_SERVICE" "$@"
+    run --rm \
+    -e NPM_CONFIG_UPDATE_NOTIFIER=false \
+    "$RUNNER_SERVICE" "$@"
 }
 
 # shell_into <compose_fn> <prod?> <svc> [cmd...]

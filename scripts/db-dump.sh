@@ -5,12 +5,10 @@
 #  Works both locally and inside Docker (auto-detects docker network)
 #
 #  Usage:
-#    bash scripts/db-dump.sh
-#    bash scripts/db-dump.sh -e apps/api/.env
-#    bash scripts/db-dump.sh -e apps/api/.env.docker
+#    bash scripts/db-dump.sh                           (default .env)
+#    bash scripts/db-dump.sh -e apps/api/.env          (custom .env)
+#    bash scripts/db-dump.sh -e apps/api/.env.docker   (custom .env.docker)
 # ================================================================
-
-set -euo pipefail
 
 ENV_FILE=".env"
 
@@ -67,7 +65,7 @@ DATE=$(date +%Y-%m-%d_%H-%M-%S)
 OUTPUT="${DUMPS_DIR}/backup-${DATE}.sql"
 
 echo "⏳  Connecting to database..."
-if pg_dump "$DB_URL" > "$OUTPUT"; then
+if pg_dump --no-owner --no-privileges "$DB_URL" > "$OUTPUT"; then
   echo "✅  DB dump saved → ./${OUTPUT}"
 else
   rm -f "$OUTPUT"

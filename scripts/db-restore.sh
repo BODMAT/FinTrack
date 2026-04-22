@@ -5,14 +5,12 @@
 #  Works both locally and inside Docker (auto-detects docker network)
 #
 #  Usage:
-#    bash scripts/db-restore.sh                              (latest dump)
-#    bash scripts/db-restore.sh -f dumps/db/backup.sql
-#    bash scripts/db-restore.sh -e apps/api/.env.docker
-#    bash scripts/db-restore.sh -r                          (drop & restore)
-#    bash scripts/db-restore.sh -f dumps/db/backup.sql -e apps/api/.env -r
+#    bash scripts/db-restore.sh                                              (latest dump, default .env)
+#    bash scripts/db-restore.sh -f dumps/db/backup-2026-04-09.sql            (specific dump)
+#    bash scripts/db-restore.sh -e apps/api/.env.docker                      (custom .env.docker)
+#    bash scripts/db-restore.sh -r                                           (drop & restore)
+#    bash scripts/db-restore.sh -f dumps/db/backup.sql -e apps/api/.env -r   (full options)
 # ================================================================
-
-set -euo pipefail
 
 DUMP_FILE=""
 ENV_FILE=".env"
@@ -81,13 +79,29 @@ DB_URL=$(resolve_db_url "$DATABASE_URL")
 DB_URL=$(strip_prisma_params "$DB_URL")
 
 if [[ "$RESET" == "true" ]]; then
-  echo "⚠️   Resetting database schema..."
-  if ! psql "$DB_URL" -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;" 2>&1; then
+  echo "⚠️   Resetting database schema (dropping all objects in public)..."
+  RESET_CMD="
+    DO \$\$ DECLARE
+      r RECORD;
+    BEGIN
+      -- Drop tables
+      FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+        EXECUTE 'DROP TABLE IF EXISTS public.' || quote_ident(r.tablename) || ' CASCADE';
+      END LOOP;
+      -- Drop types (enums)
+      FOR r IN (SELECT typname FROM pg_type t JOIN pg_namespace n ON n.oid = t.typnamespace WHERE n.nspname = 'public' AND t.typtype = 'e') LOOP
+        EXECUTE 'DROP TYPE IF EXISTS public.' || quote_ident(r.typname) || ' CASCADE';
+      END LOOP;
+    END \$\$;"
+    
+  if ! psql "$DB_URL" -q -c "$RESET_CMD" 2>&1; then
     echo "❌  Schema reset failed" >&2; exit 1
   fi
+  echo "✅  Schema cleared."
 fi
 
 echo "⏳  Restoring from $DUMP_FILE ..."
+
 if psql "$DB_URL" < "$DUMP_FILE"; then
   echo "✅  DB restored from → ./${DUMP_FILE}"
 else
