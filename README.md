@@ -3,6 +3,7 @@
 > **Personal Finance Tracker** — a full-stack monorepo for tracking income and expenses, with AI-powered analytics, Monobank integration, multi-currency support, and a donation system.
 
 [![CI](https://github.com/BODMAT/FinTrack/actions/workflows/ci.yml/badge.svg)](https://github.com/BODMAT/FinTrack/actions)
+[![Docker Images](https://img.shields.io/badge/GHCR-Images-blue?logo=docker)](https://github.com/BODMAT/FinTrack/pkgs/container/)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Node](https://img.shields.io/badge/node-22-green)]()
 [![Next.js](https://img.shields.io/badge/Next.js-16-black)]()
@@ -14,6 +15,9 @@
 - [Overview](#overview)
 - [Screenshots](#screenshots)
 - [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [Database Management](#4-database-management--initial-data)
+- [Environment Variables](#environment-variables)
 - [Project Structure](#project-structure)
 - [Backend](#backend)
   - [Architecture](#backend-architecture)
@@ -28,8 +32,6 @@
   - [Running the Web App](#running-the-web-app)
 - [Shared Types Package](#shared-types-package)
 - [CI/CD](#cicd)
-- [Environment Variables](#environment-variables)
-- [Getting Started](#getting-started)
 - [License](#license)
 
 ---
@@ -100,59 +102,193 @@ FinTrack is a monorepo (Turborepo) personal finance application that allows user
 
 ### Monorepo
 
-| Tool                | Purpose                                 |
-| ------------------- | --------------------------------------- |
-| Turborepo 2         | Task orchestration and pipeline caching |
-| `packages/types`    | Shared Zod schemas and TypeScript types |
-| Husky + lint-staged | Pre-commit hooks                        |
-| Prettier + ESLint   | Formatting and linting                  |
-| Docker / Dockerfile | Production containerisation (web app)   |
-| GitHub Actions      | CI pipeline                             |
+| Tool                | Purpose                                   |
+| ------------------- | ----------------------------------------- |
+| Turborepo 2         | Task orchestration and pipeline caching   |
+| `dx` (CLI)          | Project-agnostic Docker Executioner       |
+| `packages/types`    | Shared Zod schemas and TypeScript types   |
+| Husky + lint-staged | Pre-commit hooks                          |
+| Prettier + ESLint   | Formatting and linting                    |
+| Docker              | Production & Development containerization |
+| GitHub Actions      | CI/CD pipeline + GHCR + Trivy Scan        |
 
 ---
 
-## Project Structure
+## Getting Started
 
+**Prerequisites:** Node.js 20+, PostgreSQL 15, npm 10+.
+
+### 1. Preparation
+
+Regardless of the installation method, start by setting up your environment variables:
+
+```bash
+git clone https://github.com/BODMAT/FinTrack.git
+cd FinTrack
+
+# Use the dx CLI to create all necessary .env files from examples
+bash dx setup
+# → Edit .env for local run or .env.docker for Docker setup (DATABASE_URL host difference).
 ```
-FinTrack/
-├── apps/
-│   ├── api/                  # Express REST API
-│   │   ├── prisma/           # Schema, migrations, seed
-│   │   └── src/
-│   │       ├── config/       # Env validation (Zod)
-│   │       ├── docs/         # OpenAPI YAML definitions
-│   │       ├── middleware/   # Auth, CSRF, rate-limit, error handler
-│   │       ├── modules/      # Feature modules (auth, transaction, ai, ...)
-│   │       ├── prisma/       # Prisma client singleton + seed
-│   │       └── routes/       # Root router
-│   │
-│   └── web/                  # Next.js 16 App Router
-│       └── src/
-│           ├── api/          # Axios API layer (typed per domain)
-│           ├── app/          # Next.js routes & layouts
-│           │   └── protected/
-│           │       ├── admin/
-│           │       ├── analytics/
-│           │       ├── dashboard/
-│           │       ├── donation/
-│           │       ├── monobank/
-│           │       └── transactions/
-│           ├── components/   # Shared UI: header, auth, portals, layout
-│           ├── hooks/        # Custom React hooks
-│           ├── lib/          # NextAuth config, error capture, OAuth bridge
-│           ├── server/       # Server-side prefetch helpers
-│           ├── shared/i18n/  # i18next setup + locale JSONs (en/uk/de)
-│           ├── store/        # Zustand stores
-│           ├── styles/       # Global CSS + Tailwind entry
-│           ├── types/        # App-level TypeScript types
-│           └── utils/        # Helpers per domain
-│
-├── packages/
-│   └── types/                # Shared Zod schemas exported as @fintrack/types
-│
-├── scripts/                  # codebase-dump, db-dump, db-restore helpers
-├── turbo.json
-└── package.json
+
+### 2. Docker (Recommended)
+
+The `dx` script is a project-agnostic Docker Executioner CLI that wraps `docker compose` commands. Run `bash dx help` to see all available commands.
+
+#### Development Mode
+
+Each service is accessible directly on its own port for easier debugging.
+
+**Commands:**
+
+- `bash dx dev` — Start all containers in detached mode.
+- `bash dx ps` — List containers with their current status and health.
+- `bash dx logs` — Follow logs for all services (or `bash dx logs api` for a specific service).
+- `bash dx shell api npm run prisma:studio` — Start Prisma Studio inside the API container.
+- `bash dx restart api` — Restart a service after changing its `.env` file.
+- `bash dx down` — Stop and remove containers.
+
+**Access Points:**
+
+- **Web App:** http://localhost:5173
+- **API:** http://localhost:8000/api
+- **Swagger Docs:** http://localhost:8000/api-docs
+- **Prisma Studio:** http://localhost:5555 (only after running `bash dx shell api npm run prisma:studio`)
+- **pgAdmin:** http://localhost:5050 (Login: `admin@fintrack.dev` / `admin`)
+  - _Setup:_ Right-click Servers → Register → Server.
+  - _Connection:_ Host: `postgres`, Port: `5432`, Database: `fintrack`, Username: `fintrack`, Password: `fintrack`.
+
+#### Production Mode
+
+All services are proxied behind Nginx. Only port `8080` is exposed externally — Nginx routes requests to the appropriate service internally.
+
+**Commands:**
+
+- `bash dx pbuild` — Build all production images (required before first run).
+- `bash dx prod` — Start the production stack.
+- `bash dx plogs` — Follow production logs (or `bash dx plogs api` for a specific service).
+- `bash dx pshell api` — Open a shell inside a running production container.
+- `bash dx pdown` — Stop and remove production containers (requires confirmation).
+
+**Access Points:**
+
+- **Web App:** http://localhost:8080/FinTrack
+- **API:** http://localhost:8080/api
+- **Swagger Docs:** http://localhost:8080/api-docs
+- _Prisma Studio and pgAdmin are disabled in production by default for security reasons._
+
+### 3. Local Installation
+
+For those who prefer running dependencies (Node, Postgres etc.) manually.
+
+```bash
+# Install dependencies
+npm i
+
+# Build shared packages and generate Prisma client
+npm run setup
+
+# Configure and migrate the API
+npm run api:prisma:migrate:deploy
+npm run api:prisma:seed # Optional
+
+# Start all apps via Turborepo
+npm run dev
+```
+
+**Access Points:**
+
+- **Web App:** http://localhost:5173/FinTrack
+- **API:** http://localhost:8000/api
+- **Swagger Docs:** http://localhost:8000/api-docs
+- **Prisma Studio:** http://localhost:5555 (only after running `npm run api:prisma:studio`)
+- **pgAdmin (locally installed app or via browser):**
+  - **Desktop App:** Use your natively installed pgAdmin 4 application.
+    - _Setup:_ Right-click Servers → Register → Server.
+    - _Connection:_ Host: `localhost`, Port: `5432`, Database/Username/Password: (your local Postgres credentials).
+  - **Web Interface (via Docker):** Run only the tool: `bash dx dev pgadmin`.
+    - _Access:_ http://localhost:5050 (Login: `admin@fintrack.dev` / `admin`).
+    - _Setup:_ Right-click Servers → Register → Server.
+    - _Connection to local DB:_ Use Host: `host.docker.internal` (Win/Mac) or `172.17.0.1` (Linux).
+
+### 4. Database Management & Initial Data
+
+After applying migrations, you can populate your database using one of the following methods:
+
+#### Option A: Seed Data (Clean start)
+
+Best for a fresh install to get basic test accounts and system defaults.
+
+- **Docker:** `bash dx shell api npm run prisma:seed`
+- **Local:** `npm run api:prisma:seed`
+
+#### Option B: Database Dump (Team sync)
+
+Best for working with realistic data or sharing progress with the team.
+
+**1. Create a Dump (Export)**
+To share your data with a colleague:
+
+- **Docker:** `bash dx run dump:db:docker`
+- **Local:** `npm run dump:db`
+- _The dump file will be created in the `dumps/db/` directory._
+
+**2. Restore (Append Mode)**
+Adds data from a `.sql` file in `dumps/db/` to your existing records without deleting anything.
+
+- **Docker:** `bash dx run restore:db:docker`
+- **Local:** `npm run restore:db`
+
+**3. Restore (Wipe & Sync Mode)**
+Clears your current schema and restores the dump exactly. Best for a full sync.
+
+- **Docker:** `bash dx run restore:db:reset:docker`
+- **Local:** `npm run restore:db:reset`
+
+> **Note:** You can combine them! For example, run **Seed** to get admin users, then **Restore (Append)** a dump with specific transactions. If you use **Wipe & Sync**, it will remove any previously seeded data.
+
+---
+
+## Environment Variables
+
+### `apps/api/.env`
+
+```env
+NODE_ENV=development
+ENABLE_SWAGGER_IN_PROD=false
+
+HOST=localhost
+PORT=8000
+SWAGGER_SERVER_URL=http://localhost:8000/api
+CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+
+DATABASE_URL=postgresql://user:password@localhost:5432/yourdb?schema=yourschema
+
+ACCESS_TOKEN_SECRET=your-jwt-access-token-secret-here
+
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+
+GROQ_API_KEY_1=your-groq-api-key
+API_KEY_ENCRYPTION_SECRET=your-32-char-secret-here
+
+STRIPE_SECRET_KEY=sk_test_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+STRIPE_DONATION_PRICE_ID=price_xxx
+STRIPE_DONATION_AMOUNT=300
+STRIPE_DONATION_CURRENCY=usd
+STRIPE_DONATION_SUCCESS_URL=http://localhost:5173/FinTrack/donation?state=success
+STRIPE_DONATION_CANCEL_URL=http://localhost:5173/FinTrack/donation?state=cancel
+STRIPE_DONATION_DURATION_DAYS=0
+```
+
+### `apps/web/.env`
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXTAUTH_URL=http://localhost:5173/FinTrack
+NEXTAUTH_SECRET=your-nextauth-secret
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
 ```
 
 ---
@@ -337,95 +473,17 @@ npm --prefix packages/types run build
 
 ## CI/CD
 
-GitHub Actions runs the following checks on every pull request to `master`:
+GitHub Actions runs the following checks on every pull request and push to `master`:
 
-1. **Format check** — `prettier --check`
-2. **Lint** — ESLint
-3. **Type check** — `tsc --noEmit`
-4. **Prisma generate + migrate** — against a PostgreSQL 15 service container
-5. **API integration tests** — Jest + Supertest
+1.  **Format & Lint** — `prettier` and `eslint`.
+2.  **Type check** — `tsc --noEmit` across the monorepo.
+3.  **Migration Drift** — ensures `schema.prisma` is in sync with migrations.
+4.  **Security Audit** — `npm audit` and dependency review.
+5.  **Integration Tests** — Jest + Supertest tests against a real PostgreSQL container.
+6.  **Automated Releases** — builds and pushes images to **GHCR**.
+7.  **Security Scanning** — **Trivy** scans every Docker image for vulnerabilities (CRITICAL, HIGH).
 
 See [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) for the full configuration.
-
----
-
-## Environment Variables
-
-### `apps/api/.env`
-
-```env
-NODE_ENV=development
-ENABLE_SWAGGER_IN_PROD=false
-
-HOST=localhost
-PORT=8000
-CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
-
-DATABASE_URL=postgresql://user:password@localhost:5432/yourdb?schema=yourschema
-
-ACCESS_TOKEN_SECRET=your-jwt-access-token-secret-here
-
-GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
-
-GROQ_API_KEY_1=your-groq-api-key
-API_KEY_ENCRYPTION_SECRET=your-32-char-secret-here
-
-STRIPE_SECRET_KEY=sk_test_xxx
-STRIPE_WEBHOOK_SECRET=whsec_xxx
-STRIPE_DONATION_PRICE_ID=price_xxx
-STRIPE_DONATION_AMOUNT=300
-STRIPE_DONATION_CURRENCY=usd
-STRIPE_DONATION_SUCCESS_URL=http://localhost:5173/FinTrack/donation?state=success
-STRIPE_DONATION_CANCEL_URL=http://localhost:5173/FinTrack/donation?state=cancel
-STRIPE_DONATION_DURATION_DAYS=0
-```
-
-### `apps/web/.env`
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
-NEXTAUTH_URL=http://localhost:5173/FinTrack
-NEXTAUTH_SECRET=your-nextauth-secret
-GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-```
-
----
-
-## Getting Started
-
-**Prerequisites:** Node.js 20+, PostgreSQL 15, npm 10+
-
-```bash
-# 1. Clone the repository
-git clone https://github.com/BODMAT/FinTrack.git
-cd FinTrack
-
-# 2. Install all dependencies
-npm ci
-
-# 3. Build the shared types package
-npm --prefix packages/types run build
-
-# 4. Configure and migrate the API
-cp apps/api/.env.example apps/api/.env
-# → edit apps/api/.env
-
-npm run api:prisma:migrate:deploy
-
-# 5. (Optional) Seed the database
-npm run api:prisma:seed
-
-# 6. Configure the web app
-cp apps/web/.env.example apps/web/.env
-# → edit apps/web/.env
-
-# 7. Start both apps via Turborepo
-npx turbo run dev
-```
-
-API: `http://localhost:8000`  
-Web: `http://localhost:5173/FinTrack`
 
 ---
 
