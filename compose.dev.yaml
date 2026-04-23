@@ -60,6 +60,7 @@ services:
       - "5555:5555" # Expose Prisma Studio port
     environment:
       - NODE_ENV=development
+      - DX_SERVICE_NAME=api
     env_file:
       - apps/api/.env.docker
     # Apply any pending migrations before starting the dev server.
@@ -87,6 +88,8 @@ services:
       - bot_node_modules:/app/apps/bot/node_modules
       - web_node_modules:/app/apps/web/node_modules
       - types_node_modules:/app/packages/types/node_modules
+    environment:
+      - DX_SERVICE_NAME=runner
     env_file:
       - apps/api/.env.docker
     # Interactive shell by default
@@ -103,6 +106,7 @@ services:
       - types_node_modules:/app/packages/types/node_modules
     environment:
       - NODE_ENV=development
+      - DX_SERVICE_NAME=bot
     env_file:
       - apps/bot/.env.docker
     command: npm run dev
@@ -127,6 +131,7 @@ services:
     environment:
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://localhost:8000/api
+      - DX_SERVICE_NAME=web
     env_file:
       - apps/web/.env.docker
     command: npm run dev

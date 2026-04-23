@@ -144,7 +144,10 @@ Each service is accessible directly on its own port for easier debugging.
 - `bash dx dev` — Start all containers in detached mode.
 - `bash dx ps` — List containers with their current status and health.
 - `bash dx logs` — Follow logs for all services (or `bash dx logs api` for a specific service).
-- `bash dx shell api npm run prisma:studio` — Start Prisma Studio inside the API container.
+- `bash dx api` — Open a shell inside the API container (shortcut for `bash dx shell api`).
+- `bash dx run api:prisma:studio:dx` — Start Prisma Studio inside the API container.
+- `bash dx run db:setup:dx` — Full database initialization inside Docker (migrate + seed).
+- `bash dx run test:dx` — Run all integration tests inside Docker.
 - `bash dx restart api` — Restart a service after changing its `.env` file.
 - `bash dx down` — Stop and remove containers.
 
@@ -153,7 +156,7 @@ Each service is accessible directly on its own port for easier debugging.
 - **Web App:** http://localhost:5173
 - **API:** http://localhost:8000/api
 - **Swagger Docs:** http://localhost:8000/api-docs
-- **Prisma Studio:** http://localhost:5555 (only after running `bash dx shell api npm run prisma:studio`)
+- **Prisma Studio:** http://localhost:5555 (only after running `bash dx run api:prisma:studio:dx`)
 - **pgAdmin:** http://localhost:5050 (Login: `admin@fintrack.dev` / `admin`)
   - _Setup:_ Right-click Servers → Register → Server.
   - _Connection:_ Host: `postgres`, Port: `5432`, Database: `fintrack`, Username: `fintrack`, Password: `fintrack`.
@@ -215,34 +218,48 @@ npm run dev
 
 After applying migrations, you can populate your database using one of the following methods:
 
-#### Option A: Seed Data (Clean start)
+#### Option A: Automatic Setup (Fastest)
+
+The easiest way to get a fully working environment with migrations applied and rich test data populated.
+
+- **Docker:** `bash dx run db:setup:dx`
+- **Local:** `npm run db:setup`
+
+#### Option B: Reset & Refresh
+
+Wipes the database schema and re-initializes it with fresh seed data. Useful for development resets.
+
+- **Docker:** `bash dx run db:reset:dx`
+- **Local:** `npm run db:reset`
+
+#### Option C: Seed Data (Manual)
 
 Best for a fresh install to get basic test accounts and system defaults.
 
-- **Docker:** `bash dx shell api npm run prisma:seed`
+- **Docker:** `bash dx run api:prisma:seed:dx`
 - **Local:** `npm run api:prisma:seed`
 
-#### Option B: Database Dump (Team sync)
+#### Option D: Database Dump (Team sync)
 
 Best for working with realistic data or sharing progress with the team.
 
 **1. Create a Dump (Export)**
 To share your data with a colleague:
 
-- **Docker:** `bash dx run dump:db:docker`
+- **Docker:** `bash dx run dump:db:dx`
 - **Local:** `npm run dump:db`
 - _The dump file will be created in the `dumps/db/` directory._
 
 **2. Restore (Append Mode)**
 Adds data from a `.sql` file in `dumps/db/` to your existing records without deleting anything.
 
-- **Docker:** `bash dx run restore:db:docker`
+- **Docker:** `bash dx run restore:db:dx`
 - **Local:** `npm run restore:db`
 
 **3. Restore (Wipe & Sync Mode)**
 Clears your current schema and restores the dump exactly. Best for a full sync.
 
-- **Docker:** `bash dx run restore:db:reset:docker`
+- **Docker:** `bash dx run restore:db:reset:dx`
 - **Local:** `npm run restore:db:reset`
 
 > **Note:** You can combine them! For example, run **Seed** to get admin users, then **Restore (Append)** a dump with specific transactions. If you use **Wipe & Sync**, it will remove any previously seeded data.

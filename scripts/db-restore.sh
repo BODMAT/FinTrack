@@ -9,12 +9,14 @@
 #    bash scripts/db-restore.sh -f dumps/db/backup-2026-04-09.sql            (specific dump)
 #    bash scripts/db-restore.sh -e apps/api/.env.docker                      (custom .env.docker)
 #    bash scripts/db-restore.sh -r                                           (drop & restore)
+#    bash scripts/db-restore.sh -c|--clean                                   (only drop public objects)
 #    bash scripts/db-restore.sh -f dumps/db/backup.sql -e apps/api/.env -r   (full options)
 # ================================================================
 
 DUMP_FILE=""
 ENV_FILE=".env"
 RESET=false
+CLEAN_ONLY=false
 DUMPS_DIR="dumps/db"
 
 while [[ $# -gt 0 ]]; do
@@ -22,20 +24,23 @@ while [[ $# -gt 0 ]]; do
     -f|--file)  DUMP_FILE="$2"; shift 2 ;;
     -e|--env)   ENV_FILE="$2";  shift 2 ;;
     -r|--reset) RESET=true;     shift   ;;
+    -c|--clean) CLEAN_ONLY=true; RESET=true; shift ;;
     *) echo "❌  Unknown argument: $1" >&2; exit 1 ;;
   esac
 done
 
-if [[ -z "$DUMP_FILE" ]]; then
-  DUMP_FILE=$(ls -t "$DUMPS_DIR"/*.sql 2>/dev/null | head -1 || true)
+if [[ "$CLEAN_ONLY" == "false" ]]; then
   if [[ -z "$DUMP_FILE" ]]; then
-    echo "❌  No dump files found in $DUMPS_DIR" >&2; exit 1
+    DUMP_FILE=$(ls -t "$DUMPS_DIR"/*.sql 2>/dev/null | head -1 || true)
+    if [[ -z "$DUMP_FILE" ]]; then
+      echo "❌  No dump files found in $DUMPS_DIR" >&2; exit 1
+    fi
+    echo "📂  No dump specified, using latest: $DUMP_FILE"
   fi
-  echo "📂  No dump specified, using latest: $DUMP_FILE"
-fi
 
-if [[ ! -f "$DUMP_FILE" ]]; then
-  echo "❌  Dump file not found: $DUMP_FILE" >&2; exit 1
+  if [[ ! -f "$DUMP_FILE" ]]; then
+    echo "❌  Dump file not found: $DUMP_FILE" >&2; exit 1
+  fi
 fi
 
 if [[ ! -f "$ENV_FILE" ]]; then
@@ -100,10 +105,12 @@ if [[ "$RESET" == "true" ]]; then
   echo "✅  Schema cleared."
 fi
 
-echo "⏳  Restoring from $DUMP_FILE ..."
+if [[ "$CLEAN_ONLY" == "false" ]]; then
+  echo "⏳  Restoring from $DUMP_FILE ..."
 
-if psql "$DB_URL" < "$DUMP_FILE"; then
-  echo "✅  DB restored from → ./${DUMP_FILE}"
-else
-  echo "❌  Restore failed" >&2; exit 1
+  if psql "$DB_URL" < "$DUMP_FILE"; then
+    echo "✅  DB restored from → ./${DUMP_FILE}"
+  else
+    echo "❌  Restore failed" >&2; exit 1
+  fi
 fi

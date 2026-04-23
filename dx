@@ -12,13 +12,14 @@
 #    bash dx logs web                          # watch Next.js logs
 #    bash dx shell api                         # shell into API container
 #    bash dx shell postgres psql -U user       # open psql session
-#    bash dx run api:prisma:migrate:dev        # run a Prisma migration
-#    bash dx run api:prisma:generate           # regenerate Prisma client
-#    bash dx shell api npm run prisma:studio   # open Prisma Studio
-#    bash dx run test                          # run all tests
-#    bash dx run test:api                      # run API tests
+#    bash dx run db:fresh:dx                   # reset & seed database (Docker)
+#    bash dx run api:prisma:migrate:dev:dx     # create new migration (Docker)
+#    bash dx run api:prisma:generate:dx        # regenerate Prisma client (Docker)
+#    bash dx run api:prisma:studio:dx          # open Prisma Studio (Docker)
+#    bash dx run test:dx                       # run all services tests (Docker) shell
+#    bash dx run test:api:dx                   # run API service tests (Docker) shell
 #    bash dx run check-types                   # run TS type checks
-#    bash dx run lint                          # lint the whole monorepo
+#    bash dx run lint                          # lint the whole monorepo (proxied to runner)
 #    bash dx restart api                       # restart API after .env change
 #    bash dx down                              # stop and remove containers
 #
@@ -31,18 +32,37 @@
 #    bash dx prestart api                      # restart prod API after deploy
 #    bash dx ps                                # check container health
 #
-#  Docker commands run on the HOST.
-#  Everything else is proxied through the RUNNER container via npm.
+#  Smart Proxy:
+#    Commands are intelligently routed between Host and Containers.
+#    Scripts in package.json containing 'dx' run on Host to manage Docker.
+#    Other scripts (lint, test, etc.) are forwarded to the RUNNER container.
+# 
 #  Run  bash dx help  for the full command reference.
 # ================================================================
 
 set -euo pipefail
+
+# ── Environment Detection ────────────────────────────────────────
+IS_CONTAINER=false
+[[ -f "/.dockerenv" ]] && IS_CONTAINER=true
+
 
 # ── Configuration (override via env vars) ────────────────────────
 DEV_COMPOSE="${DX_DEV_COMPOSE:-compose.dev.yaml}"
 PROD_COMPOSE="${DX_PROD_COMPOSE:-compose.yaml}"
 RUNNER_SERVICE="${DX_RUNNER:-runner}"
 RUNNER_PROFILE="${DX_RUNNER_PROFILE:-tools}"
+
+# ── Task Runner Detection ────────────────────────────────────────
+detect_task_runner() {
+  if [[ -f "package.json" ]]; then
+    if [[ -f "pnpm-lock.yaml" ]]; then echo "pnpm run"
+    elif [[ -f "yarn.lock" ]]; then echo "yarn run"
+    elif [[ -f "bun.lockb" || -f "bun.lock" ]]; then echo "bun run"
+    else echo "npm run"; fi
+  elif [[ -f "Makefile" ]]; then echo "make"
+  else echo ""; fi
+}
 
 # ── Helpers ───────────────────────────────────────────────────────
 log()  { printf '\033[0;36m▸\033[0m %s\n' "$*"; }
@@ -60,36 +80,48 @@ confirm() {
 }
 
 require_cmd() {
-  command -v "$1" &>/dev/null || die "'$1' is not installed or not in PATH."
+  command -v "$1" &>/dev/null || die "Command '$1' is required but not installed. Please install it to continue."
 }
 
 require_file() {
-  [[ -f "$1" ]] || die "File not found: $1"
+  [[ -f "$1" ]] || die "Configuration file '$1' not found. Is the project initialized? Run 'bash dx setup' if needed."
 }
 
 dev_compose()  { require_file "$DEV_COMPOSE";  docker compose -f "$DEV_COMPOSE"  "$@"; }
 prod_compose() { require_file "$PROD_COMPOSE"; docker compose -f "$PROD_COMPOSE" "$@"; }
 
 runner() {
-  require_file "$DEV_COMPOSE"
-  docker compose \
-    -f "$DEV_COMPOSE" \
-    --profile "$RUNNER_PROFILE" \
-    run --rm \
-    -e NPM_CONFIG_UPDATE_NOTIFIER=false \
-    "$RUNNER_SERVICE" "$@"
+  if [[ "$IS_CONTAINER" == "true" ]]; then
+    eval "$@"
+  else
+    require_file "$DEV_COMPOSE"
+    docker compose \
+      -f "$DEV_COMPOSE" \
+      --profile "$RUNNER_PROFILE" \
+      run --rm \
+      -e NPM_CONFIG_UPDATE_NOTIFIER=false \
+      "$RUNNER_SERVICE" "$@"
+  fi
 }
 
 # shell_into <compose_fn> <prod?> <svc> [cmd...]
-# Tries exec first; falls back to run --rm for stopped dev containers.
 shell_into() {
   local compose_fn="$1"
   local is_prod="$2"
   local svc="$3"
   shift 3
 
+  # If we are already inside the target service, run locally
+  if [[ "${DX_SERVICE_NAME:-}" == "$svc" ]]; then
+    if [[ $# -ge 1 ]]; then
+      eval "$@"
+    else
+      sh
+    fi
+    return
+  fi
+
   if [[ $# -ge 1 ]]; then
-    # Explicit command — exec it directly.
     "$compose_fn" exec "$svc" "$@"
   elif "$compose_fn" exec "$svc" sh -c 'exit 0' 2>/dev/null; then
     "$compose_fn" exec "$svc" sh
@@ -98,6 +130,30 @@ shell_into() {
   else
     warn "Container '$svc' is not running — starting a one-off instance instead."
     "$compose_fn" run --rm "$svc" sh
+  fi
+}
+
+# Run npm script (auto-detects environment)
+run_script() {
+  local script_name=$1
+  shift
+
+  local task_runner
+  task_runner=$(detect_task_runner)
+  [[ -z "$task_runner" ]] && die "No supported task manager (npm/yarn/pnpm/bun/make) detected in this directory."
+
+  if [ "$IS_CONTAINER" = true ]; then
+    log "Running '$script_name' locally in container via $task_runner..."
+    $task_runner "$script_name" -- "$@"
+  else
+    # Host: check if script uses 'dx' to avoid unnecessary runner nesting
+    if [[ -f "package.json" ]] && grep "\"$script_name\"" package.json | grep -q "dx "; then
+      log "Detected host-native dx script. Running via $task_runner..."
+      $task_runner "$script_name" -- "$@"
+    else
+      log "Forwarding '$script_name' to runner via $task_runner..."
+      runner $task_runner "$script_name" -- "$@"
+    fi
   fi
 }
 
@@ -232,27 +288,23 @@ EOF
 
   # ── Runner ──────────────────────────────────────────────────────
   run)
-    require_cmd docker
     [[ $# -ge 1 ]] || die "Usage: bash dx run <npm-script> [args...]"
-    runner npm run "$@"
+    run_script "$@"
     ;;
 
   exec)
-    require_cmd docker
     [[ $# -ge 1 ]] || die "Usage: bash dx exec <cmd> [args...]"
     runner "$@"
     ;;
 
   sh)
-    require_cmd docker
     runner sh
     ;;
 
-  # ── Unknown ─────────────────────────────────────────────────────
+  # ── Service shortcuts (api, web, etc.) ──────────────────────────
   *)
-    warn "Unknown command: '$CMD'"
-    printf 'Run  bash dx help  to see available commands.\n'
-    exit 1
+    svc="$CMD"
+    shell_into dev_compose false "$svc" "$@"
     ;;
 
 esac
