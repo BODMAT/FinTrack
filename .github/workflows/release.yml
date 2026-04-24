@@ -26,6 +26,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set lowercase repo name
+        id: repo
+        run: echo "name=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')"
+          >> $GITHUB_OUTPUT
+
       # ── API ─────────────────────────────────────────────────────────────────
       - name: Build and push API
         uses: docker/build-push-action@v6
@@ -36,13 +41,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
-            ghcr.io/${{ github.repository }}-api:latest
-            ghcr.io/${{ github.repository }}-api:${{ github.sha }}
+            ghcr.io/${{ steps.repo.outputs.name }}-api:latest
+            ghcr.io/${{ steps.repo.outputs.name }}-api:${{ github.sha }}
 
       - name: Scan API image
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ghcr.io/${{ github.repository }}-api:${{ github.sha }}
+          image-ref: ghcr.io/${{ steps.repo.outputs.name }}-api:${{ github.sha }}
           format: sarif
           output: trivy-api.sarif
           severity: CRITICAL,HIGH
@@ -60,13 +65,13 @@ jobs:
           build-args: |
             NEXT_PUBLIC_API_URL=/api
           tags: |
-            ghcr.io/${{ github.repository }}-web:latest
-            ghcr.io/${{ github.repository }}-web:${{ github.sha }}
+            ghcr.io/${{ steps.repo.outputs.name }}-web:latest
+            ghcr.io/${{ steps.repo.outputs.name }}-web:${{ github.sha }}
 
       - name: Scan Web image
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ghcr.io/${{ github.repository }}-web:${{ github.sha }}
+          image-ref: ghcr.io/${{ steps.repo.outputs.name }}-web:${{ github.sha }}
           format: sarif
           output: trivy-web.sarif
           severity: CRITICAL,HIGH
@@ -82,13 +87,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: |
-            ghcr.io/${{ github.repository }}-bot:latest
-            ghcr.io/${{ github.repository }}-bot:${{ github.sha }}
+            ghcr.io/${{ steps.repo.outputs.name }}-bot:latest
+            ghcr.io/${{ steps.repo.outputs.name }}-bot:${{ github.sha }}
 
       - name: Scan Bot image
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ghcr.io/${{ github.repository }}-bot:${{ github.sha }}
+          image-ref: ghcr.io/${{ steps.repo.outputs.name }}-bot:${{ github.sha }}
           format: sarif
           output: trivy-bot.sarif
           severity: CRITICAL,HIGH
@@ -97,7 +102,7 @@ jobs:
       # ── Upload scan results ─────────────────────────────────────────────────
       - name: Upload Trivy results to GitHub Security
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: |
             trivy-api.sarif
