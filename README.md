@@ -3,7 +3,7 @@
 > **Personal Finance Tracker** — a full-stack monorepo for tracking income and expenses, with AI-powered analytics, Monobank integration, multi-currency support, and a donation system.
 
 [![CI](https://github.com/BODMAT/FinTrack/actions/workflows/ci.yml/badge.svg)](https://github.com/BODMAT/FinTrack/actions)
-[![Docker Images](https://img.shields.io/badge/GHCR-Images-blue?logo=docker)](https://github.com/BODMAT/FinTrack/pkgs/container/)
+[![Docker Images](https://img.shields.io/badge/GHCR-Images-blue?logo=docker)](https://github.com/BODMAT/FinTrack/packages)
 [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 [![Node](https://img.shields.io/badge/node-22-green)]()
 [![Next.js](https://img.shields.io/badge/Next.js-16-black)]()
@@ -499,6 +499,14 @@ GitHub Actions runs the following checks on every pull request and push to `mast
 5.  **Integration Tests** — Jest + Supertest tests against a real PostgreSQL container.
 6.  **Automated Releases** — builds and pushes images to **GHCR**.
 7.  **Security Scanning** — **Trivy** scans every Docker image for vulnerabilities (CRITICAL, HIGH).
+
+### Docker Images (GHCR)
+
+| Component | Image Path                                                                                      |
+| --------- | ----------------------------------------------------------------------------------------------- |
+| **API**   | [`ghcr.io/bodmat/fintrack-api`](https://github.com/BODMAT/FinTrack/pkgs/container/fintrack-api) |
+| **Web**   | [`ghcr.io/bodmat/fintrack-web`](https://github.com/BODMAT/FinTrack/pkgs/container/fintrack-web) |
+| **Bot**   | [`ghcr.io/bodmat/fintrack-bot`](https://github.com/BODMAT/FinTrack/pkgs/container/fintrack-bot) |
 
 See [`.github/workflows/ci.yml`](./.github/workflows/ci.yml) for the full configuration.
 
