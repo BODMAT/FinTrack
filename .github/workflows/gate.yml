@@ -1,0 +1,33 @@
+name: Gate — Block Release if CI Failed
+
+on:
+  workflow_run:
+    workflows: [ "CI — Lint, Format, Types, Tests" ]
+    types: [ completed ]
+    branches: [ master, main ]
+
+jobs:
+  trigger-release:
+    name: Trigger Release after CI
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Trigger Release workflow
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'release.yml',
+              ref: '${{ github.event.workflow_run.head_sha }}'
+            })
+
+  notify-failure:
+    name: Notify CI Failed
+    runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'failure' }}
+    steps:
+      - name: Log failure
+        run: |
+          echo "CI failed on ${{ github.event.workflow_run.head_sha }} — release blocked"

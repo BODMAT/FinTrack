@@ -1,0 +1,13 @@
+name: Turbo Cache
+description: Cache Turborepo artifacts
+
+runs:
+  using: "composite"
+  steps:
+    - name: Cache Turbo
+      uses: actions/cache@v4
+      with:
+        path: .turbo
+        key: turbo-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+        restore-keys: |
+          turbo-${{ runner.os }}-

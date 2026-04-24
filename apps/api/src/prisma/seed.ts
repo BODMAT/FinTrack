@@ -1,92 +1,1230 @@
 import bcrypt from "bcrypt";
-import { AuthType, TransactionType } from "@prisma/client";
+import {
+  AuthType,
+  TransactionType,
+  CurrencyCode,
+  AiProvider,
+} from "@prisma/client";
 import { prisma } from "./client.js";
 
 (async () => {
   try {
     await prisma.$connect();
-
     console.log("🌱 Seeding database...");
 
-    const password = "11111111";
     const saltRounds = 10;
+    const password = "11111111";
 
-    const user1 = await prisma.user.create({
+    // ── Helpers ───────────────────────────────────────────────────────────────
+    const now = new Date();
+    const hoursAgo = (h: number) => new Date(now.getTime() - h * 3_600_000);
+    const daysAgo = (d: number) => new Date(now.getTime() - d * 86_400_000);
+
+    // ── Users ────────────────────────────────────────────────────────────────
+
+    const admin = await prisma.user.create({
       data: {
-        name: "Макар",
-        photo_url: "https://picsum.photos/200/200?1",
+        name: "Admin User",
+        photo_url: "https://i.pravatar.cc/150?img=1",
+        isVerified: true,
+        role: "ADMIN",
+        aiAnalysisUsed: 5,
+        aiAnalysisLimit: 999,
+        donationStatus: "ACTIVE",
+        donationGrantedAt: daysAgo(60),
         authMethods: {
           create: {
             type: AuthType.EMAIL,
-            email: "makar@gmail.com",
+            email: "admin@fintrack.dev",
+            password_hash: await bcrypt.hash(password, saltRounds),
+          },
+        },
+        apiKeys: {
+          create: {
+            provider: AiProvider.GROQ,
+            apiKey: "gsk_seed_admin_test_key",
+            isActive: true,
+          },
+        },
+      },
+    });
+
+    const donor = await prisma.user.create({
+      data: {
+        name: "Donor User",
+        photo_url: "https://i.pravatar.cc/150?img=2",
+        isVerified: true,
+        role: "USER",
+        donationStatus: "ACTIVE",
+        donationGrantedAt: daysAgo(30),
+        aiAnalysisUsed: 0,
+        aiAnalysisLimit: 999,
+        authMethods: {
+          create: {
+            type: AuthType.EMAIL,
+            email: "donor@fintrack.dev",
+            password_hash: await bcrypt.hash(password, saltRounds),
+          },
+        },
+        apiKeys: {
+          create: {
+            provider: AiProvider.GROQ,
+            apiKey: "gsk_seed_donor_test_key",
+            isActive: true,
+          },
+        },
+      },
+    });
+
+    const regularUser = await prisma.user.create({
+      data: {
+        name: "Regular User",
+        photo_url: "https://i.pravatar.cc/150?img=3",
+        isVerified: true,
+        role: "USER",
+        aiAnalysisUsed: 7,
+        aiAnalysisLimit: 10,
+        authMethods: {
+          create: {
+            type: AuthType.EMAIL,
+            email: "user@fintrack.dev",
+            password_hash: await bcrypt.hash(password, saltRounds),
+          },
+        },
+        apiKeys: {
+          create: {
+            provider: AiProvider.GEMINI,
+            apiKey: "gemini_seed_regular_test_key",
+            isActive: true,
+          },
+        },
+      },
+    });
+
+    const limitedUser = await prisma.user.create({
+      data: {
+        name: "Limited User",
+        photo_url: "https://i.pravatar.cc/150?img=4",
+        isVerified: true,
+        role: "USER",
+        aiAnalysisUsed: 10,
+        aiAnalysisLimit: 10,
+        authMethods: {
+          create: {
+            type: AuthType.EMAIL,
+            email: "limited@fintrack.dev",
+            password_hash: await bcrypt.hash(password, saltRounds),
+          },
+        },
+        apiKeys: {
+          create: {
+            provider: AiProvider.GROQ,
+            apiKey: "gsk_seed_limited_test_key",
+            isActive: true,
+          },
+        },
+      },
+    });
+
+    const unverifiedUser = await prisma.user.create({
+      data: {
+        name: "Unverified User",
+        isVerified: false,
+        role: "USER",
+        authMethods: {
+          create: {
+            type: AuthType.EMAIL,
+            email: "unverified@fintrack.dev",
             password_hash: await bcrypt.hash(password, saltRounds),
           },
         },
       },
     });
 
-    const user2 = await prisma.user.create({
+    const telegramUser = await prisma.user.create({
       data: {
-        name: "Богдан",
-        photo_url: "https://picsum.photos/200/200?2",
+        name: "Telegram User",
+        photo_url: "https://i.pravatar.cc/150?img=5",
+        isVerified: true,
+        role: "USER",
+        aiAnalysisUsed: 2,
+        aiAnalysisLimit: 10,
         authMethods: {
           create: {
             type: AuthType.TELEGRAM,
-            telegram_id: "1234567890",
+            telegram_id: "9876543210",
+          },
+        },
+        apiKeys: {
+          create: {
+            provider: AiProvider.GEMINI,
+            apiKey: "gemini_seed_telegram_test_key",
+            isActive: true,
           },
         },
       },
     });
 
-    const _t1 = await prisma.transaction.create({
+    const expiredDonor = await prisma.user.create({
       data: {
+        name: "Expired Donor",
+        photo_url: "https://i.pravatar.cc/150?img=6",
+        isVerified: true,
+        role: "USER",
+        donationStatus: "EXPIRED",
+        aiAnalysisUsed: 3,
+        aiAnalysisLimit: 10,
+        authMethods: {
+          create: {
+            type: AuthType.EMAIL,
+            email: "expired@fintrack.dev",
+            password_hash: await bcrypt.hash(password, saltRounds),
+          },
+        },
+        apiKeys: {
+          create: {
+            provider: AiProvider.GROQ,
+            apiKey: "gsk_seed_expired_test_key",
+            isActive: true,
+          },
+        },
+      },
+    });
+
+    console.log("✅ Users created (7)");
+
+    // ── Admin transactions — rich data for all chart ranges ──────────────────
+    // TODAY (for "day" chart — hourly buckets)
+    const adminTodayTx = [
+      {
+        title: "Ранкова кава",
+        type: TransactionType.EXPENSE,
+        amount: 95,
+        currency: CurrencyCode.UAH,
+        h: 2,
+      },
+      {
+        title: "Фріланс оплата",
+        type: TransactionType.INCOME,
+        amount: 1500,
+        currency: CurrencyCode.USD,
+        h: 4,
+      },
+      {
+        title: "Обід",
+        type: TransactionType.EXPENSE,
+        amount: 280,
+        currency: CurrencyCode.UAH,
+        h: 6,
+      },
+      {
+        title: "Консалтинг",
+        type: TransactionType.INCOME,
+        amount: 800,
+        currency: CurrencyCode.USD,
+        h: 9,
+      },
+      {
+        title: "Таксі",
+        type: TransactionType.EXPENSE,
+        amount: 180,
+        currency: CurrencyCode.UAH,
+        h: 11,
+      },
+      {
+        title: "Продукти",
+        type: TransactionType.EXPENSE,
+        amount: 650,
+        currency: CurrencyCode.UAH,
+        h: 13,
+      },
+    ];
+
+    for (const tx of adminTodayTx) {
+      await prisma.transaction.create({
+        data: {
+          title: tx.title,
+          type: tx.type,
+          amount: tx.amount,
+          currencyCode: tx.currency,
+          created_at: hoursAgo(tx.h),
+          userId: admin.id,
+        },
+      });
+    }
+
+    // THIS WEEK (days 1–6)
+    const adminWeekTx = [
+      {
         title: "Зарплата",
         type: TransactionType.INCOME,
-        amount: 25000,
-        userId: user1.id,
-        location: {
-          create: {
-            latitude: 50.4501,
-            longitude: 30.5234,
-          },
-        },
+        amount: 55000,
+        currency: CurrencyCode.UAH,
+        d: 1,
+        lat: 50.4501,
+        lng: 30.5234,
       },
-    });
-
-    const _t2 = await prisma.transaction.create({
-      data: {
-        title: "Кафе",
+      {
+        title: "Ресторан",
+        type: TransactionType.EXPENSE,
+        amount: 1200,
+        currency: CurrencyCode.UAH,
+        d: 1,
+      },
+      {
+        title: "Спортзал",
+        type: TransactionType.EXPENSE,
+        amount: 800,
+        currency: CurrencyCode.UAH,
+        d: 2,
+        lat: 50.46,
+        lng: 30.51,
+      },
+      {
+        title: "Підробіток",
+        type: TransactionType.INCOME,
+        amount: 3000,
+        currency: CurrencyCode.UAH,
+        d: 2,
+      },
+      {
+        title: "Комунальні",
+        type: TransactionType.EXPENSE,
+        amount: 2200,
+        currency: CurrencyCode.UAH,
+        d: 3,
+      },
+      {
+        title: "Freelance USD",
+        type: TransactionType.INCOME,
+        amount: 600,
+        currency: CurrencyCode.USD,
+        d: 3,
+      },
+      {
+        title: "Аптека",
+        type: TransactionType.EXPENSE,
+        amount: 450,
+        currency: CurrencyCode.UAH,
+        d: 4,
+      },
+      {
+        title: "Курси",
+        type: TransactionType.EXPENSE,
+        amount: 1500,
+        currency: CurrencyCode.UAH,
+        d: 4,
+      },
+      {
+        title: "Бонус",
+        type: TransactionType.INCOME,
+        amount: 5000,
+        currency: CurrencyCode.UAH,
+        d: 5,
+      },
+      {
+        title: "Одяг",
+        type: TransactionType.EXPENSE,
+        amount: 2800,
+        currency: CurrencyCode.UAH,
+        d: 5,
+        lat: 50.448,
+        lng: 30.53,
+      },
+      {
+        title: "Інтернет",
         type: TransactionType.EXPENSE,
         amount: 350,
-        userId: user1.id,
-        location: {
-          create: {
-            latitude: 50.4547,
-            longitude: 30.5166,
-          },
-        },
+        currency: CurrencyCode.UAH,
+        d: 6,
       },
-    });
-
-    const _t3 = await prisma.transaction.create({
-      data: {
-        title: "Фріланс",
+      {
+        title: "Дивіденди",
         type: TransactionType.INCOME,
-        amount: 12000,
-        userId: user2.id,
+        amount: 1200,
+        currency: CurrencyCode.EUR,
+        d: 6,
       },
-    });
+    ];
 
-    const _t4 = await prisma.transaction.create({
-      data: {
+    for (const tx of adminWeekTx) {
+      await prisma.transaction.create({
+        data: {
+          title: tx.title,
+          type: tx.type,
+          amount: tx.amount,
+          currencyCode: tx.currency,
+          created_at: daysAgo(tx.d),
+          userId: admin.id,
+          ...(tx.lat && tx.lng
+            ? { location: { create: { latitude: tx.lat, longitude: tx.lng } } }
+            : {}),
+        },
+      });
+    }
+
+    // THIS MONTH (days 7–29)
+    const adminMonthTx = [
+      {
+        title: "Оренда",
+        type: TransactionType.EXPENSE,
+        amount: 18000,
+        currency: CurrencyCode.UAH,
+        d: 8,
+      },
+      {
+        title: "Страхування",
+        type: TransactionType.EXPENSE,
+        amount: 3500,
+        currency: CurrencyCode.UAH,
+        d: 9,
+      },
+      {
+        title: "Консалтинг проєкт",
+        type: TransactionType.INCOME,
+        amount: 2500,
+        currency: CurrencyCode.USD,
+        d: 10,
+      },
+      {
+        title: "Стоматолог",
+        type: TransactionType.EXPENSE,
+        amount: 4200,
+        currency: CurrencyCode.UAH,
+        d: 11,
+        lat: 50.455,
+        lng: 30.52,
+      },
+      {
+        title: "Техніка",
+        type: TransactionType.EXPENSE,
+        amount: 12000,
+        currency: CurrencyCode.UAH,
+        d: 13,
+      },
+      {
+        title: "Продаж крипти",
+        type: TransactionType.INCOME,
+        amount: 3000,
+        currency: CurrencyCode.USD,
+        d: 14,
+      },
+      {
+        title: "Книги",
+        type: TransactionType.EXPENSE,
+        amount: 600,
+        currency: CurrencyCode.UAH,
+        d: 16,
+      },
+      {
+        title: "Зарплата 2",
+        type: TransactionType.INCOME,
+        amount: 55000,
+        currency: CurrencyCode.UAH,
+        d: 17,
+      },
+      {
         title: "Кіно",
         type: TransactionType.EXPENSE,
-        amount: 200,
-        userId: user2.id,
+        amount: 320,
+        currency: CurrencyCode.UAH,
+        d: 18,
+        lat: 50.447,
+        lng: 30.515,
       },
+      {
+        title: "Розробка сайту",
+        type: TransactionType.INCOME,
+        amount: 4000,
+        currency: CurrencyCode.USD,
+        d: 19,
+      },
+      {
+        title: "Ремонт",
+        type: TransactionType.EXPENSE,
+        amount: 8000,
+        currency: CurrencyCode.UAH,
+        d: 21,
+      },
+      {
+        title: "Партнерська винагорода",
+        type: TransactionType.INCOME,
+        amount: 1500,
+        currency: CurrencyCode.EUR,
+        d: 23,
+      },
+      {
+        title: "Подорож",
+        type: TransactionType.EXPENSE,
+        amount: 5500,
+        currency: CurrencyCode.UAH,
+        d: 25,
+        lat: 49.8397,
+        lng: 24.0297,
+      },
+      {
+        title: "Продаж речей",
+        type: TransactionType.INCOME,
+        amount: 2200,
+        currency: CurrencyCode.UAH,
+        d: 27,
+      },
+      {
+        title: "Ліки",
+        type: TransactionType.EXPENSE,
+        amount: 780,
+        currency: CurrencyCode.UAH,
+        d: 28,
+      },
+    ];
+
+    for (const tx of adminMonthTx) {
+      await prisma.transaction.create({
+        data: {
+          title: tx.title,
+          type: tx.type,
+          amount: tx.amount,
+          currencyCode: tx.currency,
+          created_at: daysAgo(tx.d),
+          userId: admin.id,
+          ...(tx.lat && tx.lng
+            ? { location: { create: { latitude: tx.lat, longitude: tx.lng } } }
+            : {}),
+        },
+      });
+    }
+
+    // THIS YEAR (days 31–364, different months)
+    const adminYearTx = [
+      {
+        title: "Квартальна премія",
+        type: TransactionType.INCOME,
+        amount: 20000,
+        currency: CurrencyCode.UAH,
+        d: 35,
+      },
+      {
+        title: "Відпустка Єгипет",
+        type: TransactionType.EXPENSE,
+        amount: 35000,
+        currency: CurrencyCode.UAH,
+        d: 45,
+        lat: 27.2579,
+        lng: 33.8116,
+      },
+      {
+        title: "Нова техніка",
+        type: TransactionType.EXPENSE,
+        amount: 45000,
+        currency: CurrencyCode.UAH,
+        d: 60,
+      },
+      {
+        title: "Інвестиції повернення",
+        type: TransactionType.INCOME,
+        amount: 8000,
+        currency: CurrencyCode.USD,
+        d: 75,
+      },
+      {
+        title: "Страховка авто",
+        type: TransactionType.EXPENSE,
+        amount: 12000,
+        currency: CurrencyCode.UAH,
+        d: 90,
+      },
+      {
+        title: "Зарплата Q1",
+        type: TransactionType.INCOME,
+        amount: 55000,
+        currency: CurrencyCode.UAH,
+        d: 100,
+      },
+      {
+        title: "Ремонт авто",
+        type: TransactionType.EXPENSE,
+        amount: 15000,
+        currency: CurrencyCode.UAH,
+        d: 120,
+      },
+      {
+        title: "Дивіденди Q1",
+        type: TransactionType.INCOME,
+        amount: 5000,
+        currency: CurrencyCode.USD,
+        d: 130,
+      },
+      {
+        title: "Навчання курси",
+        type: TransactionType.EXPENSE,
+        amount: 8000,
+        currency: CurrencyCode.UAH,
+        d: 150,
+      },
+      {
+        title: "Великий контракт",
+        type: TransactionType.INCOME,
+        amount: 15000,
+        currency: CurrencyCode.USD,
+        d: 160,
+      },
+      {
+        title: "Меблі",
+        type: TransactionType.EXPENSE,
+        amount: 28000,
+        currency: CurrencyCode.UAH,
+        d: 180,
+      },
+      {
+        title: "Зарплата Q2",
+        type: TransactionType.INCOME,
+        amount: 58000,
+        currency: CurrencyCode.UAH,
+        d: 190,
+      },
+      {
+        title: "Відпустка Польща",
+        type: TransactionType.EXPENSE,
+        amount: 20000,
+        currency: CurrencyCode.UAH,
+        d: 210,
+        lat: 52.2297,
+        lng: 21.0122,
+      },
+      {
+        title: "Фріланс великий",
+        type: TransactionType.INCOME,
+        amount: 10000,
+        currency: CurrencyCode.USD,
+        d: 230,
+      },
+      {
+        title: "Комунальні річні",
+        type: TransactionType.EXPENSE,
+        amount: 4500,
+        currency: CurrencyCode.UAH,
+        d: 250,
+      },
+      {
+        title: "Бонус Q3",
+        type: TransactionType.INCOME,
+        amount: 15000,
+        currency: CurrencyCode.UAH,
+        d: 270,
+      },
+      {
+        title: "Нова камера",
+        type: TransactionType.EXPENSE,
+        amount: 22000,
+        currency: CurrencyCode.UAH,
+        d: 290,
+      },
+      {
+        title: "Дивіденди Q3",
+        type: TransactionType.INCOME,
+        amount: 4000,
+        currency: CurrencyCode.EUR,
+        d: 310,
+      },
+      {
+        title: "Ремонт квартири",
+        type: TransactionType.EXPENSE,
+        amount: 60000,
+        currency: CurrencyCode.UAH,
+        d: 330,
+      },
+      {
+        title: "Зарплата Q4",
+        type: TransactionType.INCOME,
+        amount: 60000,
+        currency: CurrencyCode.UAH,
+        d: 350,
+      },
+    ];
+
+    for (const tx of adminYearTx) {
+      await prisma.transaction.create({
+        data: {
+          title: tx.title,
+          type: tx.type,
+          amount: tx.amount,
+          currencyCode: tx.currency,
+          created_at: daysAgo(tx.d),
+          userId: admin.id,
+          ...(tx.lat && tx.lng
+            ? { location: { create: { latitude: tx.lat, longitude: tx.lng } } }
+            : {}),
+        },
+      });
+    }
+
+    // ── Donor transactions ────────────────────────────────────────────────────
+    const donorTxData = [
+      {
+        title: "Зарплата",
+        type: TransactionType.INCOME,
+        amount: 40000,
+        currency: CurrencyCode.UAH,
+        d: 0,
+      },
+      {
+        title: "Кава",
+        type: TransactionType.EXPENSE,
+        amount: 110,
+        currency: CurrencyCode.UAH,
+        d: 0,
+      },
+      {
+        title: "Freelance",
+        type: TransactionType.INCOME,
+        amount: 1200,
+        currency: CurrencyCode.USD,
+        d: 2,
+      },
+      {
+        title: "Ресторан",
+        type: TransactionType.EXPENSE,
+        amount: 950,
+        currency: CurrencyCode.UAH,
+        d: 3,
+        lat: 50.448,
+        lng: 30.527,
+      },
+      {
+        title: "Продукти",
+        type: TransactionType.EXPENSE,
+        amount: 1100,
+        currency: CurrencyCode.UAH,
+        d: 5,
+      },
+      {
+        title: "Спортзал",
+        type: TransactionType.EXPENSE,
+        amount: 700,
+        currency: CurrencyCode.UAH,
+        d: 7,
+      },
+      {
+        title: "Підробіток",
+        type: TransactionType.INCOME,
+        amount: 5000,
+        currency: CurrencyCode.UAH,
+        d: 10,
+      },
+      {
+        title: "Інтернет",
+        type: TransactionType.EXPENSE,
+        amount: 350,
+        currency: CurrencyCode.UAH,
+        d: 12,
+      },
+      {
+        title: "Комунальні",
+        type: TransactionType.EXPENSE,
+        amount: 2000,
+        currency: CurrencyCode.UAH,
+        d: 15,
+      },
+      {
+        title: "Бонус",
+        type: TransactionType.INCOME,
+        amount: 3000,
+        currency: CurrencyCode.UAH,
+        d: 20,
+      },
+      {
+        title: "Одяг",
+        type: TransactionType.EXPENSE,
+        amount: 3200,
+        currency: CurrencyCode.UAH,
+        d: 22,
+      },
+      {
+        title: "Консалтинг",
+        type: TransactionType.INCOME,
+        amount: 800,
+        currency: CurrencyCode.EUR,
+        d: 40,
+      },
+      {
+        title: "Відпустка",
+        type: TransactionType.EXPENSE,
+        amount: 15000,
+        currency: CurrencyCode.UAH,
+        d: 60,
+        lat: 48.8566,
+        lng: 2.3522,
+      },
+      {
+        title: "Техніка",
+        type: TransactionType.EXPENSE,
+        amount: 18000,
+        currency: CurrencyCode.UAH,
+        d: 100,
+      },
+      {
+        title: "Зарплата Q2",
+        type: TransactionType.INCOME,
+        amount: 42000,
+        currency: CurrencyCode.UAH,
+        d: 180,
+      },
+    ];
+
+    for (const tx of donorTxData) {
+      await prisma.transaction.create({
+        data: {
+          title: tx.title,
+          type: tx.type,
+          amount: tx.amount,
+          currencyCode: tx.currency,
+          created_at: daysAgo(tx.d),
+          userId: donor.id,
+          ...(tx.lat && tx.lng
+            ? { location: { create: { latitude: tx.lat, longitude: tx.lng } } }
+            : {}),
+        },
+      });
+    }
+
+    // ── Regular user transactions ─────────────────────────────────────────────
+    const regularTxData = [
+      {
+        title: "Зарплата",
+        type: TransactionType.INCOME,
+        amount: 22000,
+        currency: CurrencyCode.UAH,
+        d: 1,
+      },
+      {
+        title: "Оренда",
+        type: TransactionType.EXPENSE,
+        amount: 8000,
+        currency: CurrencyCode.UAH,
+        d: 2,
+      },
+      {
+        title: "Продукти",
+        type: TransactionType.EXPENSE,
+        amount: 900,
+        currency: CurrencyCode.UAH,
+        d: 2,
+      },
+      {
+        title: "Транспорт",
+        type: TransactionType.EXPENSE,
+        amount: 200,
+        currency: CurrencyCode.UAH,
+        d: 3,
+      },
+      {
+        title: "Обід",
+        type: TransactionType.EXPENSE,
+        amount: 180,
+        currency: CurrencyCode.UAH,
+        d: 4,
+      },
+      {
+        title: "Підробіток",
+        type: TransactionType.INCOME,
+        amount: 3000,
+        currency: CurrencyCode.UAH,
+        d: 5,
+      },
+      {
+        title: "Кіно",
+        type: TransactionType.EXPENSE,
+        amount: 250,
+        currency: CurrencyCode.UAH,
+        d: 7,
+      },
+      {
+        title: "Комунальні",
+        type: TransactionType.EXPENSE,
+        amount: 1800,
+        currency: CurrencyCode.UAH,
+        d: 10,
+      },
+      {
+        title: "Зарплата",
+        type: TransactionType.INCOME,
+        amount: 22000,
+        currency: CurrencyCode.UAH,
+        d: 30,
+      },
+      {
+        title: "Оренда",
+        type: TransactionType.EXPENSE,
+        amount: 8000,
+        currency: CurrencyCode.UAH,
+        d: 31,
+      },
+      {
+        title: "Зарплата",
+        type: TransactionType.INCOME,
+        amount: 22000,
+        currency: CurrencyCode.UAH,
+        d: 60,
+      },
+      {
+        title: "Продукти",
+        type: TransactionType.EXPENSE,
+        amount: 750,
+        currency: CurrencyCode.UAH,
+        d: 62,
+      },
+    ];
+
+    for (const tx of regularTxData) {
+      await prisma.transaction.create({
+        data: {
+          title: tx.title,
+          type: tx.type,
+          amount: tx.amount,
+          currencyCode: tx.currency,
+          created_at: daysAgo(tx.d),
+          userId: regularUser.id,
+        },
+      });
+    }
+
+    // Limited and telegram — мінімум
+    await prisma.transaction.createMany({
+      data: [
+        {
+          title: "Зарплата",
+          type: TransactionType.INCOME,
+          amount: 18000,
+          currencyCode: CurrencyCode.UAH,
+          created_at: daysAgo(1),
+          userId: limitedUser.id,
+        },
+        {
+          title: "Продукти",
+          type: TransactionType.EXPENSE,
+          amount: 600,
+          currencyCode: CurrencyCode.UAH,
+          created_at: daysAgo(3),
+          userId: limitedUser.id,
+        },
+        {
+          title: "Фріланс",
+          type: TransactionType.INCOME,
+          amount: 12000,
+          currencyCode: CurrencyCode.UAH,
+          created_at: daysAgo(2),
+          userId: telegramUser.id,
+        },
+        {
+          title: "Кіно",
+          type: TransactionType.EXPENSE,
+          amount: 200,
+          currencyCode: CurrencyCode.UAH,
+          created_at: daysAgo(5),
+          userId: telegramUser.id,
+        },
+        {
+          title: "Зарплата",
+          type: TransactionType.INCOME,
+          amount: 25000,
+          currencyCode: CurrencyCode.UAH,
+          created_at: daysAgo(1),
+          userId: expiredDonor.id,
+        },
+        {
+          title: "Оренда",
+          type: TransactionType.EXPENSE,
+          amount: 9000,
+          currencyCode: CurrencyCode.UAH,
+          created_at: daysAgo(2),
+          userId: expiredDonor.id,
+        },
+      ],
     });
 
-    console.log("✅ Seeding finished successfully!");
+    console.log("✅ Transactions created");
+
+    // ── AI message history ────────────────────────────────────────────────────
+    const aiConversations: Array<{
+      userId: string;
+      pairs: Array<{ prompt: string; result: string; daysBack: number }>;
+    }> = [
+      {
+        userId: admin.id,
+        pairs: [
+          {
+            prompt: "Які мої основні витрати цього місяця?",
+            result:
+              "Ваші основні витрати цього місяця: оренда 18000 UAH, техніка 12000 UAH, ремонт 8000 UAH. Загальні витрати складають ~55000 UAH.",
+            daysBack: 1,
+          },
+          {
+            prompt: "Порівняй мої доходи та витрати за останній квартал",
+            result:
+              "За останній квартал: доходи ~165000 UAH, витрати ~98000 UAH. Ваш баланс позитивний — зберігаєте близько 40% доходів.",
+            daysBack: 3,
+          },
+          {
+            prompt: "Де я найбільше витрачаю гроші?",
+            result:
+              "Найбільші категорії витрат: нерухомість (оренда/ремонт) — 35%, їжа та розваги — 20%, техніка — 15%.",
+            daysBack: 7,
+          },
+        ],
+      },
+      {
+        userId: donor.id,
+        pairs: [
+          {
+            prompt: "Analyse my spending for this month",
+            result:
+              "This month your spending totals around 7000 UAH. Main categories: food 1100, rent 2000, gym 700, clothes 3200.",
+            daysBack: 2,
+          },
+          {
+            prompt: "Як збільшити мої заощадження?",
+            result:
+              "Ваш поточний рівень заощаджень — ~20% від доходів. Рекомендую скоротити витрати на одяг та розваги до 15% бюджету.",
+            daysBack: 5,
+          },
+        ],
+      },
+      {
+        userId: regularUser.id,
+        pairs: [
+          {
+            prompt: "Скільки я заробив цього місяця?",
+            result:
+              "Цього місяця ваші доходи склали 25000 UAH (зарплата + підробіток).",
+            daysBack: 1,
+          },
+        ],
+      },
+    ];
+
+    for (const convo of aiConversations) {
+      for (const pair of convo.pairs) {
+        const base = daysAgo(pair.daysBack);
+        await prisma.message.create({
+          data: {
+            userId: convo.userId,
+            role: "user",
+            content: pair.prompt,
+            created_at: base,
+          },
+        });
+        await prisma.message.create({
+          data: {
+            userId: convo.userId,
+            role: "assistant",
+            content: pair.result,
+            created_at: new Date(base.getTime() + 3000),
+          },
+        });
+      }
+    }
+
+    console.log("✅ AI message history created");
+
+    // ── Donation payments ─────────────────────────────────────────────────────
+    const donationData = [
+      {
+        userId: admin.id,
+        sessionId: "cs_seed_admin_001",
+        intentId: "pi_seed_admin_001",
+        amount: 500,
+        d: 60,
+      },
+      {
+        userId: admin.id,
+        sessionId: "cs_seed_admin_002",
+        intentId: "pi_seed_admin_002",
+        amount: 300,
+        d: 30,
+      },
+      {
+        userId: donor.id,
+        sessionId: "cs_seed_donor_001",
+        intentId: "pi_seed_donor_001",
+        amount: 300,
+        d: 30,
+      },
+      {
+        userId: donor.id,
+        sessionId: "cs_seed_donor_002",
+        intentId: "pi_seed_donor_002",
+        amount: 500,
+        d: 15,
+      },
+      {
+        userId: expiredDonor.id,
+        sessionId: "cs_seed_expired_001",
+        intentId: "pi_seed_expired_001",
+        amount: 300,
+        d: 120,
+      },
+      {
+        userId: regularUser.id,
+        sessionId: "cs_seed_regular_001",
+        intentId: null,
+        amount: 300,
+        d: 5,
+        status: "PENDING" as const,
+      },
+    ];
+
+    for (const d of donationData) {
+      await prisma.donationPayment.create({
+        data: {
+          userId: d.userId,
+          stripeCheckoutSessionId: d.sessionId,
+          stripePaymentIntentId: d.intentId ?? null,
+          amount: d.amount,
+          currency: "usd",
+          status: (d.status ?? "SUCCEEDED") as "SUCCEEDED" | "PENDING",
+          completedAt: d.status === "PENDING" ? null : daysAgo(d.d),
+          createdAt: daysAgo(d.d),
+        },
+      });
+    }
+
+    console.log("✅ Donation payments created");
+
+    // ── Error logs ────────────────────────────────────────────────────────────
+    const errorLogsData = [
+      {
+        userId: unverifiedUser.id,
+        title: "Verification email not received",
+        message:
+          "User reporting missing confirmation email after multiple attempts",
+        source: "api:/auth/resend-verification",
+        status: "OPEN" as const,
+        d: 1,
+      },
+      {
+        userId: regularUser.id,
+        title: "Dashboard crash on load",
+        message: "Cannot read properties of undefined (reading 'data')",
+        stack:
+          "TypeError: Cannot read properties of undefined\n  at Dashboard.tsx:42:15\n  at renderWithHooks\n  at mountIndeterminateComponent",
+        source: "route:dashboard:error-boundary",
+        status: "OPEN" as const,
+        d: 0,
+      },
+      {
+        userId: donor.id,
+        title: "Analytics AI timeout",
+        message: "Request timeout after 30000ms waiting for Groq API",
+        stack: "Error: timeout\n  at ai/service.ts:88",
+        source: "api:/ai",
+        status: "RESOLVED" as const,
+        resolvedByAdminId: admin.id,
+        resolutionNote:
+          "Groq API was temporarily unavailable. Fixed by switching to backup key.",
+        d: 2,
+      },
+      {
+        userId: limitedUser.id,
+        title: "Transaction form validation error",
+        message: "Zod validation failed: amount must be positive",
+        source: "route:transactions:error-boundary",
+        status: "OPEN" as const,
+        d: 1,
+      },
+      {
+        userId: expiredDonor.id,
+        title: "Monobank token rejected",
+        message: "Invalid Monobank token — 401 Unauthorized",
+        stack:
+          "AppError: Invalid Monobank token\n  at monobank.controller.ts:55",
+        source: "api:/transactions/monobank/fetch",
+        status: "RESOLVED" as const,
+        resolvedByAdminId: admin.id,
+        resolutionNote:
+          "User provided expired token. Advised to regenerate at api.monobank.ua.",
+        d: 5,
+      },
+      {
+        userId: regularUser.id,
+        title: "Unhandled promise rejection in OAuthBridge",
+        message: "Cannot read properties of null (reading 'googleIdToken')",
+        stack: "TypeError at OAuthBridge.tsx:34",
+        source: "window.unhandledrejection",
+        status: "OPEN" as const,
+        d: 3,
+      },
+      {
+        userId: telegramUser.id,
+        title: "Chart.js rendering error",
+        message: "Canvas element not found when rendering income chart",
+        source: "route:dashboard:error-boundary",
+        status: "OPEN" as const,
+        d: 4,
+      },
+      {
+        userId: donor.id,
+        title: "Stripe webhook duplicate event",
+        message: "Duplicate stripeEventId detected: evt_test_123",
+        source: "api:/donations/webhook",
+        status: "RESOLVED" as const,
+        resolvedByAdminId: admin.id,
+        resolutionNote:
+          "Expected behavior — idempotency guard works correctly.",
+        d: 10,
+      },
+      {
+        userId: regularUser.id,
+        title: "Leaflet map crash on mobile",
+        message: "Map container not found — likely SSR issue",
+        source: "route:transactions:error-boundary",
+        status: "OPEN" as const,
+        d: 6,
+      },
+    ];
+
+    for (const log of errorLogsData) {
+      await prisma.errorLog.create({
+        data: {
+          userId: log.userId,
+          title: log.title,
+          message: log.message,
+          stack: log.stack ?? null,
+          source: log.source,
+          status: log.status,
+          resolvedByAdminId: log.resolvedByAdminId ?? null,
+          resolutionNote: log.resolutionNote ?? null,
+          resolvedAt: log.resolvedByAdminId ? daysAgo(log.d - 1) : null,
+          createdAt: daysAgo(log.d),
+        },
+      });
+    }
+
+    console.log("✅ Error logs created (8)");
+
+    // ── Summary ───────────────────────────────────────────────────────────────
+    const f = (email: string, role: string, status: string, info: string) =>
+      `  ${email.padEnd(25)} | ${role.padEnd(6)} | ${status.padEnd(12)} | ${info}`;
+
+    console.log(`
+📋 Seed summary:
+──────────────────────────────────────────────────────────────────────────────────────
+${f("admin@fintrack.dev", "ADMIN", "verified", "donor — 50+ txs across all ranges")}
+${f("donor@fintrack.dev", "USER", "verified", "donor — 15 txs, 2 AI convos")}
+${f("user@fintrack.dev", "USER", "verified", "7/10 AI — 12 txs")}
+${f("limited@fintrack.dev", "USER", "verified", "10/10 AI (limit hit) — 2 txs")}
+${f("unverified@fintrack.dev", "USER", "unverified", "0 txs")}
+${f("expired@fintrack.dev", "USER", "verified", "expired donor — 2 txs")}
+${f("Telegram (9876543210)", "USER", "verified", "2 txs")}
+
+  🔑 Password for all email accounts => 11111111
+
+  Transactions : ~85 total
+  AI messages  : 12 (6 pairs across 3 users)
+  Donations    : 6 payments (5 SUCCEEDED, 1 PENDING)
+  Error logs   : 8 (5 OPEN, 3 RESOLVED)
+──────────────────────────────────────────────────────────────────────────────────────
+✅ Seeding finished successfully!
+    `);
   } catch (err) {
     console.error("❌ Error while seeding database:", err);
     process.exit(1);

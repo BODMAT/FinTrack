@@ -2,10 +2,12 @@
 # ================================================================
 #  codebase-dump.sh — AI-ready full project codebase dump
 #  Respects .gitignore | skips lock-files | skips binaries
-#  Usage: bash codebase-dump.sh                                    (full project)
-#         bash codebase-dump.sh -d src/components                  (subfolder, recursive)
-#         bash codebase-dump.sh --no-recursive                     (root files only)
-#         bash codebase-dump.sh -d src/components --no-recursive   (subfolder, top-level only)
+#
+#  Usage: 
+#    bash codebase-dump.sh                                    (full project)
+#    bash codebase-dump.sh -d src/components                  (subfolder, recursive)
+#    bash codebase-dump.sh --no-recursive                     (root files only)
+#    bash codebase-dump.sh -d src/components --no-recursive   (subfolder, top-level only)
 # ================================================================
 
 TARGET_DIR="."
@@ -36,7 +38,7 @@ fi
 
 THIS_SCRIPT="$(basename "${BASH_SOURCE[0]:-$0}")"
 
-LOCK_RE='^(package-lock\.json|yarn\.lock|pnpm-lock\.yaml|composer\.lock|Gemfile\.lock|poetry\.lock|Cargo\.lock|Pipfile\.lock|packages\.lock\.json|npm-shrinkwrap\.json|bun\.lockb|shrinkwrap\.json)$'
+LOCK_RE='(/|^)(package-lock\.json|yarn\.lock|pnpm-lock\.yaml|composer\.lock|Gemfile\.lock|poetry\.lock|Cargo\.lock|Pipfile\.lock|packages\.lock\.json|npm-shrinkwrap\.json|bun\.lockb|shrinkwrap\.json)$'
 
 if ! git rev-parse --git-dir &>/dev/null; then
   echo "❌  Not a git repository. Run from the project root." >&2; exit 1
@@ -60,7 +62,7 @@ get_files() {
     | grep -vxF "$OUTPUT" \
     | grep -vxF "$THIS_SCRIPT" \
     | if [[ "$RECURSIVE" == "false" ]]; then
-        grep -E "^${prefix}[^/]+$"
+        grep -E "^${prefix}[^/]+$" || true
       else
         cat
       fi
@@ -90,7 +92,7 @@ is_binary() {
 }
 
 FILE_LIST=$(get_files)
-FILE_COUNT=$(printf '%s\n' "$FILE_LIST" | grep -c .)
+FILE_COUNT=$(printf '%s\n' "$FILE_LIST" | grep -c . || echo 0)
 echo "⏳  Collecting ${FILE_COUNT} files…"
 
 {
@@ -102,8 +104,13 @@ echo "⏳  Collecting ${FILE_COUNT} files…"
   printf '             FILE CONTENTS\n'
   printf '==========================================\n'
 
-  printf '%s\n' "$FILE_LIST" | while IFS= read -r f; do
+  i=0
+  while IFS= read -r f; do
     [[ -z "$f" || ! -f "$f" ]] && continue
+
+    i=$((i + 1))
+    printf "\r\033[K\033[0;36m▸\033[0m [%d/%d] Processing: %s" "$i" "$FILE_COUNT" "$f" >&2
+
     printf '\n================== %s ==================\n\n' "$f"
     if is_binary "$f"; then
       printf '[BINARY FILE — content skipped]\n'
@@ -111,8 +118,15 @@ echo "⏳  Collecting ${FILE_COUNT} files…"
       cat "$f"
       [[ -n "$(tail -c1 "$f")" ]] && printf '\n'
     fi
-  done
+  done < <(printf '%s\n' "$FILE_LIST")
+  printf "\n" >&2
 } > "$OUTPUT"
+
+if [[ ! -s "$OUTPUT" ]]; then
+  echo "❌  Dump failed — output file is empty or missing" >&2
+  rm -f "$OUTPUT"
+  exit 1
+fi
 
 SIZE_KB=$(awk "BEGIN{printf \"%.1f\", $(wc -c < "$OUTPUT")/1024}")
 echo "✅  Dump saved → ./${OUTPUT}  (${FILE_COUNT} files, ${SIZE_KB} KB)"

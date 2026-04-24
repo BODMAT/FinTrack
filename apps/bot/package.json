@@ -23,9 +23,9 @@
   "scripts": {
     "build": "rimraf dist && npx tsc",
     "prestart": "npm run build",
-    "start": "dotenv -e ../../.env -- node dist/bot.js",
+    "start": "node dist/bot.js",
     "predev": "npm run build",
-    "dev": "dotenv -e ../../.env -- concurrently \"npx tsc -w\" \"dotenv -e ../../.env -- nodemon dist/bot.js\""
+    "dev": "concurrently \"npx tsc -w\" \"nodemon dist/bot.js\""
   },
   "dependencies": {
     "dotenv": "^16.6.1",

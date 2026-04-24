@@ -5,6 +5,7 @@
   "main": "server.js",
   "type": "module",
   "scripts": {
+    "start:prod": "node node_modules/prisma/build/index.js migrate deploy --schema prisma/schema.prisma && node dist/server.js",
     "build": "rimraf dist && npx tsc",
     "start": "node dist/server.js",
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --runInBand",
@@ -16,7 +17,7 @@
     "prisma:migrate:dev": "npm run prisma -- migrate dev",
     "prisma:migrate:deploy": "npm run prisma -- migrate deploy",
     "prisma:generate": "npm run prisma -- generate",
-    "prisma:studio": "npm run prisma -- studio",
+    "prisma:studio": "npm run prisma -- studio --hostname 0.0.0.0",
     "prisma:seed": "tsx src/prisma/seed.ts"
   },
   "repository": {

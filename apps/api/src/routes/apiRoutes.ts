@@ -20,6 +20,8 @@ apiRouter.use("/user-api-keys", userApiKeyRouter);
 apiRouter.use("/admin", adminRouter);
 apiRouter.use("/donations", donationRouter);
 
+apiRouter.get("/health", (_req, res) => res.json({ ok: true }));
+
 // apiRouter.all("*", (req: Request, res: Response, next: NextFunction) => {
 // 	res.status(404).json({ error: "Endpoint not found" });
 // });
