@@ -9,14 +9,17 @@ components:
         password:
           type: string
           format: password
-      required: [email, password]
+      required: [ email, password ]
+      example:
+        email: "admin@fintrack.dev"
+        password: "11111111"
 
     AuthGoogleExchangeInput:
       type: object
       properties:
         idToken:
           type: string
-      required: [idToken]
+      required: [ idToken ]
 
     AuthAuthenticatedResponse:
       type: object
@@ -34,7 +37,7 @@ components:
 paths:
   /auth/login:
     post:
-      tags: [Auth]
+      tags: [ Auth ]
       summary: Log in with email and password
       security: []
       requestBody:
@@ -42,24 +45,24 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AuthLoginInput'
+              $ref: "#/components/schemas/AuthLoginInput"
       responses:
-        '200':
+        "200":
           description: Authenticated and cookies set
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthAuthenticatedResponse'
-        '401':
+                $ref: "#/components/schemas/AuthAuthenticatedResponse"
+        "401":
           description: Invalid credentials
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthError'
+                $ref: "#/components/schemas/AuthError"
 
   /auth/google/exchange:
     post:
-      tags: [Auth]
+      tags: [ Auth ]
       summary: Exchange Google ID token for backend session
       security: []
       requestBody:
@@ -67,20 +70,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AuthGoogleExchangeInput'
+              $ref: "#/components/schemas/AuthGoogleExchangeInput"
       responses:
-        '200':
+        "200":
           description: Authenticated and cookies set
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthAuthenticatedResponse'
-        '400':
+                $ref: "#/components/schemas/AuthAuthenticatedResponse"
+        "400":
           description: Invalid payload
 
   /auth/token:
     post:
-      tags: [Auth]
+      tags: [ Auth ]
       summary: Rotate refresh token and issue a fresh session
       security: []
       requestBody:
@@ -93,18 +96,18 @@ paths:
                 token:
                   type: string
       responses:
-        '200':
+        "200":
           description: Session rotated
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AuthAuthenticatedResponse'
-        '401':
+                $ref: "#/components/schemas/AuthAuthenticatedResponse"
+        "401":
           description: Invalid, expired or reused refresh token
 
   /auth/logout:
     delete:
-      tags: [Auth]
+      tags: [ Auth ]
       summary: Logout current refresh session
       security: []
       requestBody:
@@ -117,15 +120,15 @@ paths:
                 token:
                   type: string
       responses:
-        '204':
+        "204":
           description: Logged out
 
   /auth/logout-all:
     post:
-      tags: [Auth]
+      tags: [ Auth ]
       summary: Logout from all sessions of current user
       responses:
-        '204':
+        "204":
           description: All sessions revoked
-        '401':
+        "401":
           description: Unauthorized

@@ -25,8 +25,8 @@ components:
         - password
       example:
         type: "EMAIL"
-        email: "ivan@gmail.com"
-        password: "password1234"
+        email: "admin@fintrack.dev"
+        password: "11111111"
 
     CreateAuthMethodTelegramInput:
       type: object
@@ -43,7 +43,7 @@ components:
         - telegram_id
       example:
         type: "TELEGRAM"
-        telegram_id: "123456789"
+        telegram_id: "9876543210"
 
     CreateAuthMethodInput:
       oneOf:
@@ -69,8 +69,8 @@ components:
         - type
       example:
         type: "EMAIL"
-        email: "ivan@gmail.com"
-        password: "password1234"
+        email: "admin@fintrack.dev"
+        password: "11111111"
 
     UpdateAuthMethodTelegramInput:
       type: object
@@ -86,7 +86,7 @@ components:
         - type
       example:
         type: "TELEGRAM"
-        telegram_id: "123456789"
+        telegram_id: "9876543210"
 
     UpdateAuthMethodInput:
       oneOf:
@@ -109,13 +109,13 @@ components:
         - name
         - authMethods
       example:
-        name: "Ivan Petrov"
+        name: "Admin User"
         authMethods:
           - type: "EMAIL"
-            email: "ivan@gmail.com"
-            password: "password1234"
+            email: "admin@fintrack.dev"
+            password: "11111111"
           - type: "TELEGRAM"
-            telegram_id: "123456789"
+            telegram_id: "9876543210"
 
     UpdateUserInput:
       type: object
@@ -130,13 +130,13 @@ components:
           items:
             $ref: "#/components/schemas/UpdateAuthMethodInput"
       example:
-        name: "Ivan Petrov"
+        name: "Admin User"
         authMethods:
           - type: "EMAIL"
-            email: "ivan@gmail.com"
-            password: "password1234"
+            email: "admin@fintrack.dev"
+            password: "11111111"
           - type: "TELEGRAM"
-            telegram_id: "123456789"
+            telegram_id: "9876543210"
 
     # --- Schemas for Responses ---
     AuthMethod:
@@ -155,7 +155,7 @@ components:
       example:
         id: "52d8706f-776e-47c8-ab50-50876940c4c7"
         type: "EMAIL"
-        email: "ivan@gmail.com"
+        email: "admin@fintrack.dev"
         telegram_id: null
 
     User:
@@ -180,19 +180,19 @@ components:
             $ref: "#/components/schemas/AuthMethod"
       example:
         id: "d5adc858-2ffc-4a69-972b-540af8a3b563"
-        name: "Ivan Petrov"
-        photo_url: null
+        name: "Admin User"
+        photo_url: "https://i.pravatar.cc/150?img=1"
         created_at: "2025-09-01T12:30:00.000Z"
         updated_at: "2025-09-27T15:33:24.979Z"
         authMethods:
           - id: "52d8706f-776e-47c8-ab50-50876940c4c7"
             type: "EMAIL"
-            email: "ivan@gmail.com"
+            email: "admin@fintrack.dev"
             telegram_id: null
           - id: "075065ea-c5e7-454a-9738-77704c4f2504"
             type: "TELEGRAM"
             email: null
-            telegram_id: "123456789"
+            telegram_id: "9876543210"
 
     # --- Schemas for Errors ---
     Error:

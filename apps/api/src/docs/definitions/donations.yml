@@ -22,6 +22,12 @@ components:
           type: integer
         currency:
           type: string
+      example:
+        userId: "d5adc858-2ffc-4a69-972b-540af8a3b563"
+        name: "Admin User"
+        photoUrl: "https://i.pravatar.cc/150?img=1"
+        totalAmountMinor: 800
+        currency: "usd"
 
 paths:
   /donations/checkout-session:

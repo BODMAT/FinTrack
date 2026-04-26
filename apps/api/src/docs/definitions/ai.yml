@@ -10,6 +10,9 @@ components:
         data:
           type: object
       required: [prompt, data]
+      example:
+        prompt: "What are my main expenses this month?"
+        data: { "month": "2025-09" }
 
     AIResponse:
       type: object
@@ -18,6 +21,9 @@ components:
           type: string
         result:
           type: string
+      example:
+        model: "llama-3.1-8b-instant"
+        result: "Your main expenses this month: rent 18000 UAH, gadgets 12000 UAH, repairs 8000 UAH. Total expenses are ~55000 UAH."
 
     AIHistoryItem:
       type: object
@@ -31,6 +37,11 @@ components:
         created_at:
           type: string
           format: date-time
+      example:
+        id: "d5adc858-2ffc-4a69-972b-540af8a3b563"
+        prompt: "What are my main expenses this month?"
+        result: "Your main expenses this month: rent 18000 UAH, gadgets 12000 UAH, repairs 8000 UAH. Total expenses are ~55000 UAH."
+        created_at: "2025-09-01T12:30:00.000Z"
 
     AIAccess:
       type: object
