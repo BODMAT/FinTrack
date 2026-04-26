@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from "express";
-import { Prisma, TransactionSource } from "@prisma/client";
+import { Prisma, TransactionSource, CurrencyCode } from "@prisma/client";
 import z from "zod";
 import * as transactionService from "./service.js";
 import { AppError } from "../../middleware/errorHandler.js";
@@ -13,11 +13,11 @@ const sourceQuerySchema = z
   .enum([TransactionSource.MANUAL, TransactionSource.MONOBANK])
   .optional();
 
-function normalizeCurrencyCode(input?: string) {
-  if (!input) return "USD";
+function normalizeCurrencyCode(input?: string): CurrencyCode {
+  if (!input) return CurrencyCode.USD;
   const normalized = input.trim().toUpperCase();
   const parsed = manualCurrencyCodeSchema.safeParse(normalized);
-  return parsed.success ? parsed.data : "USD";
+  return parsed.success ? (parsed.data as CurrencyCode) : CurrencyCode.USD;
 }
 
 function getSourceFilter(rawSource: unknown): TransactionSource | undefined {

@@ -237,7 +237,7 @@ export async function fetchMonobankAccounts(
     }
 
     res.status(200).json({
-      accounts: accounts.map((account) => ({
+      accounts: accounts.map((account: MonobankAccount) => ({
         id: account.id,
         type: account.type,
         currencyCode: account.currencyCode,
