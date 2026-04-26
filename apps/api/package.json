@@ -11,7 +11,7 @@
     "test": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js --runInBand",
     "test:watch": "jest --watch",
     "predev": "npm run build",
-    "dev": "concurrently \"npx tsc -w\" \"nodemon --ext js,yml dist/server.js\"",
+    "dev": "concurrently \"npx tsc -w\" \"nodemon\"",
     "prod": "dotenv -e .env.production.local -- concurrently \"npx tsc -w\" \"nodemon dist/server.js\"",
     "prisma": "prisma",
     "prisma:migrate:dev": "npm run prisma -- migrate dev",
@@ -53,7 +53,10 @@
     "stripe": "^22.0.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "zod": "^4.1.3"
+    "zod": "^4.3.6"
+  },
+  "overrides": {
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
