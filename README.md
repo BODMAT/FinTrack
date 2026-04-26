@@ -497,7 +497,7 @@ Domains covered: `auth`, `user`, `transaction`, `summary`, `ai`, `monobank`, `ad
 
 ```bash
 # build before running any app
-npm --prefix packages/types run build
+npm run build -w @fintrack/types
 ```
 
 ---

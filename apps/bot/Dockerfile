@@ -25,8 +25,8 @@ COPY --from=deps /app/packages/types/package.json ./packages/types/package.json
 COPY packages/types ./packages/types
 COPY apps/bot       ./apps/bot
 
-RUN npm --prefix packages/types run build
-RUN npm --prefix apps/bot run build
+RUN npm run build -w @fintrack/types
+RUN npm run build -w fintrack-bot
 
 # ── runner ────────────────────────────────────────────────────────────────────
 FROM node:22-alpine AS runner

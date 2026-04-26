@@ -25,9 +25,9 @@ COPY --from=deps /app/packages/types/package.json ./packages/types/package.json
 COPY packages/types ./packages/types
 COPY apps/api       ./apps/api
 
-RUN npm --prefix packages/types run build
-RUN npm --prefix apps/api run prisma:generate
-RUN npm --prefix apps/api run build
+RUN npm run build -w @fintrack/types
+RUN npm run prisma:generate -w fintrack-api
+RUN npm run build -w fintrack-api
 
 # ── runner ────────────────────────────────────────────────────────────────────
 FROM node:22-alpine AS runner
