@@ -25,8 +25,12 @@ function getSpec() {
       },
       servers: [
         {
+          url: "/api",
+          description: "Current Server (Relative)",
+        },
+        {
           url: ENV.SWAGGER_SERVER_URL ?? `http://${ENV.HOST}:${ENV.PORT}/api`,
-          description: "FinTrack REST API",
+          description: "Absolute Server URL",
         },
       ],
       tags: [
