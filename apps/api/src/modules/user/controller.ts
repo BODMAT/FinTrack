@@ -7,7 +7,7 @@ import { AppError } from "../../middleware/errorHandler.js";
 import { logSecurityEvent } from "../../utils/authSecurity.js";
 import { ENV } from "../../config/env.js";
 import {
-  СreateUserSchema as createUserSchema,
+  CreateUserSchema as createUserSchema,
   UpdateUserSchema as updateUserSchema,
 } from "@fintrack/types";
 
