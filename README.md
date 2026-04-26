@@ -155,7 +155,7 @@ Each service is accessible directly on its own port for easier debugging.
 **Commands:**
 
 - `bash dx dev` — Start all containers in detached mode.
-- `bash dx ps` — List containers with their current status and health.
+- `bash dx ps` — List containers with their current status and health (`init` service with `Exited` status is normal in dev mode).
 - `bash dx logs` — Follow logs for all services (or `bash dx logs api` for a specific service).
 - `bash dx api` — Open a shell inside the API container (shortcut for `bash dx shell api`).
 - `bash dx run api:prisma:studio:dx` — Start Prisma Studio inside the API container.

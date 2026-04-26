@@ -6,6 +6,7 @@ import {
   AiProvider,
 } from "@prisma/client";
 import { prisma } from "./client.js";
+import { encryptApiKey } from "../utils/crypto.js";
 
 (async () => {
   try {
@@ -42,7 +43,7 @@ import { prisma } from "./client.js";
         apiKeys: {
           create: {
             provider: AiProvider.GROQ,
-            apiKey: "gsk_seed_admin_test_key",
+            apiKey: encryptApiKey("gsk_seed_admin_test_key"),
             isActive: true,
           },
         },
@@ -69,7 +70,7 @@ import { prisma } from "./client.js";
         apiKeys: {
           create: {
             provider: AiProvider.GROQ,
-            apiKey: "gsk_seed_donor_test_key",
+            apiKey: encryptApiKey("gsk_seed_donor_test_key"),
             isActive: true,
           },
         },
@@ -94,7 +95,7 @@ import { prisma } from "./client.js";
         apiKeys: {
           create: {
             provider: AiProvider.GEMINI,
-            apiKey: "gemini_seed_regular_test_key",
+            apiKey: encryptApiKey("gemini_seed_regular_test_key"),
             isActive: true,
           },
         },
@@ -119,7 +120,7 @@ import { prisma } from "./client.js";
         apiKeys: {
           create: {
             provider: AiProvider.GROQ,
-            apiKey: "gsk_seed_limited_test_key",
+            apiKey: encryptApiKey("gsk_seed_limited_test_key"),
             isActive: true,
           },
         },
@@ -158,7 +159,7 @@ import { prisma } from "./client.js";
         apiKeys: {
           create: {
             provider: AiProvider.GEMINI,
-            apiKey: "gemini_seed_telegram_test_key",
+            apiKey: encryptApiKey("gemini_seed_telegram_test_key"),
             isActive: true,
           },
         },
@@ -184,7 +185,7 @@ import { prisma } from "./client.js";
         apiKeys: {
           create: {
             provider: AiProvider.GROQ,
-            apiKey: "gsk_seed_expired_test_key",
+            apiKey: encryptApiKey("gsk_seed_expired_test_key"),
             isActive: true,
           },
         },
@@ -1199,7 +1200,7 @@ import { prisma } from "./client.js";
       });
     }
 
-    console.log("✅ Error logs created (8)");
+    console.log("✅ Error logs created (9)");
 
     // ── Summary ───────────────────────────────────────────────────────────────
     const f = (email: string, role: string, status: string, info: string) =>
@@ -1218,10 +1219,10 @@ ${f("Telegram (9876543210)", "USER", "verified", "2 txs")}
 
   🔑 Password for all email accounts => 11111111
 
-  Transactions : ~85 total
+  Transactions : 86 total
   AI messages  : 12 (6 pairs across 3 users)
   Donations    : 6 payments (5 SUCCEEDED, 1 PENDING)
-  Error logs   : 8 (5 OPEN, 3 RESOLVED)
+  Error logs   : 9 (6 OPEN, 3 RESOLVED)
 ──────────────────────────────────────────────────────────────────────────────────────
 ✅ Seeding finished successfully!
     `);
