@@ -1,0 +1,37 @@
+name: Prisma Migrate Deploy (master)
+
+on:
+  push:
+    branches: [ master ]
+    paths:
+      - "apps/api/prisma/schema.prisma"
+      - "apps/api/prisma/migrations/**"
+      - ".github/workflows/prisma-migrate-master.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: prisma-migrate-master-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    name: Apply Prisma migrations to Supabase
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: ./.github/actions/setup-node
+
+      - name: Validate required secrets
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.SUPABASE_DIRECT_URL }}
+        run: |
+          [ -n "$DATABASE_URL" ] || { echo "::error::Missing SUPABASE_DATABASE_URL secret"; exit 1; }
+          [ -n "$DIRECT_URL" ] || { echo "::error::Missing SUPABASE_DIRECT_URL secret"; exit 1; }
+
+      - name: Apply Prisma migrations
+        run: npm run api:prisma:migrate:deploy
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
+          DIRECT_URL: ${{ secrets.SUPABASE_DIRECT_URL }}

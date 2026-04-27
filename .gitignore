@@ -40,3 +40,8 @@ dumps/
 
 # Husky
 .husky/_
+
+# windows and locales
+bash
+fintrack@0.1.0
+npm

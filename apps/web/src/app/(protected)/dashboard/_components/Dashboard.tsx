@@ -35,16 +35,13 @@ export function Dashboard({ MapComponent = EmptyMapSlot }: DashboardProps) {
   return (
     <section className="w-full">
       <div className="neo-panel neo-panel-glow mb-[24px] px-[22px] py-[18px]">
-        <div className="flex items-center justify-between gap-[12px] max-[700px]:flex-col max-[700px]:items-start">
-          <div>
-            <h1 className="text-(--color-title) text-[32px] font-semibold">
-              {t("dashboard.title")}
-            </h1>
-            <p className="mt-[8px] text-(--color-fixed-text) text-[14px]">
-              {t("dashboard.overview")}
-            </p>
-          </div>
-          <span className="neo-chip">{t("dashboard.styleBadge")}</span>
+        <div>
+          <h1 className="text-(--color-title) text-[32px] font-semibold">
+            {t("dashboard.title")}
+          </h1>
+          <p className="mt-[8px] text-(--color-fixed-text) text-[14px]">
+            {t("dashboard.overview")}
+          </p>
         </div>
       </div>
 

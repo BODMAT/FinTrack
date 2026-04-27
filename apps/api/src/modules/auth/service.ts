@@ -152,6 +152,7 @@ export async function loginWithGoogle(params: {
   photoUrl?: string | null;
 }) {
   const { googleSub, email, name, photoUrl } = params;
+  const normalizedEmail = email.trim().toLowerCase();
 
   const existingGoogleMethod = await prisma.authMethod.findFirst({
     where: {
@@ -163,8 +164,6 @@ export async function loginWithGoogle(params: {
   if (existingGoogleMethod) {
     return userService.getUser(existingGoogleMethod.userId);
   }
-
-  const normalizedEmail = email.trim().toLowerCase();
 
   const existingEmailMethod = await prisma.authMethod.findUnique({
     where: {
