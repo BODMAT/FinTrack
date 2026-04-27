@@ -22,12 +22,6 @@ function isStrongPassword(password: string): boolean {
   );
 }
 
-// Controllers
-export async function getAllUsers(req: Request, res: Response) {
-  const users = await userService.getAllUsers();
-  res.status(200).json(users);
-}
-
 export async function getUser(req: Request, res: Response, next: NextFunction) {
   try {
     const { id } = req.params;

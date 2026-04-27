@@ -66,6 +66,10 @@ function getSpec() {
           name: "Admin",
           description: "Administration and runtime error management",
         },
+        {
+          name: "System",
+          description: "Operational and health-check endpoints",
+        },
       ],
       components: {
         securitySchemes: {

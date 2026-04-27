@@ -4,19 +4,6 @@ import type { PrismaTx } from "../../prisma/client.js";
 import bcrypt from "bcrypt";
 import { AppError } from "../../middleware/errorHandler.js";
 
-export async function getAllUsers() {
-  return await prisma.user.findMany({
-    include: {
-      authMethods: {
-        omit: {
-          password_hash: true,
-          userId: true,
-        },
-      },
-    },
-  });
-}
-
 export async function getUser(userId: string) {
   return await prisma.user.findUnique({
     where: {
