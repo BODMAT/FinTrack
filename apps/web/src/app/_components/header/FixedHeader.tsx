@@ -101,7 +101,7 @@ export function FixedHeader() {
             </div>
           </div>
         </nav>
-        <div className="py-3 w-full">
+        <div className="py-3 w-full flex justify-start">
           <ProfileInfo />
         </div>
       </div>

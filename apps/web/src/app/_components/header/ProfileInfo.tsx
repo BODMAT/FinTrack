@@ -1,5 +1,4 @@
 import { usePopupStore } from "@/store/popup";
-import ArrToBottom from "@/assets/arr-to-bottom.svg?react";
 import AnonimusIcon from "@/assets/anonymous-user-icon.svg?react";
 import { RegisterPopup } from "./RegisterPopup";
 import { useAuth } from "@/hooks/useAuth";
@@ -14,7 +13,7 @@ export function ProfileInfo() {
   return (
     <button
       onClick={handleOpenPopup}
-      className="flex items-center gap-2.5 text-(--color-fixed-text) transitioned text-[17px] font-bold group max-md:mx-auto cursor-pointer bg-transparent hover:bg-(--color-card) rounded hover:shadow p-2 w-full justify-between max-md:max-w-75"
+      className="flex items-center justify-center gap-3 text-(--color-fixed-text) transitioned text-[17px] font-bold group max-md:mx-auto cursor-pointer bg-transparent hover:bg-(--color-card) rounded hover:shadow p-2 w-full max-md:max-w-75"
     >
       <div className="w-11.25 h-11.25 rounded-full bg-(--color-hover-reverse)">
         {user && user.photo_url ? (
@@ -31,7 +30,7 @@ export function ProfileInfo() {
           </div>
         )}
       </div>
-      <div className="flex flex-col">
+      <div className="flex flex-col text-left">
         {isLoading && (
           <span className="text-[16px]">{t("common.loading")}</span>
         )}
@@ -63,7 +62,6 @@ export function ProfileInfo() {
           </span>
         )}
       </div>
-      <ArrToBottom className="w-5 h-5 fill-current text-(--color-fixed-text) transition-all duration-500 -rotate-90 group-hover:rotate-0" />
     </button>
   );
 }
