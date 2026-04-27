@@ -1,0 +1,9 @@
+{
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/FinTrack",
+      "permanent": false
+    }
+  ]
+}

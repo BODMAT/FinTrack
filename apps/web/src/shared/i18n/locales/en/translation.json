@@ -37,7 +37,6 @@
   "dashboard": {
     "title": "Dashboard",
     "overview": "Financial overview with your real-time activity and location insights.",
-    "styleBadge": "Teal style active",
     "notLoggedIn": "You are not logged in. Please log in to see your dashboard.",
     "noTransactions": "You have no transactions. Please add some transactions to see your dashboard.",
     "card": {

@@ -35,6 +35,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 RUN addgroup -g 1001 -S nodejs && adduser -S botuser -u 1001
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 # Root node_modules (includes dotenv and other lifting depots)
 COPY --from=deps /app/node_modules ./node_modules

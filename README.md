@@ -15,6 +15,7 @@
 - [Overview](#overview)
 - [Screenshots](#screenshots)
 - [Tech Stack](#tech-stack)
+- [Deployment Topology](#deployment-topology)
 - [Getting Started](#getting-started)
 - [Database Management](#4-database-management--initial-data)
 - [Environment Variables](#environment-variables)
@@ -111,6 +112,18 @@ FinTrack is a monorepo (Turborepo) personal finance application that allows user
 | Prettier + ESLint   | Formatting and linting                    |
 | Docker              | Production & Development containerization |
 | GitHub Actions      | CI/CD pipeline + GHCR + Trivy Scan        |
+
+---
+
+## Deployment Topology
+
+Production deployment flow:
+
+- **Vercel** -> `apps/web` (Next.js)
+- **Render** -> `apps/api` (Express + Prisma)
+- **Supabase** -> PostgreSQL
+
+Database migrations are applied automatically from GitHub Actions on pushes to `master` when Prisma schema or migrations change.
 
 ---
 
@@ -280,6 +293,7 @@ SWAGGER_SERVER_URL=http://localhost:8000/api
 CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
 
 DATABASE_URL=postgresql://user:password@localhost:5432/yourdb?schema=yourschema
+DIRECT_URL=postgresql://user:password@localhost:5432/yourdb?schema=yourschema
 
 ACCESS_TOKEN_SECRET=your-jwt-access-token-secret-here
 
@@ -499,6 +513,14 @@ GitHub Actions runs the following checks on every pull request and push to `mast
 5.  **Integration Tests** — Jest + Supertest tests against a real PostgreSQL container.
 6.  **Automated Releases** — builds and pushes images to **GHCR**.
 7.  **Security Scanning** — **Trivy** scans every Docker image for vulnerabilities (CRITICAL, HIGH).
+8.  **Prisma Auto-Migrate (`master`)** — applies `apps/api` migrations to Supabase after schema/migration changes.
+
+### Auto Migration Secrets (GitHub)
+
+1. Open GitHub repository -> `Settings` -> `Secrets and variables` -> `Actions`.
+2. Add secret `SUPABASE_DATABASE_URL` (pooled connection string for app/runtime).
+3. Add secret `SUPABASE_DIRECT_URL` (direct connection string for Prisma Migrate).
+4. Push migration changes to `master` and verify workflow `Prisma Migrate Deploy (master)` in Actions tab.
 
 ### Docker Images (GHCR)
 

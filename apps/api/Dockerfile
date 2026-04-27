@@ -36,6 +36,7 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 RUN addgroup -g 1001 -S nodejs && adduser -S apiuser -u 1001
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 # All root node_modules (contains effect, fast-check, pure-rand, etc. for prisma CLI)
 COPY --from=builder /app/node_modules ./node_modules
@@ -65,4 +66,4 @@ COPY --from=builder /app/apps/api/package.json ./package.json
 USER apiuser
 EXPOSE 8000
 
-CMD ["npm", "run", "start:prod"]
+CMD ["sh", "-c", "node node_modules/prisma/build/index.js migrate deploy --schema prisma/schema.prisma && node dist/server.js"]

@@ -9,8 +9,9 @@ generator client {
 }
 
 datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+    provider  = "postgresql"
+    url       = env("DATABASE_URL")
+    directUrl = env("DIRECT_URL")
 }
 
 enum TransactionType {
@@ -80,8 +81,8 @@ model Transaction {
     user                User              @relation(fields: [userId], references: [id], onDelete: Cascade)
     userId              String
 
-    @@index([userId, source])
     @@unique([userId, source, sourceAccountId, sourceTransactionId])
+    @@index([userId, source])
 }
 
 model Location {
@@ -103,28 +104,28 @@ model Message {
 }
 
 model User {
-    id              String           @id @default(uuid())
-    name            String           @db.VarChar(200)
-    photo_url       String?
-    isVerified      Boolean          @default(false)
-    role            UserRole         @default(USER)
-    aiAnalysisUsed  Int              @default(0)
-    aiAnalysisLimit Int              @default(10)
-    donationStatus  DonationStatus   @default(NONE)
+    id                String            @id @default(uuid())
+    name              String            @db.VarChar(200)
+    photo_url         String?
+    isVerified        Boolean           @default(false)
+    role              UserRole          @default(USER)
+    aiAnalysisUsed    Int               @default(0)
+    aiAnalysisLimit   Int               @default(10)
+    donationStatus    DonationStatus    @default(NONE)
     donationGrantedAt DateTime?
     donationExpiresAt DateTime?
-    stripeCustomerId  String?        @unique @db.VarChar(255)
-    created_at      DateTime         @default(now())
-    updated_at      DateTime         @updatedAt
+    stripeCustomerId  String?           @unique @db.VarChar(255)
+    created_at        DateTime          @default(now())
+    updated_at        DateTime          @updatedAt
     // relations
-    authMethods      AuthMethod[]
-    sessions         Session[]
-    transactions     Transaction[]
-    messages         Message[]
-    apiKeys          UserApiKey[]
-    donationPayments DonationPayment[]
-    errorLogs        ErrorLog[]       @relation("ErrorLogReporter")
-    resolvedLogs     ErrorLog[]       @relation("ErrorLogResolver")
+    authMethods       AuthMethod[]
+    sessions          Session[]
+    transactions      Transaction[]
+    messages          Message[]
+    apiKeys           UserApiKey[]
+    donationPayments  DonationPayment[]
+    errorLogs         ErrorLog[]        @relation("ErrorLogReporter")
+    resolvedLogs      ErrorLog[]        @relation("ErrorLogResolver")
 }
 
 model AuthMethod {
@@ -201,18 +202,18 @@ model ErrorLog {
 }
 
 model DonationPayment {
-    id                     String                @id @default(uuid())
-    amount                 Int?
-    currency               String?               @db.VarChar(16)
-    status                 DonationPaymentStatus @default(PENDING)
-    stripeCheckoutSessionId String               @unique @db.VarChar(255)
-    stripePaymentIntentId  String?               @unique @db.VarChar(255)
-    createdAt              DateTime              @default(now())
-    updatedAt              DateTime              @updatedAt
-    completedAt            DateTime?
+    id                      String                @id @default(uuid())
+    amount                  Int?
+    currency                String?               @db.VarChar(16)
+    status                  DonationPaymentStatus @default(PENDING)
+    stripeCheckoutSessionId String                @unique @db.VarChar(255)
+    stripePaymentIntentId   String?               @unique @db.VarChar(255)
+    createdAt               DateTime              @default(now())
+    updatedAt               DateTime              @updatedAt
+    completedAt             DateTime?
     // relations
-    user                   User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
-    userId                 String
+    user                    User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+    userId                  String
 
     @@index([userId, createdAt])
     @@index([status, createdAt])

@@ -37,7 +37,6 @@
   "dashboard": {
     "title": "Dashboard",
     "overview": "Finanzuebersicht mit Echtzeitaktivitaet und Standorteinblicken.",
-    "styleBadge": "Teal-Stil aktiv",
     "notLoggedIn": "Sie sind nicht angemeldet. Bitte melden Sie sich an, um Ihr Dashboard zu sehen.",
     "noTransactions": "Sie haben keine Transaktionen. Bitte fuegen Sie Transaktionen hinzu, um Ihr Dashboard zu sehen.",
     "card": {
