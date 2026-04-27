@@ -39,6 +39,7 @@ ENV PORT=5173
 
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nextjs -u 1001
+RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 COPY --from=builder /app/apps/web/.next/standalone ./
 COPY --from=builder /app/apps/web/.next/static ./apps/web/.next/static

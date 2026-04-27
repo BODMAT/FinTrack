@@ -1,4 +1,5 @@
 FROM node:22-alpine
+RUN npm explore npm -g -- npm install picomatch@4.0.4 brace-expansion@2.0.3
 
 # Install essential tools for scripts:
 # - bash: for running .sh scripts

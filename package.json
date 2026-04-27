@@ -22,7 +22,7 @@
     "packages/*"
   ],
   "scripts": {
-    "prepare": "husky",
+    "prepare": "husky || echo \"husky not installed, skipping\"",
     "setup": "turbo run build --filter=@fintrack/types",
     "dev": "npm run setup && turbo run dev",
     "dev:web": "turbo run dev --filter=fintrack-web",
