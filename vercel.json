@@ -4,6 +4,11 @@
       "source": "/",
       "destination": "/FinTrack",
       "permanent": false
+    },
+    {
+      "source": "/api/auth/:path*",
+      "destination": "/FinTrack/api/auth/:path*",
+      "permanent": false
     }
   ]
 }

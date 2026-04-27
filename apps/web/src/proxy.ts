@@ -11,7 +11,22 @@ function normalizePathname(pathname: string) {
 }
 
 export function proxy(request: NextRequest) {
+  const rawPathname = new URL(request.url).pathname;
   const pathname = request.nextUrl.pathname;
+
+  if (rawPathname === "/") {
+    return NextResponse.redirect(new URL(APP_BASE_PATH, request.url));
+  }
+
+  if (
+    rawPathname.startsWith("/api/auth/") &&
+    !rawPathname.startsWith(`${APP_BASE_PATH}/api/auth/`)
+  ) {
+    const target = new URL(`${APP_BASE_PATH}${rawPathname}`, request.url);
+    target.search = request.nextUrl.search;
+    return NextResponse.redirect(target);
+  }
+
   const normalizedPathname = normalizePathname(pathname);
   const isLoginPath = normalizedPathname === "/login";
   const hasBackendAuthCookie =
@@ -30,6 +45,8 @@ export function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
+    "/api/auth/:path*",
     "/dashboard/:path*",
     "/analytics/:path*",
     "/transactions/:path*",
