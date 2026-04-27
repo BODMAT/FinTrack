@@ -102,14 +102,19 @@ jobs:
         run: npm run setup
       - name: Generate Prisma client
         run: npm run api:prisma:generate
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/fintrack_test
+          DIRECT_URL: postgresql://test:test@localhost:5432/fintrack_test
       - name: Run migrations
         run: npm run api:prisma:migrate:deploy
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/fintrack_test
+          DIRECT_URL: postgresql://test:test@localhost:5432/fintrack_test
       - name: Run tests
         run: npm run test
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/fintrack_test
+          DIRECT_URL: postgresql://test:test@localhost:5432/fintrack_test
           NEXT_PUBLIC_API_URL: http://localhost:8000/api
       - name: Upload coverage
         if: always()
