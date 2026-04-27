@@ -9,6 +9,9 @@ import { useRouter } from "next/navigation";
 import { RegisterPopupForm } from "./RegisterPopupForm";
 import { RegisterPopupActions } from "./RegisterPopupActions";
 import { createInitialUserLocalInfo } from "@/utils/register";
+import { signIn } from "next-auth/react";
+import { APP_BASE_PATH } from "@/config/constants";
+import { clearProcessedGoogleIdToken } from "@/lib/oauthBridge";
 
 export function RegisterPopup() {
   const { t } = useSafeTranslation();
@@ -138,6 +141,18 @@ export function RegisterPopup() {
           setUserLocalInfo={setUserLocalInfo}
           isRegistering={isRegistering}
         />
+        <button
+          type="button"
+          onClick={() => {
+            clearProcessedGoogleIdToken();
+            void signIn("google", {
+              callbackUrl: `${APP_BASE_PATH}/dashboard`,
+            });
+          }}
+          className="custom-btn"
+        >
+          Continue with Google
+        </button>
 
         <div className="">
           {passwordValidationError && (
