@@ -108,6 +108,8 @@
     "zod": "^4.3.6"
   },
   "optionalDependencies": {
+    "@rolldown/binding-linux-x64-gnu": "*",
+    "@rolldown/binding-linux-x64-musl": "*",
     "@rollup/rollup-linux-x64-gnu": "^4.57.1",
     "@tailwindcss/oxide-linux-x64-gnu": "*",
     "lightningcss-linux-x64-gnu": "*"

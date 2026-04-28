@@ -6,7 +6,7 @@
       "cache": false
     },
     "build": {
-      "dependsOn": ["^build", "prisma:generate"],
+      "dependsOn": ["^build", "fintrack-api#prisma:generate"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
       "outputs": ["dist/**", ".next/**", "!.next/cache/**"]
     },
@@ -14,7 +14,7 @@
       "dependsOn": ["^lint"]
     },
     "check-types": {
-      "dependsOn": ["^check-types", "prisma:generate"]
+      "dependsOn": ["^check-types", "fintrack-api#prisma:generate"]
     },
     "dev": {
       "cache": false,

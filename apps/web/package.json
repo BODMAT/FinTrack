@@ -58,6 +58,8 @@
     "vitest": "^4.1.4"
   },
   "optionalDependencies": {
+    "@rolldown/binding-linux-x64-gnu": "*",
+    "@rolldown/binding-linux-x64-musl": "*",
     "@tailwindcss/oxide-linux-x64-gnu": "*",
     "@tailwindcss/oxide-linux-x64-musl": "*",
     "lightningcss-linux-x64-gnu": "*",
