@@ -8,6 +8,7 @@
   "scripts": {
     "dev": "next dev --port 5173",
     "build": "next build",
+    "check-types": "tsc --noEmit",
     "start": "next start",
     "lint": "eslint .",
     "test": "vitest run",
