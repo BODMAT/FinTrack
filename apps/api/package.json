@@ -17,7 +17,7 @@
     "prisma": "prisma",
     "prisma:migrate:dev": "npm run prisma -- migrate dev",
     "prisma:migrate:deploy": "npm run prisma -- migrate deploy",
-    "prisma:generate": "npm run prisma -- generate",
+    "prisma:generate": "prisma generate",
     "prisma:studio": "npm run prisma -- studio --hostname 0.0.0.0",
     "prisma:seed": "tsx src/prisma/seed.ts"
   },
