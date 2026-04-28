@@ -3,6 +3,10 @@ import AnonimusIcon from "@/assets/anonymous-user-icon.svg?react";
 import { RegisterPopup } from "./RegisterPopup";
 import { useAuth } from "@/hooks/useAuth";
 import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
+import type { UserResponse } from "@fintrack/types";
+
+type AuthMethod = UserResponse["authMethods"][number];
+
 export function ProfileInfo() {
   const { t } = useSafeTranslation();
   const { user, isLoading, isError } = useAuth();
@@ -41,14 +45,14 @@ export function ProfileInfo() {
             </div>
             <div className="text-[8px] mt-1 overflow-hidden">
               {user.authMethods
-                .filter((auth) => auth.type === "EMAIL")
-                .map((auth) => auth.email)
+                .filter((auth: AuthMethod) => auth.type === "EMAIL")
+                .map((auth: AuthMethod) => auth.email)
                 .join(", ")}
             </div>
             <div className="text-[8px] mt-1 overflow-hidden">
               {user.authMethods
-                .filter((auth) => auth.type === "TELEGRAM")
-                .map((auth) => auth.telegram_id)
+                .filter((auth: AuthMethod) => auth.type === "TELEGRAM")
+                .map((auth: AuthMethod) => auth.telegram_id)
                 .join(", ")}
             </div>
           </span>

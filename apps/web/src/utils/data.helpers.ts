@@ -1,4 +1,8 @@
-import type { Range, TransactionsListResponse } from "@fintrack/types";
+import type {
+  Range,
+  TransactionsListResponse,
+  ResponseTransaction,
+} from "@fintrack/types";
 import { simpleMemoize3 } from "./other";
 
 export function groupData(
@@ -22,7 +26,7 @@ export function groupData(
     { income: number; outcome: number; rawDate: Date }
   >();
 
-  const filtered = data.data.filter((item) => {
+  const filtered = data.data.filter((item: ResponseTransaction) => {
     const date = item.created_at;
 
     if (!date) return false;

@@ -1,5 +1,10 @@
 import { useMemo } from "react";
-import type { IChartData, ISummary, Range } from "@fintrack/types";
+import type {
+  IChartData,
+  ISummary,
+  Range,
+  ResponseTransaction,
+} from "@fintrack/types";
 import { useAuth } from "@/hooks/useAuth";
 import { useTransactionsAll } from "@/hooks/useTransactions";
 import { useCurrency } from "@/hooks/useCurrency";
@@ -23,7 +28,7 @@ export const useSummary = (
     useCurrency();
 
   const convertedTransactions = useMemo(() => {
-    return (data?.data ?? []).map((tx) => ({
+    return (data?.data ?? []).map((tx: ResponseTransaction) => ({
       ...tx,
       amount: convertAmount(
         Number(tx.amount),

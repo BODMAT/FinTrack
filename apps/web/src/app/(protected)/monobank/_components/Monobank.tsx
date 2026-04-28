@@ -13,6 +13,7 @@ import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
 import { MonobankContent } from "./MonobankContent";
 import type { StatsTransaction } from "@/types/monobank-ui";
 import { useMonobankActions } from "./useMonobankActions";
+import type { ResponseTransaction } from "@fintrack/types";
 
 export function Monobank() {
   const { t } = useSafeTranslation();
@@ -45,7 +46,7 @@ export function Monobank() {
   const transactions = useMemo<StatsTransaction[]>(() => {
     if (previewTransactions.length > 0) return previewTransactions;
 
-    return (savedMonobankData?.data ?? []).map((item) => ({
+    return (savedMonobankData?.data ?? []).map((item: ResponseTransaction) => ({
       id: item.id,
       title: item.title,
       type: item.type,

@@ -7,6 +7,7 @@ import { useTransactionsAll } from "@/hooks/useTransactions";
 import { useSummary } from "@/hooks/useSummary";
 import { useThemeStore } from "@/store/theme";
 import { useCurrency } from "@/hooks/useCurrency";
+import type { ResponseTransaction } from "@fintrack/types";
 
 interface DefaultIconWithInternal extends L.Icon.Default {
   _getIconUrl?: string;
@@ -39,7 +40,9 @@ export function IncomeOutcomeMap() {
   } = summary.topTransaction;
 
   const center: LatLngTuple = [51.505, -0.09];
-  const markers = transactions.data.filter((item) => item.location);
+  const markers = transactions.data.filter(
+    (item: ResponseTransaction) => item.location,
+  );
   const isDarkTheme = theme === "dark";
   const mapLayer = isDarkTheme
     ? {
@@ -63,7 +66,7 @@ export function IncomeOutcomeMap() {
         style={{ height: "100%", minHeight: "470px", width: "100%" }}
       >
         <TileLayer url={mapLayer.url} attribution={mapLayer.attribution} />
-        {markers.map((item, index) => {
+        {markers.map((item: ResponseTransaction, index: number) => {
           const isIncome: boolean = item.type === "INCOME";
           return (
             <Marker

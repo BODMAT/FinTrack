@@ -98,7 +98,7 @@ export function Transactions() {
         {isSearchMode && (
           <>
             {filteredData && filteredData.data.length > 0 ? (
-              filteredData.data.map((item) => (
+              filteredData.data.map((item: ResponseTransaction) => (
                 <TransactionsCard key={item.id} data={item} />
               ))
             ) : (
