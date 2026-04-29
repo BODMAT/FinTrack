@@ -43,8 +43,7 @@ services:
       - web_node_modules:/app/apps/web/node_modules
       - types_node_modules:/app/packages/types/node_modules
     # npm install is used instead of ci to benefit from caching in named volumes.
-    command: sh -c "npm install && npm --prefix packages/types run build && npm
-      --prefix apps/api run prisma:generate"
+    command: sh -c "npm install && npm run build -w @fintrack/types && npm run prisma:generate -w fintrack-api"
 
   # ── API ────────────────────────────────────────────────────────────────────
   api:

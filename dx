@@ -8,6 +8,7 @@
 #
 #  Daily dev:
 #    bash dx dev                               # start all containers
+#    bash dx devb                              # start all dev containers with rebuild
 #    bash dx logs api                          # watch API logs
 #    bash dx logs web                          # watch Next.js logs
 #    bash dx shell api                         # shell into API container
@@ -26,6 +27,7 @@
 #  Deploy (prod):
 #    bash dx pbuild                            # build all images
 #    bash dx prod                              # start prod stack
+#    bash dx prodb                             # start prod stack with rebuild
 #    bash dx plogs api                         # tail prod API logs
 #    bash dx pshell api                        # shell into prod API
 #    bash dx pshell postgres psql -U user      # psql into prod database
@@ -189,7 +191,10 @@ dx — Docker eXecutioner CLI
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   LIFECYCLE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  [p]dev [args]            Start all containers in detached mode.
+  dev [args]               Start all containers in detached mode.
+  devb [args]              Start dev containers in detached mode with --build.
+  prod [args]              Start the production stack in detached mode.
+  prodb [args]             Start the production stack in detached mode with --build.
   [p]stop [svc]            Stop running containers (keeps volumes).
   [p]down [args]           Stop and remove containers.
   [p]downv [args]          Stop and remove containers + volumes.
@@ -241,6 +246,7 @@ EOF
 
   # ── Dev lifecycle ───────────────────────────────────────────────
   dev)       require_cmd docker; dev_compose up -d "$@" ;;
+  devb)      require_cmd docker; dev_compose up -d --build "$@" ;;
   stop)      require_cmd docker; dev_compose stop "$@" ;;
   down)      require_cmd docker; dev_compose down "$@" ;;
   downv)     
@@ -261,6 +267,7 @@ EOF
 
   # ── Prod lifecycle ──────────────────────────────────────────────
   prod)      require_cmd docker; prod_compose up -d "$@" ;;
+  prodb)     require_cmd docker; prod_compose up -d --build "$@" ;;
   pstop)     require_cmd docker; prod_compose stop "$@" ;;
   pdown)     
     require_cmd docker

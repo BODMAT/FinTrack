@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import type { CreateUserBody as User } from "@fintrack/types";
+import type {
+  CreateUserBody as User,
+  CreateAuthMethodBody,
+} from "@fintrack/types";
 import { usePopupStore } from "@/store/popup";
 import { LoginPopup } from "./LoginPopup";
 import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
@@ -64,7 +67,7 @@ export function RegisterPopup() {
     };
 
     const emailMethod = userLocalInfo.authMethods.find(
-      (m) => m.type === "EMAIL",
+      (m: CreateAuthMethodBody) => m.type === "EMAIL",
     );
     if (
       emailMethod?.type === "EMAIL" &&
@@ -79,7 +82,7 @@ export function RegisterPopup() {
     }
 
     const tgMethod = userLocalInfo.authMethods.find(
-      (m) => m.type === "TELEGRAM",
+      (m: CreateAuthMethodBody) => m.type === "TELEGRAM",
     );
     if (tgMethod?.type === "TELEGRAM" && tgMethod.telegram_id) {
       payload.authMethods.push({

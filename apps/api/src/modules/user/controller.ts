@@ -7,8 +7,10 @@ import { AppError } from "../../middleware/errorHandler.js";
 import { logSecurityEvent } from "../../utils/authSecurity.js";
 import { ENV } from "../../config/env.js";
 import {
-  СreateUserSchema as createUserSchema,
+  CreateUserSchema as createUserSchema,
   UpdateUserSchema as updateUserSchema,
+  type CreateAuthMethodBody,
+  type UpdateAuthMethodBody,
 } from "@fintrack/types";
 
 function isStrongPassword(password: string): boolean {
@@ -18,12 +20,6 @@ function isStrongPassword(password: string): boolean {
     /[a-z]/.test(password) &&
     /\d/.test(password)
   );
-}
-
-// Controllers
-export async function getAllUsers(req: Request, res: Response) {
-  const users = await userService.getAllUsers();
-  res.status(200).json(users);
 }
 
 export async function getUser(req: Request, res: Response, next: NextFunction) {
@@ -69,11 +65,11 @@ export async function createUser(
     const validatedBody = createUserSchema.parse(req.body);
     const saltRounds = 10;
     const hasEmailAuth = validatedBody.authMethods.some(
-      (m) => m.type === "EMAIL",
+      (m: CreateAuthMethodBody) => m.type === "EMAIL",
     );
 
     const authMethodsWithHash = await Promise.all(
-      validatedBody.authMethods.map(async (method) => {
+      validatedBody.authMethods.map(async (method: CreateAuthMethodBody) => {
         if (method.type === "EMAIL") {
           if (!isStrongPassword(method.password)) {
             throw new AppError(
@@ -155,7 +151,7 @@ export async function updateUser(
       password?: string;
       telegram_id?: string;
     }[] =
-      validatedBody.authMethods?.map((m) => {
+      validatedBody.authMethods?.map((m: UpdateAuthMethodBody) => {
         if (m.type === "EMAIL") {
           if (m.password && !isStrongPassword(m.password)) {
             throw new AppError(
@@ -216,7 +212,7 @@ export async function updateCurrentUser(
       password?: string;
       telegram_id?: string;
     }[] =
-      validatedBody.authMethods?.map((m) => {
+      validatedBody.authMethods?.map((m: UpdateAuthMethodBody) => {
         if (m.type === "EMAIL") {
           if (m.password && !isStrongPassword(m.password)) {
             throw new AppError(

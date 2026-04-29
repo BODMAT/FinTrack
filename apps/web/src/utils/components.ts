@@ -13,7 +13,7 @@ export const getFilteredData = (
   const words = query.split(/\s+/);
 
   const scoredData = data.data
-    .map((item) => {
+    .map((item: ResponseTransaction) => {
       const title = item.title.toLowerCase();
       const amount = item.amount.toString().toLowerCase();
       const type = (
@@ -58,15 +58,17 @@ export const getFilteredData = (
       return { item, score };
     })
     .filter(
-      (entry): entry is { item: ResponseTransaction; score: number } =>
+      (
+        entry: { item: ResponseTransaction; score: number } | null,
+      ): entry is { item: ResponseTransaction; score: number } =>
         entry !== null,
     );
 
   if (scoredData.length === 0) return undefined;
 
   const finalData = scoredData
-    .sort((a, b) => b.score - a.score)
-    .map((entry) => entry.item);
+    .sort((a: { score: number }, b: { score: number }) => b.score - a.score)
+    .map((entry: { item: ResponseTransaction; score: number }) => entry.item);
 
   return { ...data, data: finalData };
 };
@@ -104,6 +106,6 @@ export function sanitizeText(text: string): string {
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
-    .replace(/&#039;/g, "'") // ← додай це
+    .replace(/&#039;/g, "'")
     .trim();
 }

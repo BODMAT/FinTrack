@@ -1,4 +1,7 @@
-import type { CreateUserBody as User } from "@fintrack/types";
+import type {
+  CreateUserBody as User,
+  CreateAuthMethodBody,
+} from "@fintrack/types";
 import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
@@ -51,17 +54,19 @@ export function RegisterPopupForm({
           type="email"
           placeholder={t("auth.email")}
           value={
-            userLocalInfo.authMethods.find((m) => m.type === "EMAIL")?.email ||
-            ""
+            userLocalInfo.authMethods.find(
+              (m: CreateAuthMethodBody) => m.type === "EMAIL",
+            )?.email || ""
           }
           onChange={(e) => {
             const newValue = e.target.value;
-            setUserLocalInfo((prev) => ({
+            setUserLocalInfo((prev: User) => ({
               ...prev,
-              authMethods: prev.authMethods.map((method) =>
-                method.type === "EMAIL"
-                  ? { ...method, email: newValue }
-                  : method,
+              authMethods: prev.authMethods.map(
+                (method: CreateAuthMethodBody) =>
+                  method.type === "EMAIL"
+                    ? { ...method, email: newValue }
+                    : method,
               ),
             }));
           }}
@@ -74,17 +79,19 @@ export function RegisterPopupForm({
             type={isPasswordVisible ? "text" : "password"}
             placeholder={t("auth.password")}
             value={
-              userLocalInfo.authMethods.find((m) => m.type === "EMAIL")
-                ?.password || ""
+              userLocalInfo.authMethods.find(
+                (m: CreateAuthMethodBody) => m.type === "EMAIL",
+              )?.password || ""
             }
             onChange={(e) => {
               const newValue = e.target.value;
-              setUserLocalInfo((prev) => ({
+              setUserLocalInfo((prev: User) => ({
                 ...prev,
-                authMethods: prev.authMethods.map((method) =>
-                  method.type === "EMAIL"
-                    ? { ...method, password: newValue }
-                    : method,
+                authMethods: prev.authMethods.map(
+                  (method: CreateAuthMethodBody) =>
+                    method.type === "EMAIL"
+                      ? { ...method, password: newValue }
+                      : method,
                 ),
               }));
             }}
@@ -135,17 +142,19 @@ export function RegisterPopupForm({
           type="text"
           placeholder={t("auth.telegramOptional")}
           value={
-            userLocalInfo.authMethods.find((m) => m.type === "TELEGRAM")
-              ?.telegram_id || ""
+            userLocalInfo.authMethods.find(
+              (m: CreateAuthMethodBody) => m.type === "TELEGRAM",
+            )?.telegram_id || ""
           }
           onChange={(e) => {
             const newValue = e.target.value;
-            setUserLocalInfo((prev) => ({
+            setUserLocalInfo((prev: User) => ({
               ...prev,
-              authMethods: prev.authMethods.map((method) =>
-                method.type === "TELEGRAM"
-                  ? { ...method, telegram_id: newValue }
-                  : method,
+              authMethods: prev.authMethods.map(
+                (method: CreateAuthMethodBody) =>
+                  method.type === "TELEGRAM"
+                    ? { ...method, telegram_id: newValue }
+                    : method,
               ),
             }));
           }}

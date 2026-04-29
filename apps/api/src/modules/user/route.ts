@@ -1,10 +1,7 @@
 import express from "express";
 import { authenticateToken } from "../auth/controller.js";
-import { requireRole } from "../../middleware/authz.js";
-import { blockInProduction } from "../../middleware/envGuards.js";
 import { registrationLimiter } from "../../middleware/rateLimit.js";
 import {
-  getAllUsers,
   getCurrentUser,
   createUser,
   updateCurrentUser,
@@ -13,14 +10,6 @@ import {
 } from "./controller.js";
 
 export const userRouter = express.Router();
-
-userRouter.get(
-  "/",
-  authenticateToken,
-  requireRole(["ADMIN"]),
-  blockInProduction,
-  getAllUsers,
-);
 
 // userRouter.get("/:id", authenticateToken, getUser);
 userRouter.get("/me", authenticateToken, getCurrentUser);

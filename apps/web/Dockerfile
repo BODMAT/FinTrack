@@ -27,8 +27,8 @@ COPY --from=deps /app/packages/types/package.json ./packages/types/package.json
 COPY packages/types ./packages/types
 COPY apps/web ./apps/web
 
-RUN npm --prefix packages/types run build
-RUN npm --prefix apps/web run build
+RUN npm run build -w @fintrack/types
+RUN npm run build -w fintrack-web
 
 FROM node:22-alpine AS runner
 WORKDIR /app

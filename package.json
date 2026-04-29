@@ -28,17 +28,17 @@
     "dev:web": "turbo run dev --filter=fintrack-web",
     "dev:api": "turbo run dev --filter=fintrack-api",
     "dev:bot": "turbo run dev --filter=fintrack-bot",
-    "test:api:prod": "npm --prefix apps/api run prod",
+    "test:api:prod": "npm run prod -w fintrack-api",
     "test:api:prod:dx": "bash dx shell api npm run prod",
-    "api:prisma:generate": "npm --prefix apps/api run prisma:generate",
+    "api:prisma:generate": "npm run prisma:generate -w fintrack-api",
     "api:prisma:generate:dx": "bash dx shell api npm run prisma:generate",
-    "api:prisma:migrate:dev": "npm --prefix apps/api run prisma:migrate:dev",
+    "api:prisma:migrate:dev": "npm run prisma:migrate:dev -w fintrack-api",
     "api:prisma:migrate:dev:dx": "bash dx shell api npm run prisma:migrate:dev",
-    "api:prisma:migrate:deploy": "npm --prefix apps/api run prisma:migrate:deploy",
+    "api:prisma:migrate:deploy": "npm run prisma:migrate:deploy -w fintrack-api",
     "api:prisma:migrate:deploy:dx": "bash dx shell api npm run prisma:migrate:deploy",
-    "api:prisma:studio": "npm --prefix apps/api run prisma:studio",
+    "api:prisma:studio": "npm run prisma:studio -w fintrack-api",
     "api:prisma:studio:dx": "bash dx shell api npm run prisma:studio",
-    "api:prisma:seed": "npm --prefix apps/api run prisma:seed",
+    "api:prisma:seed": "npm run prisma:seed -w fintrack-api",
     "api:prisma:seed:dx": "bash dx shell api npm run prisma:seed",
     "build": "turbo run build",
     "format": "prettier --write .",
@@ -49,9 +49,9 @@
     "check": "npm run format:check && npm run lint",
     "tidy": "npm run fix && npm run check",
     "check-types": "turbo run check-types",
-    "test:api": "npm --prefix apps/api run test",
+    "test:api": "npm run test -w fintrack-api",
     "test:api:dx": "bash dx shell api npm run test",
-    "test:web": "npm --prefix apps/web run test",
+    "test:web": "npm run test -w fintrack-web",
     "test:web:dx": "bash dx shell web npm run test",
     "test": "npm run test:api && npm run test:web",
     "test:dx": "bash dx shell api npm run test && bash dx shell web npm run test",
@@ -81,11 +81,8 @@
       "prettier --write"
     ]
   },
-  "dependencies": {
-    "axios": "^1.15.0",
-    "zod": "^3.23.8"
-  },
   "devDependencies": {
+    "next": "^16.2.3",
     "@eslint/js": "^9.39.2",
     "eslint": "^9.30.1",
     "eslint-config-prettier": "^10.1.8",
@@ -104,9 +101,12 @@
     "@types/express-serve-static-core": "4.19.0",
     "next": "^16.2.3",
     "@prisma/client": "^6.19.3",
-    "prisma": "^6.19.3"
+    "prisma": "^6.19.3",
+    "zod": "^4.3.6"
   },
   "optionalDependencies": {
+    "@rolldown/binding-linux-x64-gnu": "*",
+    "@rolldown/binding-linux-x64-musl": "*",
     "@rollup/rollup-linux-x64-gnu": "^4.57.1",
     "@tailwindcss/oxide-linux-x64-gnu": "*",
     "lightningcss-linux-x64-gnu": "*"

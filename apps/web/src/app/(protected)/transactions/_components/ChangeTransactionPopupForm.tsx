@@ -61,7 +61,7 @@ export function ChangeTransactionPopupForm({
   const handleGetCurrentLocation = async () => {
     try {
       const result = await fetchLocation();
-      setForm((prev) => ({
+      setForm((prev: FormTransaction) => ({
         ...prev,
         latitude: result.latitude.toString(),
         longitude: result.longitude.toString(),
@@ -81,7 +81,7 @@ export function ChangeTransactionPopupForm({
     min?: number,
     max?: number,
   ) => {
-    setForm((prev) => ({
+    setForm((prev: FormTransaction) => ({
       ...prev,
       [field]: validateNumericInput(prev[field] || "", value, min, max),
     }));

@@ -19,7 +19,7 @@ const apiInstance = Object.assign(retryRequest, {
   },
   interceptors: {
     response: {
-      use: vi.fn((onFulfilled, onRejected) => {
+      use: vi.fn((_onFulfilled, onRejected) => {
         rejectedHandler = onRejected;
         return 1;
       }),

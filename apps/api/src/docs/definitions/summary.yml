@@ -141,47 +141,47 @@ paths:
               schema:
                 $ref: "#/components/schemas/Summary"
               example:
-                currentBalance: 1500
+                currentBalance: 12450.50
                 dataStatsPerDay:
-                  totalIncomePerRange: 100
-                  percentageIncomePerRange: 25
-                  totalOutcomePerRange: 50
-                  percentageOutcomePerRange: -10
-                  totalSavingPerRange: 50
-                  percentageSavingPerRange: 100
-                dataStatsPerWeek:
-                  totalIncomePerRange: 800
+                  totalIncomePerRange: 2300
                   percentageIncomePerRange: 15
-                  totalOutcomePerRange: 400
-                  percentageOutcomePerRange: 5
-                  totalSavingPerRange: 400
-                  percentageSavingPerRange: 30
-                dataStatsPerMonth:
-                  totalIncomePerRange: 3500
-                  percentageIncomePerRange: 10
-                  totalOutcomePerRange: 2000
+                  totalOutcomePerRange: 1205
                   percentageOutcomePerRange: -5
-                  totalSavingPerRange: 1500
-                  percentageSavingPerRange: 25
+                  totalSavingPerRange: 1095
+                  percentageSavingPerRange: 40
+                dataStatsPerWeek:
+                  totalIncomePerRange: 15400
+                  percentageIncomePerRange: 10
+                  totalOutcomePerRange: 8200
+                  percentageOutcomePerRange: 5
+                  totalSavingPerRange: 7200
+                  percentageSavingPerRange: 12
+                dataStatsPerMonth:
+                  totalIncomePerRange: 65000
+                  percentageIncomePerRange: 8
+                  totalOutcomePerRange: 42000
+                  percentageOutcomePerRange: -2
+                  totalSavingPerRange: 23000
+                  percentageSavingPerRange: 15
                 dataStatsPerYear:
-                  totalIncomePerRange: 45000
-                  percentageIncomePerRange: 20
-                  totalOutcomePerRange: 30000
-                  percentageOutcomePerRange: 15
-                  totalSavingPerRange: 15000
-                  percentageSavingPerRange: 35
+                  totalIncomePerRange: 780000
+                  percentageIncomePerRange: 25
+                  totalOutcomePerRange: 450000
+                  percentageOutcomePerRange: 10
+                  totalSavingPerRange: 330000
+                  percentageSavingPerRange: 20
                 dataStatsPerAllTime:
-                  totalIncomePerRange: 120000
+                  totalIncomePerRange: 1250000
                   percentageIncomePerRange: 0
-                  totalOutcomePerRange: 80000
+                  totalOutcomePerRange: 850000
                   percentageOutcomePerRange: 0
-                  totalSavingPerRange: 40000
+                  totalSavingPerRange: 400000
                   percentageSavingPerRange: 0
                 topTransaction:
-                  maxPositiveTransaction: "5000"
-                  maxNegativeTransaction: "2000"
-                  minPositiveTransaction: "10"
-                  minNegativeTransaction: "5"
+                  maxPositiveTransaction: "55000"
+                  maxNegativeTransaction: "60000"
+                  minPositiveTransaction: "1200"
+                  minNegativeTransaction: "95"
         "401":
           description: Unauthorized — missing or invalid access token.
           content:

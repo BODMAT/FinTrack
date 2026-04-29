@@ -9,6 +9,9 @@ components:
         apiKey:
           type: string
       required: [provider, apiKey]
+      example:
+        provider: "GROQ"
+        apiKey: "gsk_your_api_key_here"
 
     UserApiKey:
       type: object
@@ -28,6 +31,13 @@ components:
         updatedAt:
           type: string
           format: date-time
+      example:
+        id: "52d8706f-776e-47c8-ab50-50876940c4c7"
+        provider: "GROQ"
+        isActive: true
+        maskedKey: "gsk_seed********************"
+        createdAt: "2025-09-01T12:30:00.000Z"
+        updatedAt: "2025-09-01T12:30:00.000Z"
 
 paths:
   /user-api-keys:
@@ -35,14 +45,14 @@ paths:
       tags: [User API Keys]
       summary: List current user API keys
       responses:
-        '200':
+        "200":
           description: Keys list
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/UserApiKey'
+                  $ref: "#/components/schemas/UserApiKey"
 
     put:
       tags: [User API Keys]
@@ -52,14 +62,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserApiKeyInput'
+              $ref: "#/components/schemas/UserApiKeyInput"
       responses:
-        '200':
+        "200":
           description: Upserted key
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserApiKey'
+                $ref: "#/components/schemas/UserApiKey"
 
   /user-api-keys/{provider}:
     delete:
@@ -73,7 +83,7 @@ paths:
             type: string
             enum: [GROQ, GEMINI]
       responses:
-        '204':
+        "204":
           description: Deleted
 
   /user-api-keys/{provider}/toggle:
@@ -88,7 +98,7 @@ paths:
             type: string
             enum: [GROQ, GEMINI]
       responses:
-        '200':
+        "200":
           description: Updated state
           content:
             application/json:
@@ -99,3 +109,6 @@ paths:
                     type: boolean
                   provider:
                     type: string
+                example:
+                  isActive: false
+                  provider: "GROQ"

@@ -29,7 +29,7 @@ components:
         title:
           type: string
           description: Short title or description of the transaction.
-          example: "Groceries"
+          example: "Morning coffee"
         type:
           type: string
           enum: [INCOME, EXPENSE]
@@ -40,13 +40,18 @@ components:
           format: float
           minimum: 0
           description: Transaction amount.
-          example: 54.20
+          example: 95.00
+        currencyCode:
+          type: string
+          enum: [UAH, USD, EUR]
+          example: "UAH"
         location:
           $ref: "#/components/schemas/LocationInput"
       required:
         - title
         - type
         - amount
+        - currencyCode
 
     UpdateTransactionInput:
       type: object
@@ -63,14 +68,18 @@ components:
           type: number
           format: float
           description: Updated transaction amount.
+        currencyCode:
+          type: string
+          enum: [UAH, USD, EUR]
         location:
           oneOf:
             - $ref: "#/components/schemas/LocationInput"
             - type: "null"
           description: Updated location or `null` to remove.
       example:
-        title: "Updated Groceries"
-        amount: 60.50
+        title: "Morning coffee (updated)"
+        amount: 110.00
+        currencyCode: "UAH"
         location:
           latitude: 50.45
           longitude: 30.52
@@ -102,7 +111,7 @@ components:
         title:
           type: string
           description: Title or description of the transaction.
-          example: "Groceries"
+          example: "Morning coffee"
         type:
           type: string
           enum: [INCOME, EXPENSE]
@@ -110,7 +119,11 @@ components:
         amount:
           type: number
           format: float
-          example: 54.20
+          example: 95.00
+        currencyCode:
+          type: string
+          enum: [UAH, USD, EUR]
+          example: "UAH"
         created_at:
           type: string
           format: date-time
@@ -129,6 +142,7 @@ components:
         - title
         - type
         - amount
+        - currencyCode
         - created_at
         - updated_at
 
@@ -151,16 +165,17 @@ components:
               example: 10
             total:
               type: integer
-              example: 42
+              example: 86
             totalPages:
               type: integer
-              example: 5
+              example: 9
       example:
         data:
           - id: "ae13c501-b0e9-4a7a-97ff-91c9f177e9cb"
-            title: "Groceries"
+            title: "Morning coffee"
             type: "EXPENSE"
-            amount: 54.20
+            amount: 95.00
+            currencyCode: "UAH"
             created_at: "2025-09-01T12:30:00.000Z"
             updated_at: "2025-09-27T15:33:24.979Z"
             location:
@@ -169,8 +184,8 @@ components:
         pagination:
           page: 1
           perPage: 10
-          total: 42
-          totalPages: 5
+          total: 86
+          totalPages: 9
 
     TransactionListAll:
       type: object
@@ -183,9 +198,10 @@ components:
       example:
         data:
           - id: "ae13c501-b0e9-4a7a-97ff-91c9f177e9cb"
-            title: "Groceries"
+            title: "Morning coffee"
             type: "EXPENSE"
-            amount: 54.20
+            amount: 95.00
+            currencyCode: "UAH"
             created_at: "2025-09-01T12:30:00.000Z"
             updated_at: "2025-09-27T15:33:24.979Z"
             location:

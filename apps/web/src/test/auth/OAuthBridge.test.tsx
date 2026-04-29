@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { render, waitFor } from "@testing-library/react";
-import React from "react";
 
 const exchangeGoogleSession = vi.fn();
 const invalidateQueries = vi.fn();

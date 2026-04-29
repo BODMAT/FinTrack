@@ -1,0 +1,8 @@
+{
+  "watch": ["src"],
+  "ext": "ts,js,yml,yaml,json",
+  "ignore": ["dist", "node_modules", "test"],
+  "exec": "node --loader ts-node/esm dist/server.js",
+  "legacyWatch": true,
+  "pollingInterval": 500
+}

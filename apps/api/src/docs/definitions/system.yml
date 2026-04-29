@@ -1,0 +1,37 @@
+# ==================================
+#         COMPONENTS — SYSTEM
+# ==================================
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      description: Lightweight API liveness status.
+      properties:
+        ok:
+          type: boolean
+          description: Indicates that the API process is running and can serve HTTP requests.
+      required: [ok]
+      example:
+        ok: true
+
+# ==================================
+#         PATHS — SYSTEM
+# ==================================
+paths:
+  /health:
+    get:
+      tags: [System]
+      summary: Liveness health check
+      description: |
+        Returns a lightweight success response when the API process is running and can serve HTTP requests.
+
+        This endpoint is public and is intended for container and uptime health checks.
+        It does not verify database connectivity or any external dependencies.
+      security: []
+      responses:
+        "200":
+          description: API is alive
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"

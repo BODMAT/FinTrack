@@ -22,6 +22,7 @@
   "main": "bot.js",
   "scripts": {
     "build": "rimraf dist && npx tsc",
+    "check-types": "tsc --noEmit",
     "prestart": "npm run build",
     "start": "node dist/bot.js",
     "predev": "npm run build",

@@ -32,7 +32,7 @@ export const AuthMethodResponseSchema = z.object({
   google_sub: z.string().nullable().optional(),
 });
 
-export const СreateUserSchema = z.object({
+export const CreateUserSchema = z.object({
   name: z.string().min(1).max(200),
   photo_url: z.string().url().nullish().optional(),
   created_at: z.coerce.date().optional(),
@@ -56,7 +56,7 @@ export const СreateUserSchema = z.object({
     ),
 });
 
-export const UpdateUserSchema = СreateUserSchema.partial();
+export const UpdateUserSchema = CreateUserSchema.partial();
 
 export const UserResponseSchema = z.object({
   id: z.string().uuid(),
@@ -72,4 +72,7 @@ export const UserResponseSchema = z.object({
 //==============================================================================
 
 export type UserResponse = z.infer<typeof UserResponseSchema>;
-export type CreateUserBody = z.infer<typeof СreateUserSchema>;
+export type AuthMethod = z.infer<typeof AuthMethodResponseSchema>;
+export type CreateUserBody = z.infer<typeof CreateUserSchema>;
+export type CreateAuthMethodBody = z.infer<typeof CreateAuthMethodSchema>;
+export type UpdateAuthMethodBody = z.infer<typeof UpdateAuthMethodSchema>;
