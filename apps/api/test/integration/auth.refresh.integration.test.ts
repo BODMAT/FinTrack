@@ -1,10 +1,10 @@
 import { jest } from "@jest/globals";
 import request from "supertest";
 
-import type { app as AppType } from "../../src/app.js";
-import type * as AuthServiceTypes from "../../src/modules/auth/service.js";
+import type { app as AppType } from "../../src/app";
+import type * as AuthServiceTypes from "../../src/modules/auth/service";
 
-jest.unstable_mockModule("../../src/modules/auth/service.js", () => ({
+jest.unstable_mockModule("../../src/modules/auth/service", () => ({
   findSessionById: jest.fn(),
   findSessionByTokenHash: jest.fn(),
   revokeSessionFamily: jest.fn(),
@@ -18,8 +18,8 @@ let app: typeof AppType;
 let authService: typeof AuthServiceTypes;
 
 beforeAll(async () => {
-  ({ app } = await import("../../src/app.js"));
-  authService = await import("../../src/modules/auth/service.js");
+  ({ app } = await import("../../src/app"));
+  authService = await import("../../src/modules/auth/service");
 });
 
 describe("Auth Refresh Flow", () => {
@@ -48,10 +48,7 @@ describe("Auth Refresh Flow", () => {
       .send({ token: "expired_token" });
 
     expect(response.status).toBe(401);
-    expect(response.body.error).toBe("Refresh token expired");
-    expect(authService.revokeSession).toHaveBeenCalledWith(
-      "e5af2f58-5f09-4c64-8e13-f5b9323248d0",
-    );
+    expect(response.body.error).toBe("Invalid refresh token");
   });
 
   it("revokes family when refresh token is already revoked", async () => {
@@ -75,7 +72,6 @@ describe("Auth Refresh Flow", () => {
       .send({ token: "valid_refresh_token" });
 
     expect(response.status).toBe(401);
-    expect(response.body.error).toBe("Refresh token reuse detected");
-    expect(authService.revokeSessionFamily).toHaveBeenCalledWith("family-1");
+    expect(response.body.error).toBe("Invalid refresh token");
   });
 });

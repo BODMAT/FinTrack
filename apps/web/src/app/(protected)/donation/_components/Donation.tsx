@@ -32,7 +32,6 @@ export function Donation() {
   const leaderboardQuery = useQuery({
     queryKey: ["donation-leaderboard"],
     queryFn: getDonationLeaderboard,
-    enabled: !!user,
   });
 
   const status = searchParams.get("status");
@@ -120,6 +119,7 @@ export function Donation() {
       <DonationLeaderboard
         items={leaderboardItems}
         isLoading={leaderboardQuery.isLoading}
+        isError={leaderboardQuery.isError}
       />
     </section>
   );

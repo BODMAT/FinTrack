@@ -2,10 +2,13 @@ import bcrypt from "bcrypt";
 import { prisma } from "../../prisma/client.js";
 import * as userService from "../user/service.js";
 import { AppError } from "../../middleware/errorHandler.js";
+import { generateSecureToken, hashToken } from "../../utils/authSecurity.js";
 import type { Prisma } from "@prisma/client";
 
 const DUMMY_PASSWORD_HASH =
   "$2b$10$9QebfQfX8hS8GDYQz9G8vOhF8vwPUfY2K/BysI0h9M2v8a1FhLB2K";
+
+const EMAIL_VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 export async function login(email: string, password: string) {
   const authMethod = await prisma.authMethod.findUnique({
@@ -154,6 +157,7 @@ export async function loginWithGoogle(params: {
   const { googleSub, email, name, photoUrl } = params;
   const normalizedEmail = email.trim().toLowerCase();
 
+  // 1. Existing Google auth method — return user directly
   const existingGoogleMethod = await prisma.authMethod.findFirst({
     where: {
       type: "GOOGLE",
@@ -165,6 +169,7 @@ export async function loginWithGoogle(params: {
     return userService.getUser(existingGoogleMethod.userId);
   }
 
+  // 2. Existing EMAIL auth method with matching email — link Google to that account
   const existingEmailMethod = await prisma.authMethod.findUnique({
     where: {
       email: normalizedEmail,
@@ -175,8 +180,7 @@ export async function loginWithGoogle(params: {
     await prisma.authMethod.create({
       data: {
         type: "GOOGLE",
-        // Keep email only in EMAIL auth method because AuthMethod.email is unique.
-        // Google identity is bound by google_sub.
+        // Keep email only in EMAIL auth method; AuthMethod.email is unique.
         email: null,
         password_hash: null,
         telegram_id: null,
@@ -191,6 +195,8 @@ export async function loginWithGoogle(params: {
       where: { id: existingEmailMethod.userId },
       data: {
         isVerified: true,
+        // Ensure User.email is set for future cross-method dedup
+        email: normalizedEmail,
         ...(photoUrl ? { photo_url: photoUrl } : {}),
       },
     });
@@ -198,9 +204,41 @@ export async function loginWithGoogle(params: {
     return userService.getUser(existingEmailMethod.userId);
   }
 
+  // 3. User registered via Google before (User.email is set) but has no EMAIL AuthMethod.
+  //    Prevents duplicate accounts when someone tries to register manually with the same email.
+  const existingByPrimaryEmail = await prisma.user.findUnique({
+    where: { email: normalizedEmail },
+  });
+
+  if (existingByPrimaryEmail) {
+    // Link Google sub to the existing user (e.g., they registered via Telegram + email before)
+    await prisma.authMethod.create({
+      data: {
+        type: "GOOGLE",
+        email: null,
+        password_hash: null,
+        telegram_id: null,
+        google_sub: googleSub,
+        user: { connect: { id: existingByPrimaryEmail.id } },
+      },
+    });
+
+    await prisma.user.update({
+      where: { id: existingByPrimaryEmail.id },
+      data: {
+        isVerified: true,
+        ...(photoUrl ? { photo_url: photoUrl } : {}),
+      },
+    });
+
+    return userService.getUser(existingByPrimaryEmail.id);
+  }
+
+  // 4. Brand-new Google user — create account and store primary email on User
   const user = await prisma.user.create({
     data: {
       name,
+      email: normalizedEmail,
       photo_url: photoUrl ?? null,
       isVerified: true,
       authMethods: {
@@ -224,4 +262,62 @@ export async function loginWithGoogle(params: {
   });
 
   return user;
+}
+
+// ── Email verification tokens ────────────────────────────────────────────────
+
+export async function createEmailVerificationToken(
+  userId: string,
+): Promise<string> {
+  // Purge any pre-existing tokens for this user before issuing a fresh one
+  await prisma.emailVerificationToken.deleteMany({ where: { userId } });
+
+  const token = generateSecureToken();
+  const hash = hashToken(token);
+  const expiresAt = new Date(Date.now() + EMAIL_VERIFICATION_TOKEN_TTL_MS);
+
+  await prisma.emailVerificationToken.create({
+    data: { userId, tokenHash: hash, expiresAt },
+  });
+
+  return token;
+}
+
+export async function consumeEmailVerificationToken(
+  token: string,
+): Promise<string> {
+  const hash = hashToken(token);
+
+  const record = await prisma.emailVerificationToken.findUnique({
+    where: { tokenHash: hash },
+  });
+
+  if (!record) {
+    throw new AppError("Invalid or expired verification token", 400);
+  }
+
+  if (record.expiresAt < new Date()) {
+    await prisma.emailVerificationToken.delete({ where: { tokenHash: hash } });
+    throw new AppError("Verification token expired", 400);
+  }
+
+  await prisma.$transaction(async (tx) => {
+    await tx.user.update({
+      where: { id: record.userId },
+      data: { isVerified: true },
+    });
+    await tx.emailVerificationToken.delete({ where: { tokenHash: hash } });
+  });
+
+  return record.userId;
+}
+
+export async function findVerificationTokenByUserId(userId: string) {
+  return prisma.emailVerificationToken.findFirst({
+    where: { userId, expiresAt: { gt: new Date() } },
+  });
+}
+
+export async function findAuthMethodByEmail(email: string) {
+  return prisma.authMethod.findUnique({ where: { email } });
 }

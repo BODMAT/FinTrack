@@ -21,11 +21,6 @@ donationRouter.post(
   createDonationSession,
 );
 
-donationRouter.get(
-  "/leaderboard",
-  authenticateToken,
-  requireVerifiedUser,
-  donationLeaderboard,
-);
+donationRouter.get("/leaderboard", donationLeaderboard);
 
 donationRouter.post("/webhook", donationWebhookLimiter, stripeWebhook);

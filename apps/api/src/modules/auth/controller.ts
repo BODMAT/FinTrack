@@ -14,6 +14,7 @@ import {
   logSecurityEvent,
 } from "../../utils/authSecurity.js";
 import * as userService from "../user/service.js";
+import * as mailer from "../../utils/mailer.js";
 
 // Controllers
 const { ACCESS_TOKEN_SECRET } = ENV;
@@ -149,7 +150,7 @@ export async function login(req: Request, res: Response, next: NextFunction) {
     const { email, password } = LoginUserBodySchema.parse(req.body);
     const user = await authService.login(email, password);
     if (!user) throw new AppError("Invalid credentials", 401);
-    if (ENV.NODE_ENV === "production" && !user.isVerified) {
+    if (!user.isVerified) {
       throw new AppError("Email verification required", 403);
     }
 
@@ -376,6 +377,69 @@ export async function googleExchange(
     res.status(200).json({ authenticated: true });
   } catch (err) {
     logSecurityEvent("auth.google.exchange.failed", { ip: req.ip });
+    next(err);
+  }
+}
+
+export async function verifyEmail(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const token = typeof req.query.token === "string" ? req.query.token : null;
+    if (!token) throw new AppError("Missing verification token", 400);
+
+    const userId = await authService.consumeEmailVerificationToken(token);
+    const user = await userService.getUser(userId);
+    if (!user) throw new AppError("User not found", 404);
+
+    const payload = buildPayload(user);
+    await issueUserSession(req, res, user.id, payload);
+
+    logSecurityEvent("auth.email.verified", { userId });
+
+    const corsFirstOrigin = ENV.CORS_ORIGINS.split(",")
+      .map((origin) => origin.trim())
+      .find(Boolean);
+    const frontendBase =
+      ENV.FRONTEND_URL || corsFirstOrigin || "http://localhost:5173";
+    const normalizedFrontendBase = frontendBase.replace(/\/+$/, "");
+    res.redirect(`${normalizedFrontendBase}/dashboard?verified=1`);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function resendVerification(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { email } = z.object({ email: z.string().email() }).parse(req.body);
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const authMethod = await authService.findAuthMethodByEmail(normalizedEmail);
+
+    // Always return 200 to avoid leaking whether email exists
+    if (!authMethod) return res.status(200).json({ sent: true });
+
+    const user = await userService.getUser(authMethod.userId);
+    if (!user || user.isVerified) return res.status(200).json({ sent: true });
+
+    const verificationToken = await authService.createEmailVerificationToken(
+      user.id,
+    );
+    await mailer.sendVerificationEmail(
+      normalizedEmail,
+      verificationToken,
+      user.name,
+    );
+
+    logSecurityEvent("auth.email.resend_verification", { userId: user.id });
+    return res.status(200).json({ sent: true });
+  } catch (err) {
     next(err);
   }
 }

@@ -28,11 +28,20 @@ export function LoginPopup() {
   const { open, close } = usePopupStore();
   const {
     user,
-    status: { loginError, isLoggingIn, isLoggingOutAll, logoutAllError },
-    actions: { login, logout, logoutAll },
+    status: {
+      loginError,
+      loginErrorCode,
+      isLoggingIn,
+      isLoggingOutAll,
+      isResendingVerification,
+      resendVerificationError,
+      logoutAllError,
+    },
+    actions: { login, logout, logoutAll, resendVerification },
   } = useAuth();
   const [loginSuccess, setLoginSuccess] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
   const [loginFields, setLoginFields] = useState<LoginUserBody>({
     email: "",
     password: "",
@@ -88,6 +97,17 @@ export function LoginPopup() {
     setTimeout(() => {
       open(t("auth.registerProfileTitle"), <RegisterPopup />);
     }, 300);
+  };
+
+  const handleResendVerification = async () => {
+    if (!loginFields.email.trim()) return;
+    try {
+      await resendVerification(loginFields.email.trim());
+      setResendSuccess(true);
+      setTimeout(() => setResendSuccess(false), 5000);
+    } catch {
+      setResendSuccess(false);
+    }
   };
 
   return (
@@ -188,6 +208,30 @@ export function LoginPopup() {
             <span className="text-green-500">{t("auth.loginSuccess")}</span>
           )}
           {loginError && <span className="text-red-500">{loginError}</span>}
+          {loginErrorCode === 403 && (
+            <div className="flex flex-col gap-2 mt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  void handleResendVerification();
+                }}
+                disabled={isResendingVerification}
+                className="custom-btn"
+              >
+                {isResendingVerification
+                  ? "Sending verification email..."
+                  : "Resend verification email"}
+              </button>
+              {resendSuccess && (
+                <span className="text-green-500">
+                  Verification email sent. Check your inbox.
+                </span>
+              )}
+              {resendVerificationError && (
+                <span className="text-red-500">{resendVerificationError}</span>
+              )}
+            </div>
+          )}
           {isLoggingIn && <span>{t("common.loading")}</span>}
         </div>
         <span className="h-0.5 w-full bg-(--color-background) rounded" />

@@ -2,10 +2,10 @@ import { jest } from "@jest/globals";
 import request from "supertest";
 import jwt from "jsonwebtoken";
 
-import type { app as AppType } from "../../src/app.js";
-import type * as AuthServiceTypes from "../../src/modules/auth/service.js";
+import type { app as AppType } from "../../src/app";
+import type * as AuthServiceTypes from "../../src/modules/auth/service";
 
-jest.unstable_mockModule("../../src/modules/auth/service.js", () => ({
+jest.unstable_mockModule("../../src/modules/auth/service", () => ({
   findSessionById: jest.fn(),
   findSessionByTokenHash: jest.fn(),
   revokeSessionFamily: jest.fn(),
@@ -15,7 +15,7 @@ jest.unstable_mockModule("../../src/modules/auth/service.js", () => ({
   logoutByTokenHash: jest.fn(),
 }));
 
-jest.unstable_mockModule("../../src/modules/user/service.js", () => ({
+jest.unstable_mockModule("../../src/modules/user/service", () => ({
   getUser: jest.fn(),
 }));
 
@@ -31,10 +31,9 @@ let generateAccessToken: (payload: {
 }) => string;
 
 beforeAll(async () => {
-  ({ app } = await import("../../src/app.js"));
-  authService = await import("../../src/modules/auth/service.js");
-  ({ generateAccessToken } =
-    await import("../../src/modules/auth/controller.js"));
+  ({ app } = await import("../../src/app"));
+  authService = await import("../../src/modules/auth/service");
+  ({ generateAccessToken } = await import("../../src/modules/auth/controller"));
 });
 
 describe("Access token lifecycle integration", () => {
@@ -106,6 +105,6 @@ describe("Access token lifecycle integration", () => {
       .set("Cookie", [`fintrack_access_token=${validToken}`]);
 
     expect(response.status).toBe(401);
-    expect(response.body.error).toBe("Session revoked or expired");
+    expect(response.body.error).toBe("Invalid access token session");
   });
 });

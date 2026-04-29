@@ -132,6 +132,13 @@ export async function deleteUser(userId: string) {
   });
 }
 
+export async function findUserByEmail(email: string) {
+  return prisma.user.findUnique({
+    where: { email },
+    select: { id: true },
+  });
+}
+
 export async function deleteAuthMethod(userId: string, authMethodId: string) {
   return prisma.$transaction(async (tx) => {
     const count = await tx.authMethod.count({ where: { userId } });
