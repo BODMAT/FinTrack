@@ -372,11 +372,13 @@ When the number of commands grows, extract handlers into separate files and impo
 
 ### Branch Naming
 
-Use the same type prefix as commits, followed by a short kebab-case description:
+This project uses [Conventional Branch](https://conventional-branch.github.io/):
 
 ```
 <type>/<short-description>
 ```
+
+Common types: `feat`, `fix`, `chore`, `docs`, `refactor`, `test`.
 
 Examples:
 
@@ -446,7 +448,7 @@ Body rules:
 
 The standard cycle for any change — bug fix, feature, or chore:
 
-1. **Open an issue** using the appropriate template (bug / feature / chore). Describe the problem or goal clearly before writing any code.
+1. **Open an issue** using the appropriate template (fix / feat / chore). Describe the problem or goal clearly before writing any code.
 2. **Create a branch** from `master` following the [Branch Naming](#branch-naming) convention. Optionally prefix with the issue number for traceability: `feat/42-csv-export`, `fix/17-refresh-token`.
 3. **Make your changes** — commit incrementally following [Commit Conventions](#commit-conventions).
 4. Quality checks run automatically — lint + format on `git commit`, type-check on `git push`. See [Quality Gates](#quality-gates) for the full breakdown.

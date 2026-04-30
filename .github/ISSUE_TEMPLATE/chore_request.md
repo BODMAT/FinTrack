@@ -1,7 +1,7 @@
 ---
 name: Maintenance/Chore Request
 about: Request technical maintenance or project cleanup
-title: "[CHORE] "
+title: "chore: "
 labels: maintenance, documentation
 assignees: ''
 
