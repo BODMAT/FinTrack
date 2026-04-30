@@ -11,8 +11,8 @@ Please read our [Code of Conduct](./CODE_OF_CONDUCT.md) before contributing. To 
   - [1. Preparation](#1-preparation)
   - [2. Docker (Recommended)](#2-docker-recommended)
   - [3. Local Installation](#3-local-installation)
-- [Database Management](#database-management)
 - [Environment Variables](#environment-variables)
+- [Database Management](#database-management)
 - [Running Individual Apps](#running-individual-apps)
 - [Extending the Project](#extending-the-project)
   - [Adding an API Module](#adding-an-api-module-appsapi)
@@ -142,6 +142,51 @@ npm run dev
 
 ---
 
+## Environment Variables
+
+### `apps/api/.env`
+
+```env
+NODE_ENV=development
+ENABLE_SWAGGER_IN_PROD=false
+
+HOST=localhost
+PORT=8000
+SWAGGER_SERVER_URL=http://localhost:8000/api
+CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+
+DATABASE_URL=postgresql://user:password@localhost:5432/yourdb?schema=yourschema
+DIRECT_URL=postgresql://user:password@localhost:5432/yourdb?schema=yourschema
+
+ACCESS_TOKEN_SECRET=your-jwt-access-token-secret-here
+
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+
+GROQ_API_KEY_1=your-groq-api-key
+API_KEY_ENCRYPTION_SECRET=your-32-char-secret-here
+
+STRIPE_SECRET_KEY=sk_test_xxx
+STRIPE_WEBHOOK_SECRET=whsec_xxx
+STRIPE_DONATION_PRICE_ID=price_xxx
+STRIPE_DONATION_AMOUNT=300
+STRIPE_DONATION_CURRENCY=usd
+STRIPE_DONATION_SUCCESS_URL=http://localhost:5173/FinTrack/donation?state=success
+STRIPE_DONATION_CANCEL_URL=http://localhost:5173/FinTrack/donation?state=cancel
+STRIPE_DONATION_DURATION_DAYS=0
+```
+
+### `apps/web/.env`
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000
+NEXTAUTH_URL=http://localhost:5173/FinTrack
+NEXTAUTH_SECRET=your-nextauth-secret
+GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+```
+
+---
+
 ## Database Management
 
 After applying migrations, you can populate your database using one of the following methods:
@@ -191,51 +236,6 @@ Clears your current schema and restores the dump exactly. Best for a full sync.
 - **Local:** `npm run restore:db:reset`
 
 > **Note:** You can combine them! For example, run **Seed** to get admin users, then **Restore (Append)** a dump with specific transactions. If you use **Wipe & Sync**, it will remove any previously seeded data.
-
----
-
-## Environment Variables
-
-### `apps/api/.env`
-
-```env
-NODE_ENV=development
-ENABLE_SWAGGER_IN_PROD=false
-
-HOST=localhost
-PORT=8000
-SWAGGER_SERVER_URL=http://localhost:8000/api
-CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
-
-DATABASE_URL=postgresql://user:password@localhost:5432/yourdb?schema=yourschema
-DIRECT_URL=postgresql://user:password@localhost:5432/yourdb?schema=yourschema
-
-ACCESS_TOKEN_SECRET=your-jwt-access-token-secret-here
-
-GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
-
-GROQ_API_KEY_1=your-groq-api-key
-API_KEY_ENCRYPTION_SECRET=your-32-char-secret-here
-
-STRIPE_SECRET_KEY=sk_test_xxx
-STRIPE_WEBHOOK_SECRET=whsec_xxx
-STRIPE_DONATION_PRICE_ID=price_xxx
-STRIPE_DONATION_AMOUNT=300
-STRIPE_DONATION_CURRENCY=usd
-STRIPE_DONATION_SUCCESS_URL=http://localhost:5173/FinTrack/donation?state=success
-STRIPE_DONATION_CANCEL_URL=http://localhost:5173/FinTrack/donation?state=cancel
-STRIPE_DONATION_DURATION_DAYS=0
-```
-
-### `apps/web/.env`
-
-```env
-NEXT_PUBLIC_API_URL=http://localhost:8000
-NEXTAUTH_URL=http://localhost:5173/FinTrack
-NEXTAUTH_SECRET=your-nextauth-secret
-GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-```
 
 ---
 

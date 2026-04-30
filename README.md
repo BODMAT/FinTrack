@@ -15,7 +15,6 @@
 - [Overview](#overview)
 - [Screenshots](#screenshots)
 - [Tech Stack](#tech-stack)
-- [Deployment Topology](#deployment-topology)
 - [Getting Started](#getting-started)
 - [Backend](#backend)
   - [Architecture](#backend-architecture)
@@ -26,6 +25,7 @@
   - [Architecture](#frontend-architecture)
   - [Pages & Features](#pages--features)
   - [State Management](#state-management)
+- [Deployment Topology](#deployment-topology)
 - [CI/CD](#cicd)
 - [License](#license)
 
@@ -106,18 +106,6 @@ FinTrack is a monorepo (Turborepo) personal finance application that allows user
 | Prettier + ESLint   | Formatting and linting                    |
 | Docker              | Production & Development containerization |
 | GitHub Actions      | CI/CD pipeline + GHCR + Trivy Scan        |
-
----
-
-## Deployment Topology
-
-Production deployment flow:
-
-- **Vercel** -> `apps/web` (Next.js)
-- **Render** -> `apps/api` (Express + Prisma)
-- **Supabase** -> PostgreSQL
-
-Database migrations are applied automatically from GitHub Actions on pushes to `master` when Prisma schema or migrations change.
 
 ---
 
@@ -247,6 +235,18 @@ API communication is split into typed modules under `src/api/` (one file per dom
 | `monobankCooldown` | Monobank fetch cooldown countdown                    |
 
 TanStack Query manages all server state with `staleTime: 5 min` and `gcTime: 30 min`. Mutations trigger targeted query invalidations.
+
+---
+
+## Deployment Topology
+
+Production deployment flow:
+
+- **Vercel** -> `apps/web` (Next.js)
+- **Render** -> `apps/api` (Express + Prisma)
+- **Supabase** -> PostgreSQL
+
+Database migrations are applied automatically from GitHub Actions on pushes to `master` when Prisma schema or migrations change.
 
 ---
 
