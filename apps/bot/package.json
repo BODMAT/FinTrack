@@ -16,7 +16,7 @@
     "type": "git",
     "url": "git+https://github.com/BODMAT/FinTrack.git"
   },
-  "license": "ISC",
+  "license": "MIT",
   "author": "Makar Dzhehur",
   "type": "module",
   "main": "bot.js",

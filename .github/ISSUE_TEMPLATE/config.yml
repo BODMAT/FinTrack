@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Contributing Guide
+    url: https://github.com/BODMAT/FinTrack/blob/master/CONTRIBUTING.md
+    about: Read this before opening an issue — setup, workflow, and conventions.
+  - name: Security Vulnerability
+    url: https://github.com/BODMAT/FinTrack/blob/master/SECURITY.md
+    about: Do not open public issues for security vulnerabilities — report privately here.
