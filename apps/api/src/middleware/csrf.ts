@@ -3,6 +3,10 @@ import { ENV } from "../config/env.js";
 import { AppError } from "./errorHandler.js";
 
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
+const CSRF_BYPASS_PATHS = new Set([
+  "/donations/webhook",
+  "/api/donations/webhook",
+]);
 
 function getRequestOrigin(req: Request): string | null {
   const origin = req.headers.origin;
@@ -23,7 +27,9 @@ export function csrfProtection(allowedOrigins: string[]) {
 
   return (req: Request, _res: Response, next: NextFunction) => {
     if (ENV.NODE_ENV !== "production") return next();
-    if (req.path === "/donations/webhook") return next();
+    if (CSRF_BYPASS_PATHS.has(req.path)) {
+      return next();
+    }
     if (SAFE_METHODS.has(req.method)) return next();
 
     const requestOrigin = getRequestOrigin(req);

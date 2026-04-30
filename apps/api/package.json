@@ -51,7 +51,7 @@
     "google-auth-library": "^10.6.2",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
-    "nodemailer": "^7.0.13",
+    "nodemailer": "^8.0.5",
     "openai": "^5.18.1",
     "stripe": "^22.0.1",
     "swagger-jsdoc": "^6.2.8",
