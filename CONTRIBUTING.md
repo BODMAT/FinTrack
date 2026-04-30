@@ -4,6 +4,31 @@ First off, thank you for considering contributing to FinTrack! This guide covers
 
 Please read our [Code of Conduct](./CODE_OF_CONDUCT.md) before contributing. To report a security vulnerability, see [SECURITY.md](./SECURITY.md) instead of opening a public issue.
 
+## Table of Contents
+
+- [Project Overview](#project-overview)
+- [Getting Started](#getting-started)
+  - [1. Preparation](#1-preparation)
+  - [2. Docker (Recommended)](#2-docker-recommended)
+  - [3. Local Installation](#3-local-installation)
+- [Database Management](#database-management)
+- [Environment Variables](#environment-variables)
+- [Running Individual Apps](#running-individual-apps)
+- [Extending the Project](#extending-the-project)
+  - [Adding an API Module](#adding-an-api-module-appsapi)
+  - [Adding a Web Page / Feature](#adding-a-web-page--feature-appsweb)
+  - [Adding a Bot Command](#adding-a-bot-command-appsbot)
+- [Development Workflow](#development-workflow)
+  - [Branch Naming](#branch-naming)
+  - [Commit Conventions](#commit-conventions)
+  - [Quality Gates](#quality-gates)
+  - [Useful Commands](#useful-commands)
+  - [Database Changes](#database-changes)
+- [Pull Request Process](#pull-request-process)
+  - [Contribution Flow](#contribution-flow)
+  - [Merge Strategy](#merge-strategy)
+- [Questions?](#questions)
+
 ## Project Overview
 
 FinTrack is a monorepo managed by [Turborepo](https://turbo.build/).
