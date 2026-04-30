@@ -38,3 +38,9 @@ export const logoutAllUser = async (): Promise<void> => {
 export const exchangeGoogleSession = async (idToken: string): Promise<void> => {
   await handleRequest(api.post("/auth/google/exchange", { idToken }));
 };
+
+export const resendVerificationEmail = async (
+  email: string,
+): Promise<{ sent: boolean }> => {
+  return handleRequest(api.post("/auth/resend-verification", { email }));
+};

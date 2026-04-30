@@ -3,9 +3,10 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../../prisma/client.js";
 import bcrypt from "bcrypt";
 import * as userService from "./service.js";
+import * as authService from "../auth/service.js";
 import { AppError } from "../../middleware/errorHandler.js";
 import { logSecurityEvent } from "../../utils/authSecurity.js";
-import { ENV } from "../../config/env.js";
+import { sendVerificationEmail } from "../../utils/mailer.js";
 import {
   CreateUserSchema as createUserSchema,
   UpdateUserSchema as updateUserSchema,
@@ -95,10 +96,27 @@ export async function createUser(
       }),
     );
 
+    // Prevent duplicate accounts: check User.email which catches both
+    // email-first and Google-first registrations
+    const primaryEmail = hasEmailAuth
+      ? (authMethodsWithHash.find((m) => m.type === "EMAIL")?.email ?? null)
+      : null;
+
+    if (primaryEmail) {
+      const conflict = await userService.findUserByEmail(primaryEmail);
+      if (conflict) {
+        throw new AppError("An account with this email already exists", 409);
+      }
+    }
+
+    // EMAIL signups always require verification (both dev and prod).
+    const isVerifiedOnCreate = hasEmailAuth ? false : true;
+
     const prismaData: Prisma.UserCreateInput = {
       name: validatedBody.name,
+      email: primaryEmail,
       photo_url: validatedBody.photo_url ?? null,
-      isVerified: hasEmailAuth ? ENV.NODE_ENV !== "production" : true,
+      isVerified: isVerifiedOnCreate,
       ...(validatedBody.created_at
         ? { created_at: validatedBody.created_at }
         : {}),
@@ -111,6 +129,22 @@ export async function createUser(
     };
 
     const user = await userService.createUser(prismaData);
+
+    // Send verification email for email-registered users
+    if (hasEmailAuth && primaryEmail && !isVerifiedOnCreate) {
+      try {
+        const verificationToken =
+          await authService.createEmailVerificationToken(user.id);
+        await sendVerificationEmail(primaryEmail, verificationToken, user.name);
+      } catch (mailErr) {
+        // Non-fatal: user can request resend
+        console.error(
+          "[createUser] Failed to send verification email:",
+          mailErr,
+        );
+      }
+    }
+
     logSecurityEvent("auth.registration.success", {
       userId: user.id,
       isVerified: user.isVerified,

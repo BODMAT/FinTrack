@@ -51,7 +51,12 @@ export const ENV = {
   PORT: process.env.PORT ? Number(process.env.PORT) : 8000,
   SWAGGER_SERVER_URL: process.env.SWAGGER_SERVER_URL as string,
   CORS_ORIGINS: process.env.CORS_ORIGINS ?? "",
+  FRONTEND_URL: process.env.FRONTEND_URL ?? "",
   GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? "",
+  GOOGLE_OAUTH_VERIFY_MODE:
+    process.env.GOOGLE_OAUTH_VERIFY_MODE === "tokeninfo"
+      ? "tokeninfo"
+      : "verifyIdToken",
   DATABASE_URL: process.env.DATABASE_URL as string,
   ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET as string,
   GROQAPITOKENS,
@@ -68,6 +73,14 @@ export const ENV = {
   STRIPE_DONATION_DURATION_DAYS: process.env.STRIPE_DONATION_DURATION_DAYS
     ? Number(process.env.STRIPE_DONATION_DURATION_DAYS)
     : undefined,
+  // SMTP (email verification via Gmail or any SMTP provider)
+  SMTP_HOST: process.env.SMTP_HOST ?? "",
+  SMTP_PORT: process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587,
+  SMTP_SECURE: process.env.SMTP_SECURE === "true",
+  SMTP_USER: process.env.SMTP_USER ?? "",
+  SMTP_PASS: process.env.SMTP_PASS ?? "",
+  SMTP_FROM: process.env.SMTP_FROM ?? "",
+  EMAIL_VERIFICATION_BASE_URL: process.env.EMAIL_VERIFICATION_BASE_URL ?? "",
 } as const;
 
 export type EnvConfig = typeof ENV;

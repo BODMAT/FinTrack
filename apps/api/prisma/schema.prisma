@@ -104,28 +104,42 @@ model Message {
 }
 
 model User {
-    id                String            @id @default(uuid())
-    name              String            @db.VarChar(200)
-    photo_url         String?
-    isVerified        Boolean           @default(false)
-    role              UserRole          @default(USER)
-    aiAnalysisUsed    Int               @default(0)
-    aiAnalysisLimit   Int               @default(10)
-    donationStatus    DonationStatus    @default(NONE)
-    donationGrantedAt DateTime?
-    donationExpiresAt DateTime?
-    stripeCustomerId  String?           @unique @db.VarChar(255)
-    created_at        DateTime          @default(now())
-    updated_at        DateTime          @updatedAt
+    id                        String                     @id @default(uuid())
+    name                      String                     @db.VarChar(200)
+    email                     String?                    @unique @db.VarChar(200)
+    photo_url                 String?
+    isVerified                Boolean                    @default(false)
+    role                      UserRole                   @default(USER)
+    aiAnalysisUsed            Int                        @default(0)
+    aiAnalysisLimit           Int                        @default(10)
+    donationStatus            DonationStatus             @default(NONE)
+    donationGrantedAt         DateTime?
+    donationExpiresAt         DateTime?
+    stripeCustomerId          String?                    @unique @db.VarChar(255)
+    created_at                DateTime                   @default(now())
+    updated_at                DateTime                   @updatedAt
     // relations
-    authMethods       AuthMethod[]
-    sessions          Session[]
-    transactions      Transaction[]
-    messages          Message[]
-    apiKeys           UserApiKey[]
-    donationPayments  DonationPayment[]
-    errorLogs         ErrorLog[]        @relation("ErrorLogReporter")
-    resolvedLogs      ErrorLog[]        @relation("ErrorLogResolver")
+    authMethods               AuthMethod[]
+    sessions                  Session[]
+    transactions              Transaction[]
+    messages                  Message[]
+    apiKeys                   UserApiKey[]
+    donationPayments          DonationPayment[]
+    errorLogs                 ErrorLog[]                 @relation("ErrorLogReporter")
+    resolvedLogs              ErrorLog[]                 @relation("ErrorLogResolver")
+    emailVerificationTokens   EmailVerificationToken[]
+}
+
+model EmailVerificationToken {
+    id        String   @id @default(uuid())
+    userId    String
+    tokenHash String   @unique @db.VarChar(128)
+    expiresAt DateTime
+    createdAt DateTime @default(now())
+    user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([userId])
+    @@index([expiresAt])
 }
 
 model AuthMethod {

@@ -49,3 +49,11 @@ export const donationWebhookLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: "Too many webhook requests." },
 });
+
+export const resendVerificationLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many resend attempts. Try again in an hour." },
+});

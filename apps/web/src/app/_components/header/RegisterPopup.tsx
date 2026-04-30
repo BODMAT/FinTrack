@@ -7,8 +7,6 @@ import type {
 import { usePopupStore } from "@/store/popup";
 import { LoginPopup } from "./LoginPopup";
 import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
-import { queryClient } from "@/api/queryClient";
-import { useRouter } from "next/navigation";
 import { RegisterPopupForm } from "./RegisterPopupForm";
 import { RegisterPopupActions } from "./RegisterPopupActions";
 import { createInitialUserLocalInfo } from "@/utils/register";
@@ -18,15 +16,15 @@ import { clearProcessedGoogleIdToken } from "@/lib/oauthBridge";
 
 export function RegisterPopup() {
   const { t } = useSafeTranslation();
-  const router = useRouter();
   const { open, close } = usePopupStore();
   const {
     user,
     status: { registerError, isRegistering, isLoggingOutAll, logoutAllError },
-    actions: { register, logout, login, logoutAll },
+    actions: { register, logout, logoutAll },
   } = useAuth();
 
   const [registerSuccess, setRegisterSuccess] = useState(false);
+  const [verificationPendingEmail, setVerificationPendingEmail] = useState("");
   const [passwordValidationError, setPasswordValidationError] = useState("");
   const [userLocalInfo, setUserLocalInfo] = useState<User>(
     createInitialUserLocalInfo(),
@@ -58,6 +56,7 @@ export function RegisterPopup() {
   const handleRegister = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setRegisterSuccess(false);
+    setVerificationPendingEmail("");
     setPasswordValidationError("");
 
     const payload: User = {
@@ -109,17 +108,9 @@ export function RegisterPopup() {
       await register(payload);
       setRegisterSuccess(true);
 
-      //! if email - auto login ======================================
       if (emailMethod) {
-        await login({
-          email: emailMethod.email,
-          password: emailMethod.password,
-        });
+        setVerificationPendingEmail(emailMethod.email.trim());
       }
-      //!=============================================================
-      await queryClient.invalidateQueries();
-      router.refresh();
-      close();
 
       setUserLocalInfo(createInitialUserLocalInfo());
     } catch {
@@ -163,6 +154,13 @@ export function RegisterPopup() {
           )}
           {registerSuccess && (
             <span className="text-green-500">{t("auth.registerSuccess")}</span>
+          )}
+          {verificationPendingEmail && (
+            <div className="text-amber-500 text-sm">
+              Account created. We sent a verification link to{" "}
+              <strong>{verificationPendingEmail}</strong>. Please verify your
+              email, then log in.
+            </div>
           )}
           {registerError && (
             <span className="text-red-500">{registerError}</span>

@@ -8,6 +8,7 @@ module.exports = {
   setupFiles: ["<rootDir>/test/jest.setup.cjs"],
   setupFilesAfterEnv: ["<rootDir>/test/setup.cjs"],
   clearMocks: true,
+  resetModules: true,
   moduleNameMapper: {
     "^(\\.{1,2}/.*)\\.js$": "$1",
     "^@fintrack/types$": "<rootDir>/../../packages/types/src/index.ts",

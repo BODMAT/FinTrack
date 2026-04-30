@@ -7,11 +7,13 @@ import { formatDonationAmount } from "@/utils/donation";
 interface DonationLeaderboardProps {
   items: DonationLeaderboardItem[];
   isLoading: boolean;
+  isError: boolean;
 }
 
 export function DonationLeaderboard({
   items,
   isLoading,
+  isError,
 }: DonationLeaderboardProps) {
   const { t } = useSafeTranslation();
   const marqueeItems = items.length > 1 ? [...items, ...items] : items;
@@ -24,6 +26,24 @@ export function DonationLeaderboard({
       <p className="text-(--color-fixed-text) text-[14px] mb-[14px]">
         {t("donation.leaderboardSubtitle")}
       </p>
+
+      {isLoading && (
+        <p className="text-(--color-fixed-text) text-[13px]">
+          {t("common.loading")}
+        </p>
+      )}
+
+      {!isLoading && isError && (
+        <p className="text-(--color-fixed-text) text-[13px]">
+          {t("donation.leaderboardError")}
+        </p>
+      )}
+
+      {!isLoading && !isError && items.length === 0 && (
+        <p className="text-(--color-fixed-text) text-[13px]">
+          {t("donation.leaderboardEmpty")}
+        </p>
+      )}
 
       {items.length > 0 && !isLoading && (
         <div

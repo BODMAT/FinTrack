@@ -8,7 +8,12 @@ import {
   getMe,
   updateMe,
 } from "@/api/user";
-import { loginUser, logoutAllUser, logoutUser } from "@/api/auth";
+import {
+  loginUser,
+  logoutAllUser,
+  logoutUser,
+  resendVerificationEmail,
+} from "@/api/auth";
 import { useAuthStore } from "@/store/useAuthStore";
 import type {
   CreateUserBody,
@@ -74,6 +79,10 @@ export const useAuth = () => {
     },
   });
 
+  const resendVerification = useMutation<{ sent: boolean }, ApiError, string>({
+    mutationFn: resendVerificationEmail,
+  });
+
   const update = useMutation<UserResponse, ApiError, CreateUserBody>({
     mutationFn: updateMe,
     onSuccess: (data) => {
@@ -107,6 +116,7 @@ export const useAuth = () => {
       login: login.mutateAsync,
       logout: logout.mutateAsync,
       logoutAll: logoutAll.mutateAsync,
+      resendVerification: resendVerification.mutateAsync,
       update: update.mutate,
       deleteAccount: deleteAccount.mutate,
       deleteAuthMethod: deleteAuthMethod.mutate,
@@ -119,7 +129,10 @@ export const useAuth = () => {
       isDeletingAccount: deleteAccount.isPending,
       isDeletingAuthMethod: deleteAuthMethod.isPending,
       loginError: login.error?.message,
+      loginErrorCode: login.error?.code,
       registerError: register.error?.message,
+      isResendingVerification: resendVerification.isPending,
+      resendVerificationError: resendVerification.error?.message,
       logoutAllError: logoutAll.error?.message,
       updateError: update.error?.message,
       deleteAccountError: deleteAccount.error?.message,

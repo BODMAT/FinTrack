@@ -6,11 +6,14 @@ import {
   logoutAll,
   authenticateToken,
   googleExchange,
+  verifyEmail,
+  resendVerification,
 } from "./controller.js";
 import {
   authLoginLimiter,
   authLogoutLimiter,
   authRefreshLimiter,
+  resendVerificationLimiter,
 } from "../../middleware/rateLimit.js";
 
 export const authRouter = express.Router();
@@ -20,3 +23,9 @@ authRouter.post("/google/exchange", authLoginLimiter, googleExchange);
 authRouter.post("/token", authRefreshLimiter, token);
 authRouter.delete("/logout", authLogoutLimiter, logout);
 authRouter.post("/logout-all", authenticateToken, authLogoutLimiter, logoutAll);
+authRouter.get("/verify-email", verifyEmail);
+authRouter.post(
+  "/resend-verification",
+  resendVerificationLimiter,
+  resendVerification,
+);
