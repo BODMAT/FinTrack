@@ -7,6 +7,14 @@ import type * as UserServiceTypes from "../../src/modules/user/service";
 import type { AppError as AppErrorType } from "../../src/middleware/errorHandler";
 import type { generateAccessToken as GenerateAccessTokenType } from "../../src/modules/auth/controller";
 
+const mockVerifyIdToken = jest.fn();
+
+jest.unstable_mockModule("google-auth-library", () => ({
+  OAuth2Client: class {
+    verifyIdToken = mockVerifyIdToken;
+  },
+}));
+
 jest.unstable_mockModule("../../src/modules/auth/service", () => ({
   findSessionById: jest.fn(),
   findSessionByTokenHash: jest.fn(),
@@ -125,15 +133,15 @@ describe("Auth Integration", () => {
   });
 
   it("returns 409 for /api/auth/google/exchange when service reports conflict", async () => {
-    jest.spyOn(global, "fetch").mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
+    mockVerifyIdToken.mockResolvedValueOnce({
+      getPayload: () => ({
         sub: "google-sub-123",
         email: "user@test.dev",
-        email_verified: "true",
+        email_verified: true,
+        iss: "https://accounts.google.com",
         aud: process.env.GOOGLE_CLIENT_ID,
       }),
-    } as Response);
+    });
 
     jest
       .mocked(authService.loginWithGoogle)
@@ -147,16 +155,16 @@ describe("Auth Integration", () => {
   });
 
   it("creates backend session cookies on successful google exchange", async () => {
-    jest.spyOn(global, "fetch").mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
+    mockVerifyIdToken.mockResolvedValueOnce({
+      getPayload: () => ({
         sub: "google-sub-123",
         email: "user@test.dev",
-        email_verified: "true",
+        email_verified: true,
         name: "Google User",
+        iss: "https://accounts.google.com",
         aud: process.env.GOOGLE_CLIENT_ID,
       }),
-    } as Response);
+    });
 
     jest.mocked(authService.loginWithGoogle).mockResolvedValue(userStub);
     jest.mocked(authService.createSession).mockResolvedValue({

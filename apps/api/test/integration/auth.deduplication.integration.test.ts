@@ -19,6 +19,14 @@ import type * as UserServiceTypes from "../../src/modules/user/service";
 import type { AppError as AppErrorType } from "../../src/middleware/errorHandler";
 import type { generateAccessToken as GenerateAccessTokenType } from "../../src/modules/auth/controller";
 
+const mockVerifyIdToken = jest.fn();
+
+jest.unstable_mockModule("google-auth-library", () => ({
+  OAuth2Client: class {
+    verifyIdToken = mockVerifyIdToken;
+  },
+}));
+
 jest.unstable_mockModule("../../src/modules/auth/service", () => ({
   login: jest.fn(),
   loginWithGoogle: jest.fn(),
@@ -125,16 +133,16 @@ describe("Scenario A — manual registration then Google login with same email",
       expiresAt: new Date(Date.now() + 60_000),
     });
 
-    jest.spyOn(global, "fetch").mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
+    mockVerifyIdToken.mockResolvedValueOnce({
+      getPayload: () => ({
         sub: "google-sub-existing",
         email: "test@example.com",
-        email_verified: "true",
+        email_verified: true,
         name: "Test User",
+        iss: "https://accounts.google.com",
         aud: process.env.GOOGLE_CLIENT_ID,
       }),
-    } as Response);
+    });
 
     const response = await request(app)
       .post("/api/auth/google/exchange")
@@ -148,15 +156,15 @@ describe("Scenario A — manual registration then Google login with same email",
       .mocked(authService.loginWithGoogle)
       .mockRejectedValue(new AppError("Item already exists", 409));
 
-    jest.spyOn(global, "fetch").mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
+    mockVerifyIdToken.mockResolvedValueOnce({
+      getPayload: () => ({
         sub: "google-sub-conflict",
         email: "conflict@example.com",
-        email_verified: "true",
+        email_verified: true,
+        iss: "https://accounts.google.com",
         aud: process.env.GOOGLE_CLIENT_ID,
       }),
-    } as Response);
+    });
 
     const response = await request(app)
       .post("/api/auth/google/exchange")
@@ -224,15 +232,15 @@ describe("Scenario C — Google exchange token validation", () => {
   beforeEach(() => jest.resetAllMocks());
 
   it("returns 401 when Google email_verified is false", async () => {
-    jest.spyOn(global, "fetch").mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
+    mockVerifyIdToken.mockResolvedValueOnce({
+      getPayload: () => ({
         sub: "google-sub-unverified",
         email: "unverified@example.com",
-        email_verified: "false",
+        email_verified: false,
+        iss: "https://accounts.google.com",
         aud: process.env.GOOGLE_CLIENT_ID,
       }),
-    } as Response);
+    });
 
     const response = await request(app)
       .post("/api/auth/google/exchange")
