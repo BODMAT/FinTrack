@@ -447,11 +447,11 @@ Body rules:
 
 ### Quality Gates
 
-| Gate           | Trigger               | What runs                                            |
-| -------------- | --------------------- | ---------------------------------------------------- |
-| **pre-commit** | `git commit`          | ESLint + Prettier on staged files only (lint-staged) |
-| **pre-push**   | `git push`            | TypeScript type-check across the full monorepo       |
-| **CI**         | PR / push to `master` | Full integration tests, security audit, Docker build |
+| Gate           | Trigger               | What runs                                                                                                                              |
+| -------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| **pre-commit** | `git commit`          | If Node.js is available: `lint-staged`; otherwise Docker fallback: `bash dx run lint-staged`                                           |
+| **pre-push**   | `git push`            | If Node.js is available: type-check + web unit tests; otherwise Docker fallback: `bash dx run check-types` + `bash dx run test:web:dx` |
+| **CI**         | PR / push to `master` | Full integration tests, security audit, Docker build                                                                                   |
 
 > Integration tests (`npm run test`) require a live PostgreSQL instance — run them manually via `npm run test:api` when working on API changes, or let CI handle them.
 

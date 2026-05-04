@@ -48,6 +48,7 @@
     "fix": "npm run format && npm run lint:fix",
     "check": "npm run format:check && npm run lint",
     "tidy": "npm run fix && npm run check",
+    "lint-staged": "lint-staged",
     "check-types": "turbo run check-types",
     "test:api": "npm run test -w fintrack-api",
     "test:api:dx": "bash dx shell api npm run test",
