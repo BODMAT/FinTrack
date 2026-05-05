@@ -9,6 +9,27 @@ const api = axios.create({
   },
 });
 
+let csrfTokenCache: string | null = null;
+
+async function fetchCsrfToken(): Promise<string> {
+  if (csrfTokenCache) return csrfTokenCache;
+  const { data } = await axios.get<{ csrfToken: string }>(
+    `${process.env.NEXT_PUBLIC_API_URL}/csrf-token`,
+    { withCredentials: true },
+  );
+  csrfTokenCache = data.csrfToken;
+  return csrfTokenCache;
+}
+
+const MUTATION_METHODS = new Set(["post", "put", "patch", "delete"]);
+
+api.interceptors.request.use(async (config) => {
+  if (config.method && MUTATION_METHODS.has(config.method.toLowerCase())) {
+    config.headers["x-csrf-token"] = await fetchCsrfToken();
+  }
+  return config;
+});
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -18,6 +39,12 @@ api.interceptors.response.use(
       requestUrl.includes("/auth/token") ||
       requestUrl.includes("/auth/login") ||
       requestUrl.includes("/auth/google/exchange");
+
+    if (error.response?.status === 403 && !originalRequest?._csrfRetry) {
+      csrfTokenCache = null;
+      originalRequest._csrfRetry = true;
+      return api(originalRequest);
+    }
 
     if (
       error.response?.status === 401 &&
@@ -36,6 +63,7 @@ api.interceptors.response.use(
           },
         );
 
+        csrfTokenCache = null;
         useAuthStore.getState().setAuthenticated(true);
         return api(originalRequest);
       } catch (refreshError) {

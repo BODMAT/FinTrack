@@ -26,6 +26,7 @@ pnpm-debug.log*
 .cache/
 
 # Other
+.claude
 .turbo
 *.tsbuildinfo
 .next/

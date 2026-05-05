@@ -18,6 +18,9 @@ const apiInstance = Object.assign(retryRequest, {
     baseURL: "https://api.fintrack.dev",
   },
   interceptors: {
+    request: {
+      use: vi.fn(),
+    },
     response: {
       use: vi.fn((_onFulfilled, onRejected) => {
         rejectedHandler = onRejected;

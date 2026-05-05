@@ -5,56 +5,55 @@ describe("Security middleware", () => {
     jest.resetModules();
   });
 
-  it("blocks unsafe request with invalid origin in production CSRF", async () => {
+  it("calls next with error when no CSRF token on mutation request in production", async () => {
     jest.unstable_mockModule("../../../src/config/env.js", () => ({
       ENV: {
         NODE_ENV: "production",
+        ACCESS_TOKEN_SECRET: "test-secret-for-csrf",
       },
     }));
 
-    const { csrfProtection } = await import("../../../src/middleware/csrf.js");
+    const { doubleCsrfProtection } =
+      await import("../../../src/middleware/csrf.js");
     const next = jest.fn();
 
-    const middleware = csrfProtection(["https://app.fintrack.dev"]);
-
-    middleware(
+    doubleCsrfProtection(
       {
         method: "POST",
-        path: "/transactions",
-        headers: { origin: "https://evil.site" },
+        path: "/api/transactions",
+        headers: {},
+        cookies: {},
       } as never,
-      {} as never,
+      { cookie: jest.fn() } as never,
       next,
     );
 
     expect(next).toHaveBeenCalledTimes(1);
-    const firstArg = next.mock.calls[0]?.[0] as {
-      message?: string;
-      statusCode?: number;
-    };
-    expect(firstArg?.message).toBe("CSRF validation failed");
-    expect(firstArg?.statusCode).toBe(403);
+    const err = next.mock.calls[0]?.[0] as { status?: number };
+    expect(err).toBeTruthy();
+    expect(err.status).toBe(403);
   });
 
-  it("allows Stripe webhook path in production CSRF middleware", async () => {
+  it("skips CSRF for Stripe webhook path", async () => {
     jest.unstable_mockModule("../../../src/config/env.js", () => ({
       ENV: {
         NODE_ENV: "production",
+        ACCESS_TOKEN_SECRET: "test-secret-for-csrf",
       },
     }));
 
-    const { csrfProtection } = await import("../../../src/middleware/csrf.js");
+    const { doubleCsrfProtection } =
+      await import("../../../src/middleware/csrf.js");
     const next = jest.fn();
 
-    const middleware = csrfProtection(["https://app.fintrack.dev"]);
-
-    middleware(
+    doubleCsrfProtection(
       {
         method: "POST",
-        path: "/donations/webhook",
-        headers: { origin: "https://evil.site" },
+        path: "/api/donations/webhook",
+        headers: {},
+        cookies: {},
       } as never,
-      {} as never,
+      { cookie: jest.fn() } as never,
       next,
     );
 

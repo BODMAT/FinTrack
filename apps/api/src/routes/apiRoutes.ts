@@ -1,5 +1,6 @@
 import express from "express";
-// import type { Request, Response, NextFunction } from "express";
+import type { Request, Response } from "express";
+import { generateCsrfToken } from "../middleware/csrf.js";
 import { userRouter } from "../modules/user/route.js";
 import { authRouter } from "../modules/auth/route.js";
 import { transactionRouter } from "../modules/transaction/route.js";
@@ -21,6 +22,11 @@ apiRouter.use("/admin", adminRouter);
 apiRouter.use("/donations", donationRouter);
 
 apiRouter.get("/health", (_req, res) => res.json({ ok: true }));
+
+apiRouter.get("/csrf-token", (req: Request, res: Response) => {
+  const csrfToken = generateCsrfToken(req, res);
+  res.json({ csrfToken });
+});
 
 // apiRouter.all("*", (req: Request, res: Response, next: NextFunction) => {
 // 	res.status(404).json({ error: "Endpoint not found" });

@@ -3,8 +3,8 @@ import type { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
-import { errorHandler } from "./middleware/errorHandler.js";
-import { csrfProtection } from "./middleware/csrf.js";
+import { errorHandler, AppError } from "./middleware/errorHandler.js";
+import { doubleCsrfProtection } from "./middleware/csrf.js";
 import { apiRouter } from "./routes/apiRoutes.js";
 import { swaggerDocs } from "./docs/swagger.js";
 import { ENV } from "./config/env.js";
@@ -29,11 +29,21 @@ const allowedOrigins =
 
 app.set("trust proxy", 1);
 
-// Configure Helmet: disable CSP in development to allow Swagger UI
 app.use(
   helmet({
-    contentSecurityPolicy: ENV.NODE_ENV === "production" ? true : false,
-    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy:
+      ENV.NODE_ENV === "production"
+        ? true
+        : {
+            directives: {
+              defaultSrc: ["'self'"],
+              scriptSrc: ["'self'", "'unsafe-inline'"],
+              styleSrc: ["'self'", "'unsafe-inline'"],
+              imgSrc: ["'self'", "data:"],
+              connectSrc: ["'self'"],
+            },
+          },
+    crossOriginResourcePolicy: { policy: "same-origin" },
   }),
 );
 
@@ -59,21 +69,11 @@ app.use(express.urlencoded({ extended: true, limit: "32kb" }));
 // Initialize Swagger (defines /api-docs and /api-docs.json)
 swaggerDocs(app);
 
-// Initialize CSRF middleware
-const csrfMiddleware = csrfProtection(allowedOrigins);
-
-// Apply CSRF protection but skip it for Swagger documentation in development
 app.use((req: Request, res: Response, next: NextFunction) => {
-  const isSwagger =
-    req.path.startsWith("/api-docs") || req.path.startsWith("/api/auth/login");
-  const isDev = ENV.NODE_ENV !== "production";
-
-  // In dev, we allow Swagger to bypass CSRF for testing
-  if (isDev && isSwagger && req.get("referer")?.includes("/api-docs")) {
-    return next();
-  }
-
-  csrfMiddleware(req, res, next);
+  doubleCsrfProtection(req, res, (err) => {
+    if (err) return next(new AppError("CSRF validation failed", 403, err));
+    next();
+  });
 });
 
 app.use("/api", apiRouter);
