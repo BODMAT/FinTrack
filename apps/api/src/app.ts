@@ -1,9 +1,9 @@
 import express from "express";
-import type { Request, Response, NextFunction } from "express";
+import type { Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
-import { errorHandler, AppError } from "./middleware/errorHandler.js";
+import { errorHandler } from "./middleware/errorHandler.js";
 import { csrfProtection } from "./middleware/csrf.js";
 import { apiRouter } from "./routes/apiRoutes.js";
 import { swaggerDocs } from "./docs/swagger.js";
@@ -69,19 +69,7 @@ app.use(express.urlencoded({ extended: true, limit: "32kb" }));
 // Initialize Swagger (defines /api-docs and /api-docs.json)
 swaggerDocs(app);
 
-app.use("/api", (req: Request, res: Response, next: NextFunction) => {
-  csrfProtection(req, res, (err) => {
-    if (err) {
-      return next(
-        new AppError("CSRF validation failed", 403, {
-          code: "CSRF_INVALID",
-          cause: err,
-        }),
-      );
-    }
-    next();
-  });
-});
+app.use("/api", csrfProtection);
 
 app.use("/api", apiRouter);
 

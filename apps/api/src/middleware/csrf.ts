@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { doubleCsrf } from "csrf-csrf";
 import { ENV } from "../config/env.js";
+import { AppError } from "./errorHandler.js";
 
 const CSRF_BYPASS_PATHS = new Set([
   "/api/donations/webhook",
@@ -45,7 +46,12 @@ export function csrfProtection(
 ) {
   doubleCsrfProtection(req, res, (err) => {
     if (err) {
-      return next(err);
+      return next(
+        new AppError("CSRF validation failed", 403, {
+          code: "CSRF_INVALID",
+          cause: err,
+        }),
+      );
     }
     next();
   });
