@@ -8,7 +8,7 @@ on:
 
 jobs:
   build-scan:
-    name: Build & Scan Images (api/web/bot)
+    name: Build & Scan (${{ matrix.image_name }})
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
