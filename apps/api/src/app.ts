@@ -62,13 +62,27 @@ app.use(
   express.raw({ type: "application/json", limit: "256kb" }),
 );
 
+app.use((req, res, next) => {
+  const skipCsrf =
+    req.path === "/api-docs.json" ||
+    req.path.startsWith("/api-docs") ||
+    req.path.startsWith("/api/donations/webhook");
+
+  if (skipCsrf) {
+    return next();
+  }
+
+  return cookieParser()(req, res, (cookieErr?: unknown) => {
+    if (cookieErr) return next(cookieErr);
+    return csrfProtection(req, res, next);
+  });
+});
+
 // Initialize Swagger (defines /api-docs and /api-docs.json)
 swaggerDocs(app);
 
 app.use(
   "/api",
-  cookieParser(),
-  csrfProtection,
   express.json({ limit: "32kb" }),
   express.urlencoded({ extended: true, limit: "32kb" }),
   apiRouter,
