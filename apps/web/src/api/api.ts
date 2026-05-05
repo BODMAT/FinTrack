@@ -41,6 +41,12 @@ api.interceptors.response.use(
       requestUrl.includes("/auth/google/exchange");
 
     if (error.response?.status === 403 && !originalRequest?._csrfRetry) {
+      const isCsrfInvalid =
+        error.response?.data?.code === "CSRF_INVALID" ||
+        error.response?.data?.details?.code === "CSRF_INVALID";
+      if (!isCsrfInvalid) {
+        return Promise.reject(error);
+      }
       csrfTokenCache = null;
       originalRequest._csrfRetry = true;
       return api(originalRequest);

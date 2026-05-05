@@ -102,21 +102,21 @@ jobs:
           exit-code: "0"
 
       - name: Upload API Trivy results
-        if: always()
+        if: always() && hashFiles('trivy-api.sarif') != ''
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: trivy-api.sarif
           category: api
 
       - name: Upload Web Trivy results
-        if: always()
+        if: always() && hashFiles('trivy-web.sarif') != ''
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: trivy-web.sarif
           category: web
 
       - name: Upload Bot Trivy results
-        if: always()
+        if: always() && hashFiles('trivy-bot.sarif') != ''
         uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: trivy-bot.sarif

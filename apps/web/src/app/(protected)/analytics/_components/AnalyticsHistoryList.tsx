@@ -1,5 +1,4 @@
 import { motion } from "framer-motion";
-import { decodeHtmlEntities } from "@/utils/components";
 import { TypingText } from "./TypingText";
 import type { AIResponseWithDiff } from "@/types/ai";
 import type { UserResponse } from "@fintrack/types";
@@ -48,14 +47,9 @@ export function AnalyticsHistoryList({
 
             <div className="mt-[24px] text-[var(--color-text)] px-[20px] py-[8px] border border-[var(--color-fixed-text)] rounded-[10px] max-w-[70%] max-sm:max-w-full bg-[var(--color-card)]/50">
               {isLatestMessage ? (
-                <TypingText
-                  id={item.id}
-                  text={decodeHtmlEntities(item.result)}
-                />
+                <TypingText id={item.id} text={item.result} />
               ) : (
-                <p className="whitespace-pre-wrap">
-                  {decodeHtmlEntities(item.result)}
-                </p>
+                <p className="whitespace-pre-wrap">{item.result}</p>
               )}
               <div className="w-full italic text-right mt-[12px] text-[var(--color-placeholder)] text-[12px]">
                 {currentDate}

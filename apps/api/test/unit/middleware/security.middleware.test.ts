@@ -9,7 +9,7 @@ describe("Security middleware", () => {
     jest.unstable_mockModule("../../../src/config/env.js", () => ({
       ENV: {
         NODE_ENV: "production",
-        ACCESS_TOKEN_SECRET: "test-secret-for-csrf",
+        CSRF_SECRET: "test-secret-for-csrf",
       },
     }));
 
@@ -38,7 +38,7 @@ describe("Security middleware", () => {
     jest.unstable_mockModule("../../../src/config/env.js", () => ({
       ENV: {
         NODE_ENV: "production",
-        ACCESS_TOKEN_SECRET: "test-secret-for-csrf",
+        CSRF_SECRET: "test-secret-for-csrf",
       },
     }));
 

@@ -1,4 +1,4 @@
-import type { Request } from "express";
+import type { NextFunction, Request, Response } from "express";
 import { doubleCsrf } from "csrf-csrf";
 import { ENV } from "../config/env.js";
 
@@ -14,7 +14,7 @@ const CSRF_BYPASS_PATHS = new Set([
 ]);
 
 export const { generateCsrfToken, doubleCsrfProtection } = doubleCsrf({
-  getSecret: () => ENV.ACCESS_TOKEN_SECRET,
+  getSecret: () => ENV.CSRF_SECRET,
   getSessionIdentifier: (req: Request) => {
     const accessToken = req.cookies?.["fintrack_access_token"];
     if (typeof accessToken === "string" && accessToken.length > 0) {
@@ -23,7 +23,7 @@ export const { generateCsrfToken, doubleCsrfProtection } = doubleCsrf({
 
     return req.ip ?? "anonymous";
   },
-  cookieName: "x-csrf-token",
+  cookieName: "csrf-token",
   cookieOptions: {
     httpOnly: true,
     sameSite: ENV.NODE_ENV === "production" ? "none" : "lax",
@@ -37,3 +37,16 @@ export const { generateCsrfToken, doubleCsrfProtection } = doubleCsrf({
     (ENV.NODE_ENV !== "production" && req.path.startsWith("/api-docs")) ||
     CSRF_BYPASS_PATHS.has(req.path),
 });
+
+export function csrfProtection(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  doubleCsrfProtection(req, res, (err) => {
+    if (err) {
+      return next(err);
+    }
+    next();
+  });
+}

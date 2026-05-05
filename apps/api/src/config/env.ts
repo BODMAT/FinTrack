@@ -6,6 +6,7 @@ dotenv.config();
 const requiredEnvVars = [
   "DATABASE_URL",
   "ACCESS_TOKEN_SECRET",
+  "CSRF_SECRET",
   "API_KEY_ENCRYPTION_SECRET",
 ];
 
@@ -59,6 +60,7 @@ export const ENV = {
       : "verifyIdToken",
   DATABASE_URL: process.env.DATABASE_URL as string,
   ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET as string,
+  CSRF_SECRET: process.env.CSRF_SECRET as string,
   GROQAPITOKENS,
   API_KEY_ENCRYPTION_SECRET: process.env.API_KEY_ENCRYPTION_SECRET as string,
   STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY ?? "",

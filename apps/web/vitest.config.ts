@@ -10,6 +10,7 @@ export default defineConfig({
     clearMocks: true,
   },
   resolve: {
+    dedupe: ["react", "react-dom"],
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
