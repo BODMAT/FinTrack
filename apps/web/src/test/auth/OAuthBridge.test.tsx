@@ -45,8 +45,7 @@ vi.mock("@/lib/oauthBridge", () => ({
   clearProcessedGoogleIdToken: vi.fn(),
 }));
 
-// TODO: Re-enable after stabilizing React module resolution in Vitest workspace setup.
-describe.skip("OAuthBridge", () => {
+describe("OAuthBridge", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     sessionStatus = "unauthenticated";

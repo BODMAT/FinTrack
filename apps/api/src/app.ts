@@ -47,6 +47,8 @@ app.use(
   }),
 );
 
+app.use(cookieParser());
+app.use("/api", csrfProtection);
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -57,8 +59,6 @@ app.use(
     credentials: true,
   }),
 );
-
-app.use(cookieParser());
 app.use(
   "/api/donations/webhook",
   express.raw({ type: "application/json", limit: "256kb" }),
@@ -68,8 +68,6 @@ app.use(express.urlencoded({ extended: true, limit: "32kb" }));
 
 // Initialize Swagger (defines /api-docs and /api-docs.json)
 swaggerDocs(app);
-
-app.use("/api", csrfProtection);
 
 app.use("/api", apiRouter);
 

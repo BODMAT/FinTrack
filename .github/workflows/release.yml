@@ -10,6 +10,20 @@ jobs:
   build-scan:
     name: Build & Scan Images (api/web/bot)
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - image_name: api
+            dockerfile: apps/api/Dockerfile
+            build_args: ""
+          - image_name: web
+            dockerfile: apps/web/Dockerfile
+            build_args: |
+              NEXT_PUBLIC_API_URL=/api
+          - image_name: bot
+            dockerfile: apps/bot/Dockerfile
+            build_args: ""
     permissions:
       contents: read
       packages: write
@@ -33,91 +47,32 @@ jobs:
         id: repo
         run: echo "name=$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
 
-      - name: Build API image
+      - name: Build ${{ matrix.image_name }} image
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: apps/api/Dockerfile
+          file: ${{ matrix.dockerfile }}
           push: ${{ github.event_name == 'push' }}
           load: ${{ github.event_name == 'pull_request' }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: ${{ matrix.build_args }}
           tags: |
-            ghcr.io/${{ steps.repo.outputs.name }}-api:latest
-            ghcr.io/${{ steps.repo.outputs.name }}-api:${{ github.sha }}
+            ghcr.io/${{ steps.repo.outputs.name }}-${{ matrix.image_name }}:latest
+            ghcr.io/${{ steps.repo.outputs.name }}-${{ matrix.image_name }}:${{ github.sha }}
 
-      - name: Scan API image
+      - name: Scan ${{ matrix.image_name }} image
         uses: aquasecurity/trivy-action@v0.24.0
         with:
-          image-ref: ghcr.io/${{ steps.repo.outputs.name }}-api:${{ github.sha }}
+          image-ref: ghcr.io/${{ steps.repo.outputs.name }}-${{ matrix.image_name }}:${{ github.sha }}
           format: sarif
-          output: trivy-api.sarif
+          output: trivy-${{ matrix.image_name }}.sarif
           severity: CRITICAL,HIGH
           exit-code: "0"
 
-      - name: Build Web image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: apps/web/Dockerfile
-          push: ${{ github.event_name == 'push' }}
-          load: ${{ github.event_name == 'pull_request' }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-args: |
-            NEXT_PUBLIC_API_URL=/api
-          tags: |
-            ghcr.io/${{ steps.repo.outputs.name }}-web:latest
-            ghcr.io/${{ steps.repo.outputs.name }}-web:${{ github.sha }}
-
-      - name: Scan Web image
-        uses: aquasecurity/trivy-action@v0.24.0
-        with:
-          image-ref: ghcr.io/${{ steps.repo.outputs.name }}-web:${{ github.sha }}
-          format: sarif
-          output: trivy-web.sarif
-          severity: CRITICAL,HIGH
-          exit-code: "0"
-
-      - name: Build Bot image
-        uses: docker/build-push-action@v6
-        with:
-          context: .
-          file: apps/bot/Dockerfile
-          push: ${{ github.event_name == 'push' }}
-          load: ${{ github.event_name == 'pull_request' }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          tags: |
-            ghcr.io/${{ steps.repo.outputs.name }}-bot:latest
-            ghcr.io/${{ steps.repo.outputs.name }}-bot:${{ github.sha }}
-
-      - name: Scan Bot image
-        uses: aquasecurity/trivy-action@v0.24.0
-        with:
-          image-ref: ghcr.io/${{ steps.repo.outputs.name }}-bot:${{ github.sha }}
-          format: sarif
-          output: trivy-bot.sarif
-          severity: CRITICAL,HIGH
-          exit-code: "0"
-
-      - name: Upload API Trivy results
-        if: always() && hashFiles('trivy-api.sarif') != ''
+      - name: Upload Trivy results
+        if: always() && hashFiles(format('trivy-{0}.sarif', matrix.image_name)) != ''
         uses: github/codeql-action/upload-sarif@v4
         with:
-          sarif_file: trivy-api.sarif
-          category: api
-
-      - name: Upload Web Trivy results
-        if: always() && hashFiles('trivy-web.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: trivy-web.sarif
-          category: web
-
-      - name: Upload Bot Trivy results
-        if: always() && hashFiles('trivy-bot.sarif') != ''
-        uses: github/codeql-action/upload-sarif@v4
-        with:
-          sarif_file: trivy-bot.sarif
-          category: bot
+          sarif_file: trivy-${{ matrix.image_name }}.sarif
+          category: ${{ matrix.image_name }}
