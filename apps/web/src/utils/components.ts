@@ -99,13 +99,3 @@ export function sanitizeAmountInput(raw: string): string {
   if (parts.length > 2) s = parts.shift() + "." + parts.join("");
   return s;
 }
-
-export function sanitizeText(text: string): string {
-  return text
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#039;/g, "'")
-    .trim();
-}

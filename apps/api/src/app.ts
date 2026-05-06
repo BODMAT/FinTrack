@@ -1,5 +1,5 @@
 import express from "express";
-import type { Request, Response, NextFunction } from "express";
+import type { Request, Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
@@ -29,11 +29,21 @@ const allowedOrigins =
 
 app.set("trust proxy", 1);
 
-// Configure Helmet: disable CSP in development to allow Swagger UI
 app.use(
   helmet({
-    contentSecurityPolicy: ENV.NODE_ENV === "production" ? true : false,
-    crossOriginResourcePolicy: { policy: "cross-origin" },
+    contentSecurityPolicy:
+      ENV.NODE_ENV === "production"
+        ? true
+        : {
+            directives: {
+              defaultSrc: ["'self'"],
+              scriptSrc: ["'self'", "'unsafe-inline'"],
+              styleSrc: ["'self'", "'unsafe-inline'"],
+              imgSrc: ["'self'", "data:"],
+              connectSrc: ["'self'"],
+            },
+          },
+    crossOriginResourcePolicy: { policy: "same-origin" },
   }),
 );
 
@@ -47,36 +57,36 @@ app.use(
     credentials: true,
   }),
 );
-
-app.use(cookieParser());
 app.use(
   "/api/donations/webhook",
   express.raw({ type: "application/json", limit: "256kb" }),
 );
-app.use(express.json({ limit: "32kb" }));
-app.use(express.urlencoded({ extended: true, limit: "32kb" }));
+
+app.use((req, res, next) => {
+  const skipCsrf =
+    req.path === "/api-docs.json" ||
+    req.path.startsWith("/api-docs") ||
+    req.path.startsWith("/api/donations/webhook");
+
+  if (skipCsrf) {
+    return next();
+  }
+
+  return cookieParser()(req, res, (cookieErr?: unknown) => {
+    if (cookieErr) return next(cookieErr);
+    return csrfProtection(req, res, next);
+  });
+});
 
 // Initialize Swagger (defines /api-docs and /api-docs.json)
 swaggerDocs(app);
 
-// Initialize CSRF middleware
-const csrfMiddleware = csrfProtection(allowedOrigins);
-
-// Apply CSRF protection but skip it for Swagger documentation in development
-app.use((req: Request, res: Response, next: NextFunction) => {
-  const isSwagger =
-    req.path.startsWith("/api-docs") || req.path.startsWith("/api/auth/login");
-  const isDev = ENV.NODE_ENV !== "production";
-
-  // In dev, we allow Swagger to bypass CSRF for testing
-  if (isDev && isSwagger && req.get("referer")?.includes("/api-docs")) {
-    return next();
-  }
-
-  csrfMiddleware(req, res, next);
-});
-
-app.use("/api", apiRouter);
+app.use(
+  "/api",
+  express.json({ limit: "32kb" }),
+  express.urlencoded({ extended: true, limit: "32kb" }),
+  apiRouter,
+);
 
 app.use((_req: Request, res: Response) => {
   res.status(404).json({ error: "Endpoint not found" });

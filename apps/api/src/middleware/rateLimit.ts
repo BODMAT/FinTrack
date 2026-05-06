@@ -57,3 +57,11 @@ export const resendVerificationLimiter = rateLimit({
   legacyHeaders: false,
   message: { error: "Too many resend attempts. Try again in an hour." },
 });
+
+export const userMutationLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many requests. Try again later." },
+});
