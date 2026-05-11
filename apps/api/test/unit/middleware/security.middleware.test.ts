@@ -61,7 +61,9 @@ describe("Security middleware", () => {
   });
 
   it("falls back to token role when DB role lookup fails", async () => {
-    const findUnique = jest.fn().mockRejectedValue(new Error("db down"));
+    const findUnique = jest
+      .fn<() => Promise<unknown>>()
+      .mockRejectedValue(new Error("db down"));
 
     jest.unstable_mockModule("../../../src/config/env.js", () => ({
       ENV: {

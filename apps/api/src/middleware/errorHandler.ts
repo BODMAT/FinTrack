@@ -50,6 +50,9 @@ export function errorHandler(
   } else if (err instanceof AppError) {
     statusCode = err.statusCode;
     response = { error: err.message, details: err.details };
+  } else if ((err as { type?: string }).type === "entity.too.large") {
+    statusCode = 413;
+    response = { error: "Request entity too large" };
   }
 
   return res.status(statusCode).json(response);

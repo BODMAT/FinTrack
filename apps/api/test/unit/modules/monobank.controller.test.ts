@@ -1,7 +1,7 @@
 import { jest } from "@jest/globals";
 
-const importMonobankTransactions = jest.fn();
-const deleteAllMonobankTransactions = jest.fn();
+const importMonobankTransactions = jest.fn<() => Promise<unknown>>();
+const deleteAllMonobankTransactions = jest.fn<() => Promise<unknown>>();
 
 function createRes() {
   const res = {
@@ -43,7 +43,7 @@ describe("Monobank controller", () => {
   });
 
   it("enforces cooldown for repeated account requests", async () => {
-    global.fetch = jest.fn().mockResolvedValue({
+    jest.spyOn(global, "fetch").mockResolvedValue({
       ok: true,
       json: async () => ({ accounts: [{ id: "acc-1" }] }),
     } as Response);
@@ -76,8 +76,8 @@ describe("Monobank controller", () => {
   });
 
   it("maps fetched statement items into preview payload", async () => {
-    global.fetch = jest
-      .fn()
+    jest
+      .spyOn(global, "fetch")
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ accounts: [{ id: "acc-1", currencyCode: 980 }] }),

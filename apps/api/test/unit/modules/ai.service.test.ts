@@ -1,12 +1,12 @@
 import { jest } from "@jest/globals";
 
-const findUnique = jest.fn();
-const update = jest.fn();
-const findFirst = jest.fn();
-const findMany = jest.fn();
-const createMany = jest.fn();
+const findUnique = jest.fn<() => Promise<unknown>>();
+const update = jest.fn<() => Promise<unknown>>();
+const findFirst = jest.fn<() => Promise<unknown>>();
+const findMany = jest.fn<() => Promise<unknown[]>>();
+const createMany = jest.fn<() => Promise<unknown>>();
 
-const mockChatCompletionsCreate = jest.fn();
+const mockChatCompletionsCreate = jest.fn<() => Promise<unknown>>();
 const decryptApiKey = jest.fn((value: string) => value);
 
 describe("AI service", () => {

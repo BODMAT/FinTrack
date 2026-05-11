@@ -1,12 +1,12 @@
 import { jest } from "@jest/globals";
 import request from "supertest";
 
-import type { app as AppType } from "../../src/app";
-import type * as AdminServiceTypes from "../../src/modules/admin/service";
-import type * as AuthServiceTypes from "../../src/modules/auth/service";
-import type { generateAccessToken as GenerateAccessTokenType } from "../../src/modules/auth/controller";
+import type { app as AppType } from "../../src/app.js";
+import type * as AdminServiceTypes from "../../src/modules/admin/service.js";
+import type * as AuthServiceTypes from "../../src/modules/auth/service.js";
+import type { generateAccessToken as GenerateAccessTokenType } from "../../src/modules/auth/controller.js";
 
-jest.unstable_mockModule("../../src/modules/auth/service", () => ({
+jest.unstable_mockModule("../../src/modules/auth/service.js", () => ({
   findSessionById: jest.fn(),
   findSessionByTokenHash: jest.fn(),
   revokeSessionFamily: jest.fn(),
@@ -14,7 +14,7 @@ jest.unstable_mockModule("../../src/modules/auth/service", () => ({
   createSession: jest.fn(),
 }));
 
-jest.unstable_mockModule("../../src/modules/admin/service", () => ({
+jest.unstable_mockModule("../../src/modules/admin/service.js", () => ({
   getAdminStats: jest.fn(),
   reportErrorLog: jest.fn(),
   revokeUserSessions: jest.fn(),
@@ -27,10 +27,11 @@ let adminService: typeof AdminServiceTypes;
 let generateAccessToken: typeof GenerateAccessTokenType;
 
 beforeAll(async () => {
-  ({ app } = await import("../../src/app"));
-  authService = await import("../../src/modules/auth/service");
-  adminService = await import("../../src/modules/admin/service");
-  ({ generateAccessToken } = await import("../../src/modules/auth/controller"));
+  ({ app } = await import("../../src/app.js"));
+  authService = await import("../../src/modules/auth/service.js");
+  adminService = await import("../../src/modules/admin/service.js");
+  ({ generateAccessToken } =
+    await import("../../src/modules/auth/controller.js"));
 });
 
 describe("Admin Integration", () => {
@@ -72,7 +73,7 @@ describe("Admin Integration", () => {
       .get("/api/admin/stats")
       .set("Cookie", [`fintrack_access_token=${accessToken}`]);
 
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(403);
   });
 
   it("returns 200 for admin stats when role is ADMIN", async () => {
@@ -96,7 +97,7 @@ describe("Admin Integration", () => {
       .get("/api/admin/stats")
       .set("Cookie", [`fintrack_access_token=${accessToken}`]);
 
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(200);
   });
 
   it("creates error log from authenticated user", async () => {
@@ -133,7 +134,7 @@ describe("Admin Integration", () => {
         source: "dashboard",
       });
 
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(201);
   });
 
   it("revokes sessions for specific user", async () => {
@@ -163,7 +164,7 @@ describe("Admin Integration", () => {
       .post(`/api/admin/sessions/revoke-user/${targetUserId}`)
       .set("Cookie", [`fintrack_access_token=${accessToken}`]);
 
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(200);
   });
 
   it("revokes sessions for all users", async () => {
@@ -192,6 +193,6 @@ describe("Admin Integration", () => {
       .post("/api/admin/sessions/revoke-all")
       .set("Cookie", [`fintrack_access_token=${accessToken}`]);
 
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(200);
   });
 });

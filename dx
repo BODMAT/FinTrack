@@ -13,10 +13,10 @@
 #    bash dx logs web                          # watch Next.js logs
 #    bash dx shell api                         # shell into API container
 #    bash dx shell postgres psql -U user       # open psql session
-#    bash dx run db:fresh:dx                   # reset & seed database (Docker)
-#    bash dx run api:prisma:migrate:dev:dx     # create new migration (Docker)
-#    bash dx run api:prisma:generate:dx        # regenerate Prisma client (Docker)
-#    bash dx run api:prisma:studio:dx          # open Prisma Studio (Docker)
+#    bash dx run db:api:reset:dx               # reset & seed database (Docker)
+#    bash dx run prisma:api:migrate:dev:dx     # create new migration (Docker)
+#    bash dx run prisma:api:generate:dx        # regenerate Prisma client (Docker)
+#    bash dx run prisma:api:studio:dx          # open Prisma Studio (Docker)
 #    bash dx run test:dx                       # run all services tests (Docker) shell
 #    bash dx run test:api:dx                   # run API service tests (Docker) shell
 #    bash dx run check-types                   # run TS type checks

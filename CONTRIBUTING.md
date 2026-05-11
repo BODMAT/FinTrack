@@ -67,12 +67,13 @@ Each service is accessible directly on its own port for easier debugging.
 
 **Commands:**
 
-- `bash dx dev` — Start all containers in detached mode.
+- `npm run setup:dx` — **First-time setup:** start all containers + initialize both dev and test databases (migrate + seed).
+- `bash dx dev` — Start all containers in detached mode (without DB initialization).
 - `bash dx ps` — List containers with their current status and health (`init` service with `Exited` status is normal in dev mode).
 - `bash dx logs` — Follow logs for all services (or `bash dx logs api` for a specific service).
 - `bash dx api` — Open a shell inside the API container (shortcut for `bash dx shell api`).
-- `bash dx run api:prisma:studio:dx` — Start Prisma Studio inside the API container.
-- `bash dx run db:setup:dx` — Full database initialization inside Docker (migrate + seed).
+- `bash dx run prisma:api:studio:dx` — Start Prisma Studio inside the API container.
+- `bash dx run db:api:setup:dx` — Initialize dev database inside Docker (migrate + seed).
 - `bash dx run test:dx` — Run all integration tests inside Docker.
 - `bash dx restart api` — Restart a service after changing its `.env` file.
 - `bash dx down` — Stop and remove containers.
@@ -82,7 +83,7 @@ Each service is accessible directly on its own port for easier debugging.
 - **Web App:** http://localhost:5173
 - **API:** http://localhost:8000/api
 - **Swagger Docs:** http://localhost:8000/api-docs
-- **Prisma Studio:** http://localhost:5555 (only after running `bash dx run api:prisma:studio:dx`)
+- **Prisma Studio:** http://localhost:5555 (only after running `bash dx run prisma:api:studio:dx`)
 - **pgAdmin:** http://localhost:5050 (Login: `admin@fintrack.dev` / `admin`)
   - _Setup:_ Right-click Servers → Register → Server.
   - _Connection:_ Host: `postgres`, Port: `5432`, Database: `fintrack`, Username: `fintrack`, Password: `fintrack`.
@@ -114,12 +115,8 @@ For those who prefer running dependencies (Node, Postgres etc.) manually.
 # Install dependencies
 npm i
 
-# Build shared packages and generate Prisma client
-npm run setup
-
-# Configure and migrate the API
-npm run api:prisma:migrate:deploy
-npm run api:prisma:seed # Optional
+# Build shared packages, create DBs, run migrations, seed
+npm run setup:local
 
 # Start all apps via Turborepo
 npm run dev
@@ -130,7 +127,7 @@ npm run dev
 - **Web App:** http://localhost:5173/FinTrack
 - **API:** http://localhost:8000/api
 - **Swagger Docs:** http://localhost:8000/api-docs
-- **Prisma Studio:** http://localhost:5555 (only after running `npm run api:prisma:studio`)
+- **Prisma Studio:** http://localhost:5555 (only after running `npm run prisma:api:studio`)
 - **pgAdmin (locally installed app or via browser):**
   - **Desktop App:** Use your natively installed pgAdmin 4 application.
     - _Setup:_ Right-click Servers → Register → Server.
@@ -154,13 +151,16 @@ HOST=localhost
 PORT=8000
 SWAGGER_SERVER_URL=http://localhost:8000/api
 CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+FRONTEND_URL=http://localhost:5173
 
 DATABASE_URL=postgresql://user:password@localhost:5432/yourdb?schema=yourschema
 DIRECT_URL=postgresql://user:password@localhost:5432/yourdb?schema=yourschema
 
 ACCESS_TOKEN_SECRET=your-jwt-access-token-secret-here
+CSRF_SECRET=your-csrf-secret-here
 
 GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
+GOOGLE_OAUTH_VERIFY_MODE=verifyIdToken
 
 GROQ_API_KEY_1=your-groq-api-key
 API_KEY_ENCRYPTION_SECRET=your-32-char-secret-here
@@ -170,9 +170,17 @@ STRIPE_WEBHOOK_SECRET=whsec_xxx
 STRIPE_DONATION_PRICE_ID=price_xxx
 STRIPE_DONATION_AMOUNT=300
 STRIPE_DONATION_CURRENCY=usd
-STRIPE_DONATION_SUCCESS_URL=http://localhost:5173/FinTrack/donation?state=success
-STRIPE_DONATION_CANCEL_URL=http://localhost:5173/FinTrack/donation?state=cancel
+STRIPE_DONATION_SUCCESS_URL=http://localhost:5173/FinTrack/donation?status=success
+STRIPE_DONATION_CANCEL_URL=http://localhost:5173/FinTrack/donation?status=cancel
 STRIPE_DONATION_DURATION_DAYS=0
+
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=false
+SMTP_USER=your@gmail.com
+SMTP_PASS=your_app_password
+SMTP_FROM=FinTrack <your@gmail.com>
+EMAIL_VERIFICATION_BASE_URL=http://localhost:8000/api
 ```
 
 ### `apps/web/.env`
@@ -195,22 +203,22 @@ After applying migrations, you can populate your database using one of the follo
 
 The easiest way to get a fully working environment with migrations applied and rich test data populated.
 
-- **Docker:** `bash dx run db:setup:dx`
-- **Local:** `npm run db:setup`
+- **Docker:** `bash dx run db:api:setup:dx`
+- **Local:** `npm run db:api:setup`
 
 #### Option B: Reset & Refresh
 
 Wipes the database schema and re-initializes it with fresh seed data. Useful for development resets.
 
-- **Docker:** `bash dx run db:reset:dx`
-- **Local:** `npm run db:reset`
+- **Docker:** `bash dx run db:api:reset:dx`
+- **Local:** `npm run db:api:reset`
 
 #### Option C: Seed Data (Manual)
 
 Best for a fresh install to get basic test accounts and system defaults.
 
-- **Docker:** `bash dx run api:prisma:seed:dx`
-- **Local:** `npm run api:prisma:seed`
+- **Docker:** `bash dx run prisma:api:seed:dx`
+- **Local:** `npm run prisma:api:seed`
 
 #### Option D: Database Dump (Team sync)
 
@@ -447,11 +455,11 @@ Body rules:
 
 ### Quality Gates
 
-| Gate           | Trigger               | What runs                                                                                                                              |
-| -------------- | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| **pre-commit** | `git commit`          | If Node.js is available: `lint-staged`; otherwise Docker fallback: `bash dx run lint-staged`                                           |
-| **pre-push**   | `git push`            | If Node.js is available: type-check + web unit tests; otherwise Docker fallback: `bash dx run check-types` + `bash dx run test:web:dx` |
-| **CI**         | PR / push to `master` | Full integration tests, security audit, Docker build                                                                                   |
+| Gate           | Trigger               | What runs                                                                                                                                                             |
+| -------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **pre-commit** | `git commit`          | If Node.js is available: `lint-staged`; otherwise Docker fallback: `bash dx run lint-staged`                                                                          |
+| **pre-push**   | `git push`            | If Node.js is available: type-check + light tests; otherwise Docker fallback: `bash dx run check-types` + `bash dx run test:web:dx` + `bash dx run test:api:light:dx` |
+| **CI**         | PR / push to `master` | Full integration tests, security audit, Docker build                                                                                                                  |
 
 > Integration tests (`npm run test`) require a live PostgreSQL instance — run them manually via `npm run test:api` when working on API changes, or let CI handle them.
 
@@ -460,6 +468,42 @@ Body rules:
 - `npm run test`: Run tests across the monorepo.
 - `npm run tidy`: Run ESLint and Prettier fixers.
 - `npm run build`: Build all packages and apps.
+
+### Script Naming Convention
+
+Use different patterns for **root** and **app-level** scripts:
+
+1. **Root `package.json` (monorepo orchestration):**  
+   `action:scope[:type][:env]`
+
+2. **`apps/*/package.json` (local app scripts):**  
+   `action[:type][:env]`
+
+Where:
+
+- `action`: operation (`test`, `db`, `prisma`, `dev`, `setup`)
+- `scope`: target app/package (`api`, `web`, `bot`) — only for root scripts
+- `type` (optional): subtype (`e2e`, `light`, `stress`, `migrate`, `clean`, `test`)
+- `env` (optional): execution environment (`dx` for Docker)
+
+Examples:
+
+- Root: `test:api`, `test:api:e2e:dx`, `db:api:test:reset`, `prisma:api:seed`
+- App-level (`apps/api`): `test`, `test:e2e`, `test:watch`, `prisma:migrate:deploy`
+
+### When To Move Scripts To Root
+
+Move a script from `apps/*` to root when at least one is true:
+
+- It is run from CI/Husky as a standard repo entrypoint.
+- It needs cross-app coordination (for example `api + web`, or `db + prisma + seed`).
+- It requires environment switching (`local` vs `dx`) that should be uniform for contributors.
+- It should be discoverable as a team-wide workflow (`setup`, `test`, `db reset`, `release checks`).
+
+Keep a script only in `apps/*` when:
+
+- It is purely app-internal and called mainly by developers working in that app.
+- It is a low-level primitive used by root orchestration (`prisma:migrate:deploy`, `test:watch`, `dev`).
 
 ### Database Changes
 
@@ -476,7 +520,7 @@ The standard cycle for any change — bug fix, feature, or chore:
 1. **Open an issue** using the appropriate template (fix / feat / chore). Describe the problem or goal clearly before writing any code.
 2. **Create a branch** from `master` following the [Branch Naming](#branch-naming) convention. Optionally prefix with the issue number for traceability: `feat/42-csv-export`, `fix/17-refresh-token`.
 3. **Make your changes** — commit incrementally following [Commit Conventions](#commit-conventions).
-4. Quality checks run automatically — lint + format on `git commit`, type-check on `git push`. See [Quality Gates](#quality-gates) for the full breakdown.
+4. Quality checks run automatically — lint + format on `git commit`, type-check + light tests on `git push`. See [Quality Gates](#quality-gates) for the full breakdown.
 5. **Open a PR** targeting `master`. Reference the issue in the description with `Closes #N` (GitHub will auto-close the issue on merge). Fill in the PR template fully.
 6. **After merge** — delete the branch.
 

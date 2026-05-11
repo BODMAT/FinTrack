@@ -21,12 +21,12 @@
   "type": "module",
   "main": "bot.js",
   "scripts": {
+    "dev": "concurrently \"npx tsc -w\" \"nodemon dist/bot.js\"",
     "build": "rimraf dist && npx tsc",
-    "check-types": "tsc --noEmit",
-    "prestart": "npm run build",
     "start": "node dist/bot.js",
+    "prestart": "npm run build",
     "predev": "npm run build",
-    "dev": "concurrently \"npx tsc -w\" \"nodemon dist/bot.js\""
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
     "dotenv": "^16.6.1",

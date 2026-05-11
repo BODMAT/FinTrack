@@ -1,13 +1,13 @@
 import { jest } from "@jest/globals";
 import request from "supertest";
 
-import type { app as AppType } from "../../src/app";
-import type * as UserServiceTypes from "../../src/modules/user/service";
-import type * as AuthServiceTypes from "../../src/modules/auth/service";
-import type { AppError as AppErrorType } from "../../src/middleware/errorHandler";
-import type { generateAccessToken as GenerateAccessTokenType } from "../../src/modules/auth/controller";
+import type { app as AppType } from "../../src/app.js";
+import type * as UserServiceTypes from "../../src/modules/user/service.js";
+import type * as AuthServiceTypes from "../../src/modules/auth/service.js";
+import type { AppError as AppErrorType } from "../../src/middleware/errorHandler.js";
+import type { generateAccessToken as GenerateAccessTokenType } from "../../src/modules/auth/controller.js";
 
-jest.unstable_mockModule("../../src/modules/auth/service", () => ({
+jest.unstable_mockModule("../../src/modules/auth/service.js", () => ({
   findSessionById: jest.fn(),
   findSessionByTokenHash: jest.fn(),
   revokeSessionFamily: jest.fn(),
@@ -15,7 +15,7 @@ jest.unstable_mockModule("../../src/modules/auth/service", () => ({
   createSession: jest.fn(),
 }));
 
-jest.unstable_mockModule("../../src/modules/user/service", () => ({
+jest.unstable_mockModule("../../src/modules/user/service.js", () => ({
   getUser: jest.fn(),
   deleteAuthMethod: jest.fn(),
 }));
@@ -27,11 +27,12 @@ let generateAccessToken: typeof GenerateAccessTokenType;
 let AppError: typeof AppErrorType;
 
 beforeAll(async () => {
-  ({ app } = await import("../../src/app"));
-  authService = await import("../../src/modules/auth/service");
-  userService = await import("../../src/modules/user/service");
-  ({ generateAccessToken } = await import("../../src/modules/auth/controller"));
-  ({ AppError } = await import("../../src/middleware/errorHandler"));
+  ({ app } = await import("../../src/app.js"));
+  authService = await import("../../src/modules/auth/service.js");
+  userService = await import("../../src/modules/user/service.js");
+  ({ generateAccessToken } =
+    await import("../../src/modules/auth/controller.js"));
+  ({ AppError } = await import("../../src/middleware/errorHandler.js"));
 });
 
 describe("User Integration", () => {
@@ -65,7 +66,7 @@ describe("User Integration", () => {
       .delete(`/api/users/me/auth-methods/${authMethodId}`)
       .set("Cookie", [`fintrack_access_token=${accessToken}`]);
 
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(204);
   });
 
   it("returns 404 for /api/users/me/auth-methods/:id when service does not find method", async () => {
@@ -96,6 +97,6 @@ describe("User Integration", () => {
       .delete(`/api/users/me/auth-methods/${authMethodId}`)
       .set("Cookie", [`fintrack_access_token=${accessToken}`]);
 
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(404);
   });
 });

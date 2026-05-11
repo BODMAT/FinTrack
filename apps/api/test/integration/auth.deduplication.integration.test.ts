@@ -13,13 +13,16 @@
 import { jest } from "@jest/globals";
 import request from "supertest";
 
-import type { app as AppType } from "../../src/app";
-import type * as AuthServiceTypes from "../../src/modules/auth/service";
-import type * as UserServiceTypes from "../../src/modules/user/service";
-import type { AppError as AppErrorType } from "../../src/middleware/errorHandler";
-import type { generateAccessToken as GenerateAccessTokenType } from "../../src/modules/auth/controller";
+import type { app as AppType } from "../../src/app.js";
+import type * as AuthServiceTypes from "../../src/modules/auth/service.js";
+import type * as UserServiceTypes from "../../src/modules/user/service.js";
+import type { AppError as AppErrorType } from "../../src/middleware/errorHandler.js";
+import type { generateAccessToken as GenerateAccessTokenType } from "../../src/modules/auth/controller.js";
 
-const mockVerifyIdToken = jest.fn();
+const mockVerifyIdToken =
+  jest.fn<
+    () => Promise<{ getPayload: () => Record<string, unknown> | null }>
+  >();
 
 jest.unstable_mockModule("google-auth-library", () => ({
   OAuth2Client: class {
@@ -27,7 +30,7 @@ jest.unstable_mockModule("google-auth-library", () => ({
   },
 }));
 
-jest.unstable_mockModule("../../src/modules/auth/service", () => ({
+jest.unstable_mockModule("../../src/modules/auth/service.js", () => ({
   login: jest.fn(),
   loginWithGoogle: jest.fn(),
   createSession: jest.fn(),
@@ -41,14 +44,14 @@ jest.unstable_mockModule("../../src/modules/auth/service", () => ({
   findAuthMethodByEmail: jest.fn(),
 }));
 
-jest.unstable_mockModule("../../src/modules/user/service", () => ({
+jest.unstable_mockModule("../../src/modules/user/service.js", () => ({
   getUser: jest.fn(),
   createUser: jest.fn(),
   findUserByEmail: jest.fn(),
   deleteAuthMethod: jest.fn(),
 }));
 
-jest.unstable_mockModule("../../src/utils/mailer", () => ({
+jest.unstable_mockModule("../../src/utils/mailer.js", () => ({
   sendVerificationEmail: jest
     .fn<() => Promise<void>>()
     .mockResolvedValue(undefined),
@@ -61,11 +64,12 @@ let AppError: typeof AppErrorType;
 let generateAccessToken: typeof GenerateAccessTokenType;
 
 beforeAll(async () => {
-  ({ app } = await import("../../src/app"));
-  authService = await import("../../src/modules/auth/service");
-  userService = await import("../../src/modules/user/service");
-  ({ AppError } = await import("../../src/middleware/errorHandler"));
-  ({ generateAccessToken } = await import("../../src/modules/auth/controller"));
+  ({ app } = await import("../../src/app.js"));
+  authService = await import("../../src/modules/auth/service.js");
+  userService = await import("../../src/modules/user/service.js");
+  ({ AppError } = await import("../../src/middleware/errorHandler.js"));
+  ({ generateAccessToken } =
+    await import("../../src/modules/auth/controller.js"));
 });
 
 const SESSION_ID = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
@@ -287,7 +291,6 @@ describe("Donation leaderboard — accessible without email verification", () =>
       .set("Cookie", [`fintrack_access_token=${accessToken}`]);
 
     expect(response.status).not.toBe(403);
-    expect(response.status).toBe(500);
-    expect(response.body.error).toBe("Internal Server Error");
+    expect(response.status).toBe(200);
   });
 });

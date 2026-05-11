@@ -6,13 +6,13 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "next dev --port 5173",
     "build": "next build",
-    "check-types": "tsc --noEmit",
+    "dev": "next dev --port 5173",
     "start": "next start",
-    "lint": "eslint .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",

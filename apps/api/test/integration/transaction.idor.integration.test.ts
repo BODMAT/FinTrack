@@ -1,11 +1,11 @@
 import { jest } from "@jest/globals";
 import request from "supertest";
 
-import type { app as AppType } from "../../src/app";
-import type * as AuthServiceTypes from "../../src/modules/auth/service";
-import type * as TransactionServiceTypes from "../../src/modules/transaction/service";
+import type { app as AppType } from "../../src/app.js";
+import type * as AuthServiceTypes from "../../src/modules/auth/service.js";
+import type * as TransactionServiceTypes from "../../src/modules/transaction/service.js";
 
-jest.unstable_mockModule("../../src/modules/auth/service", () => ({
+jest.unstable_mockModule("../../src/modules/auth/service.js", () => ({
   findSessionById: jest.fn(),
   findSessionByTokenHash: jest.fn(),
   revokeSessionFamily: jest.fn(),
@@ -15,7 +15,7 @@ jest.unstable_mockModule("../../src/modules/auth/service", () => ({
   logoutByTokenHash: jest.fn(),
 }));
 
-jest.unstable_mockModule("../../src/modules/transaction/service", () => ({
+jest.unstable_mockModule("../../src/modules/transaction/service.js", () => ({
   getAllTransactions: jest.fn(),
   getTransactionsPerPage: jest.fn(),
   getTransaction: jest.fn(),
@@ -39,10 +39,11 @@ let generateAccessToken: (payload: {
 }) => string;
 
 beforeAll(async () => {
-  ({ app } = await import("../../src/app"));
-  authService = await import("../../src/modules/auth/service");
-  transactionService = await import("../../src/modules/transaction/service");
-  ({ generateAccessToken } = await import("../../src/modules/auth/controller"));
+  ({ app } = await import("../../src/app.js"));
+  authService = await import("../../src/modules/auth/service.js");
+  transactionService = await import("../../src/modules/transaction/service.js");
+  ({ generateAccessToken } =
+    await import("../../src/modules/auth/controller.js"));
 });
 
 describe("Transaction IDOR protection integration", () => {
@@ -79,7 +80,7 @@ describe("Transaction IDOR protection integration", () => {
       .get(`/api/transactions/${transactionId}`)
       .set("Cookie", [`fintrack_access_token=${makeUserToken()}`]);
 
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(404);
   });
 
   it("returns 404 on PATCH /transactions/:id and does not update", async () => {
@@ -88,7 +89,7 @@ describe("Transaction IDOR protection integration", () => {
       .set("Cookie", [`fintrack_access_token=${makeUserToken()}`])
       .send({ title: "Changed" });
 
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(404);
   });
 
   it("returns 404 on DELETE /transactions/:id and does not delete", async () => {
@@ -96,6 +97,6 @@ describe("Transaction IDOR protection integration", () => {
       .delete(`/api/transactions/${transactionId}`)
       .set("Cookie", [`fintrack_access_token=${makeUserToken()}`]);
 
-    expect(response.status).toBe(401);
+    expect(response.status).toBe(404);
   });
 });
