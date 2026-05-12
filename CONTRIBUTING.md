@@ -523,7 +523,6 @@ Body format:
 - use one or more paragraphs when needed
 - wrap lines at about 72 characters
 - keep the body concise and avoid filler
-- reference issues with `Closes #N` when relevant
 - use `BREAKING CHANGE:` to describe the migration impact when the
   change is not backwards compatible
 
@@ -549,7 +548,6 @@ fix(api): revoke all sessions on password change
 Previously only the current session was invalidated, leaving other
 active sessions valid after a password reset. This left a security
 gap for users who changed their password.
-Closes #38
 ```
 
 ```text
