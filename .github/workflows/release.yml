@@ -62,7 +62,7 @@ jobs:
             ghcr.io/${{ steps.repo.outputs.name }}-${{ matrix.image_name }}:${{ github.sha }}
 
       - name: Scan ${{ matrix.image_name }} image
-        uses: aquasecurity/trivy-action@v0.24.0
+        uses: aquasecurity/trivy-action@0.35.0
         with:
           image-ref: ghcr.io/${{ steps.repo.outputs.name }}-${{ matrix.image_name }}:${{ github.sha }}
           format: sarif
