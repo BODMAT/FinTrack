@@ -107,6 +107,8 @@ jobs:
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/fintrack_test
           DIRECT_URL: postgresql://test:test@localhost:5432/fintrack_test
+      - name: Set up API test env
+        run: cp apps/api/.env.test.example apps/api/.env.test
       - name: Run tests
         run: npm run test
         env:
