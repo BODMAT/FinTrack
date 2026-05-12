@@ -62,7 +62,7 @@
     "csrf-csrf": "^4.0.3",
     "dotenv": "^16.6.1",
     "express": "^4.19.2",
-    "express-rate-limit": "^8.3.2",
+    "express-rate-limit": "^8.5.1",
     "google-auth-library": "^10.6.2",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
