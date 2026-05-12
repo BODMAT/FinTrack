@@ -31,7 +31,7 @@ jobs:
           [ -n "$DIRECT_URL" ] || { echo "::error::Missing SUPABASE_DIRECT_URL secret"; exit 1; }
 
       - name: Apply Prisma migrations
-        run: npm run api:prisma:migrate:deploy
+        run: npm run prisma:api:migrate:deploy
         env:
           DATABASE_URL: ${{ secrets.SUPABASE_DATABASE_URL }}
           DIRECT_URL: ${{ secrets.SUPABASE_DIRECT_URL }}

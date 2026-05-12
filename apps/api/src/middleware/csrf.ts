@@ -32,7 +32,9 @@ export const { generateCsrfToken, doubleCsrfProtection } = doubleCsrf({
     path: "/",
   },
   getCsrfTokenFromRequest: (req: Request) =>
-    req.headers["x-csrf-token"] ?? undefined,
+    typeof req.headers["x-csrf-token"] === "string"
+      ? req.headers["x-csrf-token"]
+      : undefined,
   skipCsrfProtection: (req: Request) =>
     ENV.NODE_ENV === "test" ||
     (ENV.NODE_ENV !== "production" && req.path.startsWith("/api-docs")) ||
@@ -44,7 +46,7 @@ export function csrfProtection(
   res: Response,
   next: NextFunction,
 ) {
-  doubleCsrfProtection(req, res, (err) => {
+  doubleCsrfProtection(req, res, (err: unknown) => {
     if (err) {
       return next(
         new AppError("CSRF validation failed", 403, {

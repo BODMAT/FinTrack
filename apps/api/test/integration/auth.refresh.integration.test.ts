@@ -1,10 +1,10 @@
 import { jest } from "@jest/globals";
 import request from "supertest";
 
-import type { app as AppType } from "../../src/app";
-import type * as AuthServiceTypes from "../../src/modules/auth/service";
+import type { app as AppType } from "../../src/app.js";
+import type * as AuthServiceTypes from "../../src/modules/auth/service.js";
 
-jest.unstable_mockModule("../../src/modules/auth/service", () => ({
+jest.unstable_mockModule("../../src/modules/auth/service.js", () => ({
   findSessionById: jest.fn(),
   findSessionByTokenHash: jest.fn(),
   revokeSessionFamily: jest.fn(),
@@ -18,8 +18,8 @@ let app: typeof AppType;
 let authService: typeof AuthServiceTypes;
 
 beforeAll(async () => {
-  ({ app } = await import("../../src/app"));
-  authService = await import("../../src/modules/auth/service");
+  ({ app } = await import("../../src/app.js"));
+  authService = await import("../../src/modules/auth/service.js");
 });
 
 describe("Auth Refresh Flow", () => {

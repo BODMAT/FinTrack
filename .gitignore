@@ -10,13 +10,8 @@ yarn-error.log*
 pnpm-debug.log*
 
 # Env
-.env
-.env.local
-.env.*.local
-.env.docker
-!.env.example
-!**/.env.example
-!**/.env.docker.example
+.env*
+!.env*.example
 
 # Editor
 .vscode/

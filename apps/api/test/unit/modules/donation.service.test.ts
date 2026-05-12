@@ -1,24 +1,25 @@
 import { jest } from "@jest/globals";
 
-const mockCustomersCreate = jest.fn();
-const mockCheckoutCreate = jest.fn();
-const mockConstructEvent = jest.fn();
-const logSecurityEvent = jest.fn();
+const mockCustomersCreate = jest.fn<() => Promise<unknown>>();
+const mockCheckoutCreate = jest.fn<() => Promise<unknown>>();
+const mockConstructEvent = jest.fn<() => unknown>();
+const logSecurityEvent = jest.fn<() => void>();
 
 const mockPrisma = {
   user: {
-    findUnique: jest.fn(),
-    update: jest.fn(),
+    findUnique: jest.fn<() => Promise<unknown>>(),
+    update: jest.fn<() => Promise<unknown>>(),
   },
   donationPayment: {
-    upsert: jest.fn(),
-    findUnique: jest.fn(),
-    updateMany: jest.fn(),
+    upsert: jest.fn<() => Promise<unknown>>(),
+    findUnique: jest.fn<() => Promise<unknown>>(),
+    updateMany: jest.fn<() => Promise<unknown>>(),
   },
   stripeWebhookEvent: {
-    create: jest.fn(),
+    create: jest.fn<() => Promise<unknown>>(),
   },
-  $transaction: jest.fn(),
+  $transaction:
+    jest.fn<(cb: (tx: unknown) => Promise<unknown>) => Promise<unknown>>(),
 };
 
 describe("Donation service", () => {
@@ -145,8 +146,12 @@ describe("Donation service", () => {
     mockPrisma.$transaction.mockImplementation(
       async (callback: (tx: unknown) => Promise<unknown>) => {
         const tx = {
-          donationPayment: { upsert: jest.fn().mockResolvedValue({}) },
-          user: { update: jest.fn().mockResolvedValue({}) },
+          donationPayment: {
+            upsert: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+          },
+          user: {
+            update: jest.fn<() => Promise<unknown>>().mockResolvedValue({}),
+          },
         };
         return callback(tx as never);
       },

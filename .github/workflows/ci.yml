@@ -44,7 +44,7 @@ jobs:
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/turbo-cache
       - name: Build internal packages
-        run: npm run setup
+        run: npm run setup:types
       - name: Check formatting
         run: npm run format:check
       - name: Lint
@@ -58,7 +58,7 @@ jobs:
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/turbo-cache
       - name: Build internal packages
-        run: npm run setup
+        run: npm run setup:types
       - name: Type check
         run: npm run check-types
 
@@ -69,54 +69,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-node
       - name: Audit dependencies
-        shell: bash
-        run: |
-          npm audit --json > audit.json || true
-          node - <<'NODE'
-          const fs = require("node:fs");
-          const report = JSON.parse(fs.readFileSync("audit.json", "utf8"));
-          const ignoreGhsa = new Set(["GHSA-v2v4-37r5-5v8g"]);
-
-          const vulns = report.vulnerabilities ?? {};
-          const failing = [];
-
-          for (const [name, vuln] of Object.entries(vulns)) {
-            const severity = vuln?.severity;
-            if (!["moderate", "high", "critical"].includes(severity)) continue;
-
-            const via = Array.isArray(vuln?.via) ? vuln.via : [];
-            const viaPackages = via
-              .filter((v) => typeof v === "string")
-              .map((v) => String(v));
-            const advisoryUrls = via
-              .filter((v) => typeof v === "object" && v?.url)
-              .map((v) => String(v.url));
-
-            const hasOnlyIgnoredAdvisories =
-              advisoryUrls.length > 0 &&
-              advisoryUrls.every((url) =>
-                Array.from(ignoreGhsa).some((id) => url.includes(id)),
-              );
-
-            const isExpressRateLimitViaIgnoredIpAddress =
-              name === "express-rate-limit" && viaPackages.includes("ip-address");
-
-            if (hasOnlyIgnoredAdvisories) continue;
-            if (isExpressRateLimitViaIgnoredIpAddress) continue;
-            failing.push({ name, severity, via: advisoryUrls });
-          }
-
-          if (failing.length > 0) {
-            console.error("Blocking vulnerabilities found:");
-            for (const item of failing) {
-              console.error(`- ${item.name} (${item.severity})`);
-              for (const url of item.via) console.error(`  ${url}`);
-            }
-            process.exit(1);
-          }
-
-          console.log("Security audit passed (known GHSA-v2v4-37r5-5v8g ignored until upstream fix).");
-          NODE
+        run: npm audit --audit-level=moderate
       - name: Review dependency changes
         if: github.event_name == 'pull_request'
         uses: actions/dependency-review-action@v4
@@ -143,17 +96,19 @@ jobs:
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/turbo-cache
       - name: Build internal packages
-        run: npm run setup
+        run: npm run setup:types
       - name: Generate Prisma client
-        run: npm run api:prisma:generate
+        run: npm run prisma:api:generate
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/fintrack_test
           DIRECT_URL: postgresql://test:test@localhost:5432/fintrack_test
       - name: Run migrations
-        run: npm run api:prisma:migrate:deploy
+        run: npm run prisma:api:migrate:deploy
         env:
           DATABASE_URL: postgresql://test:test@localhost:5432/fintrack_test
           DIRECT_URL: postgresql://test:test@localhost:5432/fintrack_test
+      - name: Set up API test env
+        run: cp apps/api/.env.test.example apps/api/.env.test
       - name: Run tests
         run: npm run test
         env:
