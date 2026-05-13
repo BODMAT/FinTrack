@@ -68,13 +68,13 @@
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^8.0.5",
     "openai": "^5.18.1",
-    "stripe": "^22.0.1",
+    "stripe": "^22.1.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
-    "zod": "^4.3.6"
+    "zod": "^4.4.3"
   },
   "overrides": {
-    "zod": "^4.3.6"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/bcrypt": "^6.0.0",
