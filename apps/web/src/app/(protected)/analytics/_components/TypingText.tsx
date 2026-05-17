@@ -6,10 +6,10 @@ export function TypingText({ text, id }: { text: string; id: string }) {
 
   useEffect(() => {
     const chars = Array.from(text ?? "");
-    setDisplayed("");
     let isCancelled = false;
 
     async function type() {
+      setDisplayed("");
       for (let i = 0; i < chars.length; i++) {
         if (isCancelled) break;
 

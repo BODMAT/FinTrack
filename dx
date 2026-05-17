@@ -135,7 +135,7 @@ shell_into() {
   fi
 }
 
-# Run npm script (auto-detects environment)
+# Run package manager script (auto-detects pnpm/yarn/bun/npm)
 run_script() {
   local script_name=$1
   shift
@@ -217,7 +217,7 @@ dx — Docker eXecutioner CLI
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   RUNNER  (proxied through the runner container)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  run <script> [args]      npm run <script> at monorepo root.
+  run <script> [args]      pnpm run <script> at monorepo root.
   exec <cmd> [args]        Run any arbitrary command in the runner.
   sh                       Open an interactive shell in the runner.
 EOF
@@ -280,8 +280,42 @@ EOF
     prod_compose down -v "$@" 
     ;;
   prestart)  require_cmd docker; prod_compose restart "$@" ;;
-  pbuild)    require_cmd docker; prod_compose build "$@" ;;
-  prebuild)  require_cmd docker; prod_compose build --no-cache "$@" ;;
+  pbuild|prebuild)
+    require_cmd docker
+    _no_cache=""
+    [[ "$CMD" == "prebuild" ]] && _no_cache="--no-cache"
+    _dev_was_running=false
+    if dev_compose ps --quiet 2>/dev/null | grep -q .; then
+      _dev_was_running=true
+      log "Stopping dev containers..."
+      dev_compose down
+    fi
+    if [[ "${OS:-}" == "Windows_NT" ]] && command -v wsl.exe &>/dev/null; then
+      # pnpm/npm running via Docker bind-mount writes Linux symlinks to Windows
+      # NTFS as WSLSYMLINK reparse points (IO_REPARSE_TAG_WSLSYMLINK). Go's
+      # os.Lstat cannot open them, so Docker's build context sender fails before
+      # .dockerignore can prune node_modules. Alpine via VirtioFS has the same
+      # restriction. WSL2 via DrvFs translates WSLSYMLINK to real symlinks —
+      # rm -rf removes them cleanly, leaving a traversable filesystem for the build.
+      _win_path=$(pwd -W 2>/dev/null || echo "")
+      if [[ -n "$_win_path" ]]; then
+        _wsl_path=$(wsl.exe wslpath -u "$_win_path" 2>/dev/null || echo "")
+        if [[ -n "$_wsl_path" ]]; then
+          log "Removing WSLSYMLINK node_modules and .next entries via WSL2..."
+          if ! wsl.exe -u root bash -c "find '$_wsl_path' -maxdepth 5 \( -name node_modules -o -name .next \) -prune -exec rm -rf {} +"; then
+            die "WSL2 cleanup failed. Run: wsl.exe -u root bash -c \"find '$_wsl_path' -maxdepth 5 \\( -name node_modules -o -name .next \\) -prune -exec rm -rf {} +\""
+          fi
+        fi
+      fi
+    fi
+    prod_compose build $_no_cache "$@"
+    _exit=$?
+    if [[ "$_dev_was_running" == "true" ]]; then
+      log "Resuming dev containers..."
+      dev_compose up -d
+    fi
+    exit $_exit
+    ;;
   plogs)     require_cmd docker; prod_compose logs -f "$@" ;;
   pshell)
     require_cmd docker
@@ -295,7 +329,7 @@ EOF
 
   # ── Runner ──────────────────────────────────────────────────────
   run)
-    [[ $# -ge 1 ]] || die "Usage: bash dx run <npm-script> [args...]"
+    [[ $# -ge 1 ]] || die "Usage: bash dx run <script> [args...]"
     run_script "$@"
     ;;
 

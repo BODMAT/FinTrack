@@ -2,6 +2,9 @@
   "name": "fintrack-bot",
   "version": "0.1.0",
   "description": "Fintrack Telegram bot.",
+  "files": [
+    "dist"
+  ],
   "keywords": [
     "typescript",
     "nodejs",
@@ -21,11 +24,11 @@
   "type": "module",
   "main": "bot.js",
   "scripts": {
-    "dev": "concurrently \"npx tsc -w\" \"nodemon dist/bot.js\"",
-    "build": "rimraf dist && npx tsc",
+    "dev": "concurrently \"pnpm exec tsc -w\" \"nodemon dist/bot.js\"",
+    "build": "rimraf dist && pnpm exec tsc",
     "start": "node dist/bot.js",
-    "prestart": "npm run build",
-    "predev": "npm run build",
+    "prestart": "pnpm run build",
+    "predev": "pnpm run build",
     "check-types": "tsc --noEmit"
   },
   "dependencies": {

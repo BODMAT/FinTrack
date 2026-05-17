@@ -1,33 +1,37 @@
 FROM node:22-alpine AS base
 WORKDIR /app
+COPY package.json /tmp/package.json
+RUN corepack enable && \
+    PNPM_VERSION=$(node -e "process.stdout.write(require('/tmp/package.json').packageManager.split('@')[1])") && \
+    corepack prepare "pnpm@${PNPM_VERSION}" --activate
 
 # ── deps ──────────────────────────────────────────────────────────────────────
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
 ENV HUSKY=0
 
-COPY package.json package-lock.json turbo.json ./
-COPY apps/api/package.json apps/api/package.json
-COPY packages/types/package.json packages/types/package.json
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc turbo.json ./
+COPY apps/api/package.json apps/api/
+COPY packages/types/package.json packages/types/
 
-RUN npm ci --include=dev --install-strategy=nested
+RUN pnpm install --frozen-lockfile
 
 # ── builder ───────────────────────────────────────────────────────────────────
 FROM base AS builder
 
-COPY --from=deps /app/node_modules           ./node_modules
-COPY --from=deps /app/package.json           ./package.json
-COPY --from=deps /app/package-lock.json      ./package-lock.json
-COPY --from=deps /app/apps/api/package.json  ./apps/api/package.json
-COPY --from=deps /app/apps/api/node_modules  ./apps/api/node_modules
-COPY --from=deps /app/packages/types/package.json ./packages/types/package.json
-
+COPY --from=deps /app ./
 COPY packages/types ./packages/types
-COPY apps/api       ./apps/api
+COPY apps/api ./apps/api
 
-RUN npm run build -w @fintrack/types
-RUN npm run prisma:generate -w fintrack-api
-RUN npm run build -w fintrack-api
+RUN pnpm --filter @fintrack/types build
+RUN pnpm --filter fintrack-api run prisma:generate
+RUN pnpm --filter fintrack-api build
+
+# ── deploy ────────────────────────────────────────────────────────────────────
+FROM base AS deploy
+
+COPY --from=builder /app ./
+RUN pnpm --filter fintrack-api deploy --prod /deploy
 
 # ── runner ────────────────────────────────────────────────────────────────────
 FROM node:22-alpine AS runner
@@ -36,34 +40,19 @@ WORKDIR /app
 ENV NODE_ENV=production
 
 RUN addgroup -g 1001 -S nodejs && adduser -S apiuser -u 1001
-RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
-# All root node_modules (contains effect, fast-check, pure-rand, etc. for prisma CLI)
-COPY --from=builder /app/node_modules ./node_modules
+COPY --from=deploy /deploy ./
 
-# Floor — api-specific node_modules
-COPY --from=deps /app/apps/api/node_modules ./node_modules
-
-# Generated Prisma Client
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-
-# FIX: copy the compiled @fintrack/types as a regular package
-COPY --from=builder /app/packages/types/dist     ./node_modules/@fintrack/types/dist
-COPY --from=builder /app/packages/types/package.json ./node_modules/@fintrack/types/package.json
-
-# Built output
-COPY --from=builder /app/apps/api/dist  ./dist
-
-# Copy Swagger definitions
-COPY --from=builder /app/apps/api/src/docs/definitions ./dist/docs/definitions
-
-# Prisma schema
-COPY --from=builder /app/apps/api/prisma ./prisma
-
-# package.json needed by Prisma CLI
-COPY --from=builder /app/apps/api/package.json ./package.json
+# pnpm deploy with ignore-scripts=true skips bin creation and engine download;
+# re-create prisma bin and trigger engine setup as root before dropping privileges
+RUN set -e && \
+    PRISMA_PKG=$(ls node_modules/.pnpm | grep "^prisma@" | head -1) && \
+    [ -n "$PRISMA_PKG" ] || { echo "ERROR: prisma package not found in .pnpm store"; exit 1; } && \
+    mkdir -p node_modules/.bin && \
+    ln -sf "../.pnpm/${PRISMA_PKG}/node_modules/prisma/build/index.js" node_modules/.bin/prisma
+RUN node node_modules/.bin/prisma generate --schema prisma/schema.prisma
 
 USER apiuser
 EXPOSE 8000
 
-CMD ["sh", "-c", "node node_modules/prisma/build/index.js migrate deploy --schema prisma/schema.prisma && node dist/server.js"]
+CMD ["sh", "-c", "node node_modules/.bin/prisma migrate deploy --schema prisma/schema.prisma && node dist/server.js"]

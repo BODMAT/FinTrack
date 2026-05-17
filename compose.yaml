@@ -29,8 +29,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    # Run migrations automatically on every startup, then start the server.
-    command: [ "npm", "run", "start:prod" ]
     healthcheck:
       test: [ "CMD-SHELL", "wget -qO- http://localhost:8000/api/health || exit 1" ]
       interval: 15s

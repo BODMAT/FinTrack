@@ -1,13 +1,13 @@
 #!/usr/bin/env sh
 set -e
 
-if command -v npm >/dev/null 2>&1 && command -v node >/dev/null 2>&1; then
-  npm run check-types
-  npm run test:web && npm run test:api:light
+if command -v pnpm >/dev/null 2>&1; then
+  pnpm run check-types
+  pnpm run test:web && pnpm run test:api:light
 elif command -v docker >/dev/null 2>&1 && [ -f "./dx" ]; then
   bash dx run check-types
   bash dx run test:web:dx && bash dx run test:api:light:dx
 else
-  echo "pre-push: neither Node.js (npm/node) nor Docker+dx is available."
+  echo "pre-push: neither pnpm nor Docker+dx is available."
   exit 1
 fi

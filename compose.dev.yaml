@@ -42,8 +42,11 @@ services:
       - bot_node_modules:/app/apps/bot/node_modules
       - web_node_modules:/app/apps/web/node_modules
       - types_node_modules:/app/packages/types/node_modules
-    # npm install is used instead of ci to benefit from caching in named volumes.
-    command: sh -c "npm install && npm run build -w @fintrack/types && npm run prisma:generate -w fintrack-api"
+      - corepack_cache:/corepack
+    environment:
+      - COREPACK_HOME=/corepack
+    # pnpm install is used instead of frozen-lockfile to benefit from caching in named volumes.
+    command: sh -c "corepack enable && pnpm install && pnpm --filter @fintrack/types build && pnpm --filter fintrack-api run prisma:generate"
 
   # ── API ────────────────────────────────────────────────────────────────────
   api:
@@ -54,17 +57,19 @@ services:
       - root_node_modules:/app/node_modules
       - api_node_modules:/app/apps/api/node_modules
       - types_node_modules:/app/packages/types/node_modules
+      - corepack_cache:/corepack
     ports:
       - "8000:8000"
       - "5555:5555" # Expose Prisma Studio port
     environment:
       - NODE_ENV=development
       - DX_SERVICE_NAME=api
+      - COREPACK_HOME=/corepack
     env_file:
       - apps/api/.env.docker
     # Apply any pending migrations before starting the dev server.
     # `migrate deploy` is safe to run repeatedly — it only applies new migrations.
-    command: sh -c "npm run prisma:migrate:deploy && npm run dev"
+    command: sh -c "corepack enable && pnpm run prisma:migrate:deploy && pnpm run dev"
     depends_on:
       postgres:
         condition: service_healthy
@@ -103,12 +108,14 @@ services:
       - root_node_modules:/app/node_modules
       - bot_node_modules:/app/apps/bot/node_modules
       - types_node_modules:/app/packages/types/node_modules
+      - corepack_cache:/corepack
     environment:
       - NODE_ENV=development
       - DX_SERVICE_NAME=bot
+      - COREPACK_HOME=/corepack
     env_file:
       - apps/bot/.env.docker
-    command: npm run dev
+    command: sh -c "corepack enable && pnpm run dev"
     depends_on:
       init:
         condition: service_completed_successfully
@@ -125,15 +132,17 @@ services:
       - web_node_modules:/app/apps/web/node_modules
       - types_node_modules:/app/packages/types/node_modules
       - web_next:/app/apps/web/.next
+      - corepack_cache:/corepack
     ports:
       - "5173:5173"
     environment:
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://localhost:8000/api
       - DX_SERVICE_NAME=web
+      - COREPACK_HOME=/corepack
     env_file:
       - apps/web/.env.docker
-    command: npm run dev
+    command: sh -c "corepack enable && pnpm run dev"
     depends_on:
       init:
         condition: service_completed_successfully
@@ -149,3 +158,4 @@ volumes:
   web_node_modules:
   types_node_modules:
   web_next:
+  corepack_cache:

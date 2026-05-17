@@ -257,7 +257,7 @@ GitHub Actions runs the following checks on every pull request and push to `mast
 1.  **Format & Lint** — `prettier` and `eslint`.
 2.  **Type check** — `tsc --noEmit` across the monorepo.
 3.  **Migration Drift** — ensures `schema.prisma` is in sync with migrations.
-4.  **Security Audit** — `npm audit` and dependency review.
+4.  **Security Audit** — `pnpm audit` and dependency review.
 5.  **Integration Tests** — Jest + Supertest tests against a real PostgreSQL container.
 6.  **Automated Releases** — builds and pushes images to **GHCR**.
 7.  **Security Scanning** — **Trivy** scans every Docker image for vulnerabilities (CRITICAL, HIGH).
