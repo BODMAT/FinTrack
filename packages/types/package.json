@@ -13,7 +13,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "zod": "^4.3.6"
+    "zod": "^4.4.3"
   },
   "scripts": {
     "build": "tsc --build --force",
