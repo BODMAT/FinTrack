@@ -19,6 +19,7 @@ Please read our [Code of Conduct](./CODE_OF_CONDUCT.md) before contributing. To 
 - [Running Individual Apps](#running-individual-apps)
   - [API](#api)
   - [Web App](#web-app)
+  - [Telegram Bot](#telegram-bot)
   - [Shared Types Package](#shared-types-package)
 - [Testing](#testing)
   - [Test Tiers](#test-tiers)
@@ -60,7 +61,7 @@ FinTrack is a monorepo managed by [Turborepo](https://turbo.build/).
 
 ## Getting Started
 
-**Prerequisites:** Node.js 20+, PostgreSQL 15, pnpm 10+, Docker & Docker Compose.
+**Prerequisites:** Node.js 22 (CI and Docker target; `engines` allows 18+), PostgreSQL 15, pnpm 10+, Docker & Docker Compose.
 
 ### 1. Preparation
 
@@ -100,7 +101,7 @@ Each service is accessible directly on its own port for easier debugging.
 
 **Access Points:**
 
-- **Web App:** http://localhost:5173
+- **Web App:** http://localhost:5173/FinTrack
 - **API:** http://localhost:8000/api
 - **Swagger Docs:** http://localhost:8000/api-docs
 - **Prisma Studio:** http://localhost:5555 (only after running `bash dx run prisma:api:studio:dx`)
@@ -135,8 +136,8 @@ For those who prefer running dependencies (Node, Postgres etc.) manually.
 # Install dependencies
 pnpm install
 
-# Build shared packages, create both dev (fintrack) and test (fintrack_test) DBs,
-# run migrations, and seed the dev DB
+# Create both dev (fintrack) and test (fintrack_test) DBs, run migrations, and seed the dev DB
+# (shared packages are built automatically when you run `pnpm run dev`)
 pnpm run setup:local
 
 # Start all apps via Turborepo
@@ -171,6 +172,8 @@ pnpm run dev
 | `apps/api/.env.test`        | `apps/api/.env.test.example`        | Local tests — points to `fintrack_test`                    |
 | `apps/api/.env.test.docker` | `apps/api/.env.test.docker.example` | Docker tests — DB host is `postgres`                       |
 | `apps/web/.env`             | `apps/web/.env.example`             | Set `NEXT_PUBLIC_API_URL`, `NEXTAUTH_SECRET`, Google OAuth |
+| `apps/bot/.env`             | `apps/bot/.env.example`             | Local dev — set `BOT_API_KEY`, `HOST`, `PORT`              |
+| `apps/bot/.env.docker`      | `apps/bot/.env.docker.example`      | Docker dev — same vars, host points to Docker service      |
 
 Each example file is annotated — read it for variable descriptions and required values.
 
@@ -287,12 +290,29 @@ pnpm run dev    # http://localhost:5173/FinTrack
 **Production (Docker):**
 
 ```bash
-docker build \
-  --build-arg NEXT_PUBLIC_API_URL=https://your-api.example.com \
-  -t fintrack-web \
-  apps/web
+# from repo root
+bash dx pbuild web   # build web image
+bash dx prod web     # start web container
+```
 
-docker run -p 5173:5173 fintrack-web
+### Telegram Bot
+
+```bash
+cd apps/bot
+
+cp .env.example .env
+# fill in BOT_API_KEY with your Telegram bot token (from @BotFather)
+# fill in HOST and PORT to point at the running API
+
+pnpm run dev   # tsc -w + nodemon dist/bot.js
+```
+
+**Production (Docker):**
+
+```bash
+# from repo root
+bash dx pbuild bot   # build bot image
+bash dx prod bot     # start bot container
 ```
 
 ### Shared Types Package
@@ -311,7 +331,7 @@ pnpm --filter @fintrack/types build
 | Tier            | Script (app-level) | Root shortcut     | What it covers              | Needs DB              |
 | --------------- | ------------------ | ----------------- | --------------------------- | --------------------- |
 | **unit**        | `test:unit`        | —                 | Pure logic, no I/O          | No                    |
-| **integration** | `test:integration` | `test:api:light`  | HTTP handlers via Supertest | Yes (`fintrack_test`) |
+| **integration** | `test:integration` | —                 | HTTP handlers via Supertest | Yes (`fintrack_test`) |
 | **light**       | `test:light`       | `test:api:light`  | unit + integration combined | Yes                   |
 | **stress**      | `test:stress`      | `test:api:stress` | High-volume / concurrency   | Yes                   |
 | **e2e**         | `test:e2e`         | `test:api:e2e`    | Full user flows             | Yes                   |
@@ -380,7 +400,7 @@ bash dx run db:api:test:reset:dx
 
 - Tests are self-contained — each test creates and tears down its own data.
 - Integration tests run in band (`--runInBand`) to avoid transaction conflicts.
-- The pre-push hook runs `test:api:light:dx` automatically — only stress and e2e need manual triggering.
+- The pre-push hook runs type-check, web tests, and light API tests automatically — only stress and e2e need manual triggering.
 - CI runs the full suite (`pnpm run test`) against a live PostgreSQL service.
 
 ---
@@ -588,11 +608,11 @@ Add coverage for the main untested API flows:
 
 ### Quality Gates
 
-| Gate           | Trigger               | What runs                                                                                                                                                          |
-| -------------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **pre-commit** | `git commit`          | If pnpm is available: `lint-staged`; otherwise Docker fallback: `bash dx run lint-staged`                                                                          |
-| **pre-push**   | `git push`            | If pnpm is available: type-check + light tests; otherwise Docker fallback: `bash dx run check-types` + `bash dx run test:web:dx` + `bash dx run test:api:light:dx` |
-| **CI**         | PR / push to `master` | Full integration tests, security audit, Docker build                                                                                                               |
+| Gate           | Trigger                         | What runs                                                                                                                                                                          |
+| -------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **pre-commit** | `git commit`                    | If pnpm is available: `lint-staged`; otherwise Docker fallback: `bash dx run lint-staged`                                                                                          |
+| **pre-push**   | `git push`                      | If pnpm is available: type-check + web tests + light API tests; otherwise Docker fallback: `bash dx run check-types` + `bash dx run test:web:dx` + `bash dx run test:api:light:dx` |
+| **CI**         | PR / push to `master` or `main` | Full integration tests, security audit, Docker build                                                                                                                               |
 
 > Integration tests (`pnpm run test`) require a live PostgreSQL instance — run them manually via `pnpm run test:api` when working on API changes, or let CI handle them.
 
@@ -687,11 +707,11 @@ Prisma prepends a timestamp automatically — the name you provide becomes the h
 
 The standard cycle for any change — bug fix, feature, or chore:
 
-1. **Open an issue** using the appropriate template (fix / feat / chore). Describe the problem or goal clearly before writing any code.
+1. **Open an issue** using one of the templates in [`.github/ISSUE_TEMPLATE/`](./.github/ISSUE_TEMPLATE/) — [`fix_request.md`](./.github/ISSUE_TEMPLATE/fix_request.md), [`feat_request.md`](./.github/ISSUE_TEMPLATE/feat_request.md), or [`chore_request.md`](./.github/ISSUE_TEMPLATE/chore_request.md). Keep the prefilled title prefix (`fix: `, `feat: `, `chore: `) and fill every section before writing any code.
 2. **Create a branch** from `master` following the [Branch Naming](#branch-naming) convention. Optionally prefix with the issue number for traceability: `feat/42-csv-export`, `fix/17-refresh-token`.
 3. **Make your changes** — commit incrementally following [Commit Conventions](#commit-conventions).
-4. Quality checks run automatically — lint + format on `git commit`, type-check + light tests on `git push`. See [Quality Gates](#quality-gates) for the full breakdown.
-5. **Open a PR** targeting `master`. Reference the issue in the description with `Closes #N` (GitHub will auto-close the issue on merge). Fill in the PR template fully.
+4. Quality checks run automatically — lint + format on `git commit`, type-check + web tests + light API tests on `git push`. See [Quality Gates](#quality-gates) for the full breakdown.
+5. **Open a PR** targeting `master` — GitHub auto-loads [`.github/PULL_REQUEST_TEMPLATE.md`](./.github/PULL_REQUEST_TEMPLATE.md). Reuse the issue title verbatim, fill every section (Description, Type of change, How Has This Been Tested?, Checklist), and link the issue with `Closes #N` so GitHub auto-closes it on merge.
 6. **After merge** — delete the branch.
 
 ### Merge Strategy
