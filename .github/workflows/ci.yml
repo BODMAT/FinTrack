@@ -49,6 +49,8 @@ jobs:
         run: pnpm run format:check
       - name: Lint
         run: pnpm run lint
+      - name: Check ToC is up to date
+        run: pnpm run docs:toc:check
 
   type-check:
     name: Type Check

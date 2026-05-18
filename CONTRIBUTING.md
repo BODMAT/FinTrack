@@ -1,10 +1,13 @@
-# Contributing to FinTrack
+# Contributing to FinTrack <!-- omit in toc -->
 
 First off, thank you for considering contributing to FinTrack! This guide covers everything you need to get the project running from scratch and understand the development workflow.
 
 Please read our [Code of Conduct](./CODE_OF_CONDUCT.md) before contributing. To report a security vulnerability, see [SECURITY.md](./SECURITY.md) instead of opening a public issue.
 
 ## Table of Contents
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [Project Overview](#project-overview)
 - [Getting Started](#getting-started)
@@ -14,22 +17,35 @@ Please read our [Code of Conduct](./CODE_OF_CONDUCT.md) before contributing. To 
 - [Environment Variables](#environment-variables)
 - [Database Management](#database-management)
 - [Running Individual Apps](#running-individual-apps)
+  - [API](#api)
+  - [Web App](#web-app)
+  - [Shared Types Package](#shared-types-package)
 - [Testing](#testing)
+  - [Test Tiers](#test-tiers)
+  - [Environment Files](#environment-files)
+  - [Running Tests](#running-tests)
+  - [Test Database Setup](#test-database-setup)
+  - [Tips](#tips)
 - [Extending the Project](#extending-the-project)
-  - [Adding an API Module](#adding-an-api-module-appsapi)
-  - [Adding a Web Page / Feature](#adding-a-web-page--feature-appsweb)
-  - [Adding a Bot Command](#adding-a-bot-command-appsbot)
+  - [Adding an API Module (`apps/api`)](#adding-an-api-module-appsapi)
+  - [Adding a Web Page / Feature (`apps/web`)](#adding-a-web-page--feature-appsweb)
+  - [Adding a Bot Command (`apps/bot`)](#adding-a-bot-command-appsbot)
 - [Development Workflow](#development-workflow)
   - [Branch Naming](#branch-naming)
   - [Commit Conventions](#commit-conventions)
   - [Quality Gates](#quality-gates)
   - [Useful Commands](#useful-commands)
+  - [Script Naming Convention](#script-naming-convention)
+  - [When To Move Scripts To Root](#when-to-move-scripts-to-root)
   - [Database Changes](#database-changes)
 - [Pull Request Process](#pull-request-process)
   - [Contribution Flow](#contribution-flow)
   - [Merge Strategy](#merge-strategy)
 - [Troubleshooting](#troubleshooting)
+  - [Database is in a broken state / migrations fail](#database-is-in-a-broken-state--migrations-fail)
 - [Questions?](#questions)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Project Overview
 
@@ -630,8 +646,40 @@ Keep a script only in `apps/*` when:
 ### Database Changes
 
 1. Modify `apps/api/prisma/schema.prisma`.
-2. Run `pnpm exec prisma migrate dev --name your_change` in `apps/api`.
+2. Run `pnpm exec prisma migrate dev --name <migration_name>` in `apps/api`.
 3. Update `packages/types` if data structures changed.
+
+#### Migration Naming
+
+Migration names use `snake_case` and follow the pattern:
+
+```
+<action>_<target>[_<detail>]
+```
+
+| Action   | When to use                          |
+| -------- | ------------------------------------ |
+| `create` | new table                            |
+| `add`    | new column, index, or constraint     |
+| `remove` | drop column, index, or table         |
+| `rename` | rename a column or table             |
+| `alter`  | change type, nullability, or default |
+| `init`   | first / baseline migration           |
+
+Examples:
+
+```bash
+pnpm exec prisma migrate dev --name init_schema
+pnpm exec prisma migrate dev --name create_transactions_table
+pnpm exec prisma migrate dev --name add_category_to_transactions
+pnpm exec prisma migrate dev --name add_unique_email_to_users
+pnpm exec prisma migrate dev --name add_index_on_transactions_user_id
+pnpm exec prisma migrate dev --name remove_legacy_token_from_sessions
+pnpm exec prisma migrate dev --name rename_amount_to_total_in_transactions
+pnpm exec prisma migrate dev --name alter_balance_type_to_decimal
+```
+
+Prisma prepends a timestamp automatically — the name you provide becomes the human-readable suffix: `20240518143022_add_category_to_transactions`.
 
 ## Pull Request Process
 

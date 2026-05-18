@@ -1,4 +1,4 @@
-# FinTrack
+# FinTrack <!-- omit in toc -->
 
 > **Personal Finance Tracker** — a full-stack monorepo for tracking income and expenses, with AI-powered analytics, Monobank integration, multi-currency support, and a donation system.
 
@@ -12,22 +12,32 @@
 
 ## Table of Contents
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 - [Overview](#overview)
 - [Screenshots](#screenshots)
 - [Tech Stack](#tech-stack)
+  - [Backend (`apps/api`)](#backend-appsapi)
+  - [Frontend (`apps/web`)](#frontend-appsweb)
+  - [Monorepo](#monorepo)
 - [Getting Started](#getting-started)
 - [Backend](#backend)
-  - [Architecture](#backend-architecture)
+  - [Backend Architecture](#backend-architecture)
   - [Database Schema](#database-schema)
   - [API Modules](#api-modules)
   - [Security](#security)
 - [Frontend](#frontend)
-  - [Architecture](#frontend-architecture)
+  - [Frontend Architecture](#frontend-architecture)
   - [Pages & Features](#pages--features)
   - [State Management](#state-management)
 - [Deployment Topology](#deployment-topology)
 - [CI/CD](#cicd)
+  - [Auto Migration Secrets (GitHub)](#auto-migration-secrets-github)
+  - [Docker Images (GHCR)](#docker-images-ghcr)
 - [License](#license)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ---
 

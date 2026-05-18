@@ -81,6 +81,8 @@
     "fix": "pnpm run format && pnpm run lint:fix",
     "tidy": "pnpm run fix && pnpm run check",
     "lint-staged": "lint-staged",
+    "docs:toc": "doctoc --github --notitle --maxlevel 3 CONTRIBUTING.md README.md",
+    "docs:toc:check": "doctoc --github --notitle --maxlevel 3 CONTRIBUTING.md README.md && git diff --exit-code CONTRIBUTING.md README.md",
     "dump": "bash scripts/codebase-dump.sh",
     "dump:api": "bash scripts/codebase-dump.sh -d apps/api",
     "dump:web": "bash scripts/codebase-dump.sh -d apps/web",
@@ -97,12 +99,16 @@
       "eslint --fix",
       "prettier --write"
     ],
+    "{CONTRIBUTING,README}.md": [
+      "doctoc --github --notitle --maxlevel 3"
+    ],
     "**/*.{json,md,yml}": [
       "prettier --write"
     ]
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "doctoc": "2.4.1",
     "eslint": "^9.30.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react": "^7.37.5",
