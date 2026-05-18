@@ -15,7 +15,7 @@ jobs:
     name: Validate ENV Docs
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Check if .env.example matches .env.docker.example
         run: |
           diff <(grep -v '^#' apps/api/.env.example | cut -d= -f1 | sort) <(grep -v '^#' apps/api/.env.docker.example | cut -d= -f1 | sort) || { echo "::error::API env examples are out of sync!"; exit 1; }
@@ -25,7 +25,7 @@ jobs:
     name: Migration Drift Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
       - name: Check for schema drift
         run: pnpm exec prisma migrate diff --from-schema-datamodel
@@ -40,7 +40,7 @@ jobs:
     name: Lint & Format
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/turbo-cache
       - name: Build internal packages
@@ -56,7 +56,7 @@ jobs:
     name: Type Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/turbo-cache
       - name: Build internal packages
@@ -68,7 +68,7 @@ jobs:
     name: Security Audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
       - name: Audit dependencies
         run: pnpm audit --audit-level=moderate
@@ -94,7 +94,7 @@ jobs:
           --health-cmd pg_isready --health-interval 10s --health-timeout 5s
           --health-retries 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-node
       - uses: ./.github/actions/turbo-cache
       - name: Build internal packages
