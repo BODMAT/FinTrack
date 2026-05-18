@@ -1,11 +1,11 @@
 #!/usr/bin/env sh
 set -e
 
-if command -v npm >/dev/null 2>&1 && command -v node >/dev/null 2>&1; then
-  npx lint-staged
+if command -v pnpm >/dev/null 2>&1; then
+  pnpm run lint-staged
 elif command -v docker >/dev/null 2>&1 && [ -f "./dx" ]; then
   bash dx run lint-staged
 else
-  echo "pre-commit: neither Node.js (npm/node) nor Docker+dx is available."
+  echo "pre-commit: neither pnpm nor Docker+dx is available."
   exit 1
 fi

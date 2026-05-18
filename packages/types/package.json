@@ -15,6 +15,10 @@
   "dependencies": {
     "zod": "^4.3.6"
   },
+  "devDependencies": {
+    "rimraf": "^6.0.1",
+    "typescript": "~5.8.3"
+  },
   "scripts": {
     "build": "tsc --build --force",
     "clean": "rimraf dist tsconfig.tsbuildinfo"

@@ -1,10 +1,13 @@
-# Contributing to FinTrack
+# Contributing to FinTrack <!-- omit in toc -->
 
 First off, thank you for considering contributing to FinTrack! This guide covers everything you need to get the project running from scratch and understand the development workflow.
 
 Please read our [Code of Conduct](./CODE_OF_CONDUCT.md) before contributing. To report a security vulnerability, see [SECURITY.md](./SECURITY.md) instead of opening a public issue.
 
 ## Table of Contents
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [Project Overview](#project-overview)
 - [Getting Started](#getting-started)
@@ -14,22 +17,36 @@ Please read our [Code of Conduct](./CODE_OF_CONDUCT.md) before contributing. To 
 - [Environment Variables](#environment-variables)
 - [Database Management](#database-management)
 - [Running Individual Apps](#running-individual-apps)
+  - [API](#api)
+  - [Web App](#web-app)
+  - [Telegram Bot](#telegram-bot)
+  - [Shared Types Package](#shared-types-package)
 - [Testing](#testing)
+  - [Test Tiers](#test-tiers)
+  - [Environment Files](#environment-files)
+  - [Running Tests](#running-tests)
+  - [Test Database Setup](#test-database-setup)
+  - [Tips](#tips)
 - [Extending the Project](#extending-the-project)
-  - [Adding an API Module](#adding-an-api-module-appsapi)
-  - [Adding a Web Page / Feature](#adding-a-web-page--feature-appsweb)
-  - [Adding a Bot Command](#adding-a-bot-command-appsbot)
+  - [Adding an API Module (`apps/api`)](#adding-an-api-module-appsapi)
+  - [Adding a Web Page / Feature (`apps/web`)](#adding-a-web-page--feature-appsweb)
+  - [Adding a Bot Command (`apps/bot`)](#adding-a-bot-command-appsbot)
 - [Development Workflow](#development-workflow)
   - [Branch Naming](#branch-naming)
   - [Commit Conventions](#commit-conventions)
   - [Quality Gates](#quality-gates)
   - [Useful Commands](#useful-commands)
+  - [Script Naming Convention](#script-naming-convention)
+  - [When To Move Scripts To Root](#when-to-move-scripts-to-root)
   - [Database Changes](#database-changes)
 - [Pull Request Process](#pull-request-process)
   - [Contribution Flow](#contribution-flow)
   - [Merge Strategy](#merge-strategy)
 - [Troubleshooting](#troubleshooting)
+  - [Database is in a broken state / migrations fail](#database-is-in-a-broken-state--migrations-fail)
 - [Questions?](#questions)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Project Overview
 
@@ -44,7 +61,7 @@ FinTrack is a monorepo managed by [Turborepo](https://turbo.build/).
 
 ## Getting Started
 
-**Prerequisites:** Node.js 20+, PostgreSQL 15, npm 10+, Docker & Docker Compose.
+**Prerequisites:** Node.js 22 (CI and Docker target; `engines` allows 18+), PostgreSQL 15, pnpm 10+, Docker & Docker Compose.
 
 ### 1. Preparation
 
@@ -69,7 +86,7 @@ Each service is accessible directly on its own port for easier debugging.
 
 **Commands:**
 
-- `npm run setup:dx` — **First-time setup:** start all containers + initialize both dev and test databases (migrate + seed).
+- `bash dx run setup:dx` — **First-time setup:** start all containers + initialize both dev and test databases (migrate + seed).
 - `bash dx dev` — Start all containers in detached mode (without DB initialization).
 - `bash dx ps` — List containers with their current status and health (`init` service with `Exited` status is normal in dev mode).
 - `bash dx logs` — Follow logs for all services (or `bash dx logs api` for a specific service).
@@ -84,7 +101,7 @@ Each service is accessible directly on its own port for easier debugging.
 
 **Access Points:**
 
-- **Web App:** http://localhost:5173
+- **Web App:** http://localhost:5173/FinTrack
 - **API:** http://localhost:8000/api
 - **Swagger Docs:** http://localhost:8000/api-docs
 - **Prisma Studio:** http://localhost:5555 (only after running `bash dx run prisma:api:studio:dx`)
@@ -117,14 +134,14 @@ For those who prefer running dependencies (Node, Postgres etc.) manually.
 
 ```bash
 # Install dependencies
-npm i
+pnpm install
 
-# Build shared packages, create both dev (fintrack) and test (fintrack_test) DBs,
-# run migrations, and seed the dev DB
-npm run setup:local
+# Create both dev (fintrack) and test (fintrack_test) DBs, run migrations, and seed the dev DB
+# (shared packages are built automatically when you run `pnpm run dev`)
+pnpm run setup:local
 
 # Start all apps via Turborepo
-npm run dev
+pnpm run dev
 ```
 
 **Access Points:**
@@ -132,7 +149,7 @@ npm run dev
 - **Web App:** http://localhost:5173/FinTrack
 - **API:** http://localhost:8000/api
 - **Swagger Docs:** http://localhost:8000/api-docs
-- **Prisma Studio:** http://localhost:5555 (only after running `npm run prisma:api:studio`)
+- **Prisma Studio:** http://localhost:5555 (only after running `pnpm run prisma:api:studio`)
 - **pgAdmin (locally installed app or via browser):**
   - **Desktop App:** Use your natively installed pgAdmin 4 application.
     - _Setup:_ Right-click Servers → Register → Server.
@@ -155,6 +172,8 @@ npm run dev
 | `apps/api/.env.test`        | `apps/api/.env.test.example`        | Local tests — points to `fintrack_test`                    |
 | `apps/api/.env.test.docker` | `apps/api/.env.test.docker.example` | Docker tests — DB host is `postgres`                       |
 | `apps/web/.env`             | `apps/web/.env.example`             | Set `NEXT_PUBLIC_API_URL`, `NEXTAUTH_SECRET`, Google OAuth |
+| `apps/bot/.env`             | `apps/bot/.env.example`             | Local dev — set `BOT_API_KEY`, `HOST`, `PORT`              |
+| `apps/bot/.env.docker`      | `apps/bot/.env.docker.example`      | Docker dev — same vars, host points to Docker service      |
 
 Each example file is annotated — read it for variable descriptions and required values.
 
@@ -169,21 +188,21 @@ After applying migrations, you can populate your database using one of the follo
 The easiest way to get a fully working environment with migrations applied and rich test data populated.
 
 - **Docker:** `bash dx run db:api:setup:dx`
-- **Local:** `npm run db:api:setup`
+- **Local:** `pnpm run db:api:setup`
 
 #### Option B: Reset & Refresh
 
 Wipes the database schema and re-initializes it with fresh seed data. Useful for development resets.
 
 - **Docker:** `bash dx run db:api:reset:dx`
-- **Local:** `npm run db:api:reset`
+- **Local:** `pnpm run db:api:reset`
 
 #### Option C: Seed Data (Manual)
 
 Best for a fresh install to get basic test accounts and system defaults.
 
 - **Docker:** `bash dx run prisma:api:seed:dx`
-- **Local:** `npm run prisma:api:seed`
+- **Local:** `pnpm run prisma:api:seed`
 
 #### Option D: Database Dump (Team sync)
 
@@ -193,20 +212,20 @@ Best for working with realistic data or sharing progress with the team.
 To share your data with a colleague:
 
 - **Docker:** `bash dx run dump:db:dx`
-- **Local:** `npm run dump:db`
+- **Local:** `pnpm run dump:db`
 - _The dump file will be created in the `dumps/db/` directory._
 
 **2. Restore (Append Mode)**
 Adds data from a `.sql` file in `dumps/db/` to your existing records without deleting anything.
 
 - **Docker:** `bash dx run restore:db:dx`
-- **Local:** `npm run restore:db`
+- **Local:** `pnpm run restore:db`
 
 **3. Restore (Wipe & Sync Mode)**
 Clears your current schema and restores the dump exactly. Best for a full sync.
 
 - **Docker:** `bash dx run restore:db:reset:dx`
-- **Local:** `npm run restore:db:reset`
+- **Local:** `pnpm run restore:db:reset`
 
 > **Note:** You can combine them! For example, run **Seed** to get admin users, then **Restore (Append)** a dump with specific transactions. If you use **Wipe & Sync**, it will remove any previously seeded data.
 
@@ -217,12 +236,12 @@ The test database (`fintrack_test`) is separate from the dev DB and is used excl
 **Setup (first time or after a migration):**
 
 - **Docker:** `bash dx run db:api:test:setup:dx`
-- **Local:** `npm run db:api:test:setup`
+- **Local:** `pnpm run db:api:test:setup`
 
 **Full reset (wipe schema + re-run all migrations):**
 
 - **Docker:** `bash dx run db:api:test:reset:dx`
-- **Local:** `npm run db:api:test:reset`
+- **Local:** `pnpm run db:api:test:reset`
 
 > Run a reset whenever migrations change or tests leave the DB in a broken state.
 
@@ -238,24 +257,24 @@ cd apps/api
 cp .env.example .env
 # fill in DATABASE_URL, ACCESS_TOKEN_SECRET, GROQ_API_KEY_1, STRIPE_*, GOOGLE_CLIENT_ID ...
 
-npm run prisma:migrate:dev   # apply migrations
-npm run prisma:seed          # optional seed data
-npm run dev                  # tsc -w + nodemon
+pnpm run prisma:migrate:dev  # apply migrations
+pnpm run prisma:seed         # optional seed data
+pnpm run dev                 # tsc -w + nodemon
 ```
 
 **Tests:**
 
 ```bash
-npm run test:unit         # unit tests only (no DB, fast)
-npm run test:integration  # integration tests (requires fintrack_test DB)
-npm run test:light        # unit + integration (used by pre-push hook)
-npm run test:stress       # stress / load tests
-npm run test:e2e          # end-to-end tests
-npm run test              # all test tiers
-npm run test:watch        # watch mode (unit + integration)
+pnpm run test:unit         # unit tests only (no DB, fast)
+pnpm run test:integration  # integration tests (requires fintrack_test DB)
+pnpm run test:light        # unit + integration (used by pre-push hook)
+pnpm run test:stress       # stress / load tests
+pnpm run test:e2e          # end-to-end tests
+pnpm run test              # all test tiers
+pnpm run test:watch        # watch mode (unit + integration)
 ```
 
-Tests load `.env.test` automatically — no manual `NODE_ENV` export needed. Ensure `fintrack_test` exists first (`npm run db:api:test:setup` from the repo root).
+Tests load `.env.test` automatically — no manual `NODE_ENV` export needed. Ensure `fintrack_test` exists first (`pnpm run db:api:test:setup` from the repo root).
 
 ### Web App
 
@@ -265,25 +284,42 @@ cd apps/web
 cp .env.example .env
 # set NEXT_PUBLIC_API_URL, NEXTAUTH_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
 
-npm run dev    # http://localhost:5173/FinTrack
+pnpm run dev    # http://localhost:5173/FinTrack
 ```
 
 **Production (Docker):**
 
 ```bash
-docker build \
-  --build-arg NEXT_PUBLIC_API_URL=https://your-api.example.com \
-  -t fintrack-web \
-  apps/web
+# from repo root
+bash dx pbuild web   # build web image
+bash dx prod web     # start web container
+```
 
-docker run -p 5173:5173 fintrack-web
+### Telegram Bot
+
+```bash
+cd apps/bot
+
+cp .env.example .env
+# fill in BOT_API_KEY with your Telegram bot token (from @BotFather)
+# fill in HOST and PORT to point at the running API
+
+pnpm run dev   # tsc -w + nodemon dist/bot.js
+```
+
+**Production (Docker):**
+
+```bash
+# from repo root
+bash dx pbuild bot   # build bot image
+bash dx prod bot     # start bot container
 ```
 
 ### Shared Types Package
 
 ```bash
 # build before running any app
-npm run build -w @fintrack/types
+pnpm --filter @fintrack/types build
 ```
 
 ---
@@ -295,7 +331,7 @@ npm run build -w @fintrack/types
 | Tier            | Script (app-level) | Root shortcut     | What it covers              | Needs DB              |
 | --------------- | ------------------ | ----------------- | --------------------------- | --------------------- |
 | **unit**        | `test:unit`        | —                 | Pure logic, no I/O          | No                    |
-| **integration** | `test:integration` | `test:api:light`  | HTTP handlers via Supertest | Yes (`fintrack_test`) |
+| **integration** | `test:integration` | —                 | HTTP handlers via Supertest | Yes (`fintrack_test`) |
 | **light**       | `test:light`       | `test:api:light`  | unit + integration combined | Yes                   |
 | **stress**      | `test:stress`      | `test:api:stress` | High-volume / concurrency   | Yes                   |
 | **e2e**         | `test:e2e`         | `test:api:e2e`    | Full user flows             | Yes                   |
@@ -316,16 +352,16 @@ Every tier has a `:dx` variant that targets the Docker environment (e.g. `test:l
 
 ```bash
 # from repo root
-npm run test:api:light        # unit + integration (quick feedback loop)
-npm run test:api              # all tiers
-npm run test:api:stress       # stress suite
-npm run test:api:e2e          # e2e suite
+pnpm run test:api:light        # unit + integration (quick feedback loop)
+pnpm run test:api              # all tiers
+pnpm run test:api:stress       # stress suite
+pnpm run test:api:e2e          # e2e suite
 
 # from apps/api
-npm run test:unit
-npm run test:integration
-npm run test                  # all tiers
-npm run test:watch            # watch mode
+pnpm run test:unit
+pnpm run test:integration
+pnpm run test                  # all tiers
+pnpm run test:watch            # watch mode
 ```
 
 **Docker:**
@@ -338,8 +374,8 @@ bash dx run test:api:light:dx      # light tests inside the container
 Or via root scripts:
 
 ```bash
-npm run test:api:light:dx
-npm run test:api:dx
+bash dx run test:api:light:dx
+bash dx run test:api:dx
 ```
 
 ### Test Database Setup
@@ -350,12 +386,12 @@ If you need to (re-)initialize it manually:
 
 ```bash
 # Local
-npm run db:api:test:setup   # create + migrate
-npm run db:api:test:reset   # wipe + create + migrate
+pnpm run db:api:test:setup   # create + migrate
+pnpm run db:api:test:reset   # wipe + create + migrate
 
 # Docker
-npm run db:api:test:setup:dx
-npm run db:api:test:reset:dx
+bash dx run db:api:test:setup:dx
+bash dx run db:api:test:reset:dx
 ```
 
 > Run `db:api:test:reset` after any schema migration or if tests leave the database in a broken state.
@@ -364,8 +400,8 @@ npm run db:api:test:reset:dx
 
 - Tests are self-contained — each test creates and tears down its own data.
 - Integration tests run in band (`--runInBand`) to avoid transaction conflicts.
-- The pre-push hook runs `test:api:light:dx` automatically — only stress and e2e need manual triggering.
-- CI runs the full suite (`npm run test`) against a live PostgreSQL service.
+- The pre-push hook runs type-check, web tests, and light API tests automatically — only stress and e2e need manual triggering.
+- CI runs the full suite (`pnpm run test`) against a live PostgreSQL service.
 
 ---
 
@@ -394,7 +430,7 @@ If the module introduces new request/response shapes, add Zod schemas to `packag
 If it requires a new database model, add it to `apps/api/prisma/schema.prisma` and run:
 
 ```bash
-npx prisma migrate dev --name <name> # inside apps/api
+pnpm exec prisma migrate dev --name <name> # inside apps/api
 ```
 
 ---
@@ -572,24 +608,24 @@ Add coverage for the main untested API flows:
 
 ### Quality Gates
 
-| Gate           | Trigger               | What runs                                                                                                                                                             |
-| -------------- | --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **pre-commit** | `git commit`          | If Node.js is available: `lint-staged`; otherwise Docker fallback: `bash dx run lint-staged`                                                                          |
-| **pre-push**   | `git push`            | If Node.js is available: type-check + light tests; otherwise Docker fallback: `bash dx run check-types` + `bash dx run test:web:dx` + `bash dx run test:api:light:dx` |
-| **CI**         | PR / push to `master` | Full integration tests, security audit, Docker build                                                                                                                  |
+| Gate           | Trigger                         | What runs                                                                                                                                                                          |
+| -------------- | ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **pre-commit** | `git commit`                    | If pnpm is available: `lint-staged`; otherwise Docker fallback: `bash dx run lint-staged`                                                                                          |
+| **pre-push**   | `git push`                      | If pnpm is available: type-check + web tests + light API tests; otherwise Docker fallback: `bash dx run check-types` + `bash dx run test:web:dx` + `bash dx run test:api:light:dx` |
+| **CI**         | PR / push to `master` or `main` | Full integration tests, security audit, Docker build                                                                                                                               |
 
-> Integration tests (`npm run test`) require a live PostgreSQL instance — run them manually via `npm run test:api` when working on API changes, or let CI handle them.
+> Integration tests (`pnpm run test`) require a live PostgreSQL instance — run them manually via `pnpm run test:api` when working on API changes, or let CI handle them.
 
 ### Useful Commands
 
-- `npm run test:api:light` — Run unit + integration tests locally (fastest feedback loop).
-- `npm run test:api` — Run all API test tiers locally.
-- `npm run test:api:light:dx` — Run light tests inside Docker (same as pre-push hook).
-- `npm run tidy` — Run ESLint and Prettier fixers.
-- `npm run build` — Build all packages and apps.
-- `npm run check-types` — Type-check all packages without emitting.
-- `npm run db:api:reset` — Wipe and re-seed the dev database.
-- `npm run db:api:test:reset` — Wipe and re-migrate the test database.
+- `pnpm run test:api:light` — Run unit + integration tests locally (fastest feedback loop).
+- `pnpm run test:api` — Run all API test tiers locally.
+- `bash dx run test:api:light:dx` — Run light tests inside Docker (same as pre-push hook).
+- `pnpm run tidy` — Run ESLint and Prettier fixers.
+- `pnpm run build` — Build all packages and apps.
+- `pnpm run check-types` — Type-check all packages without emitting.
+- `pnpm run db:api:reset` — Wipe and re-seed the dev database.
+- `pnpm run db:api:test:reset` — Wipe and re-migrate the test database.
 
 ### Script Naming Convention
 
@@ -630,8 +666,40 @@ Keep a script only in `apps/*` when:
 ### Database Changes
 
 1. Modify `apps/api/prisma/schema.prisma`.
-2. Run `npx prisma migrate dev --name your_change` in `apps/api`.
+2. Run `pnpm exec prisma migrate dev --name <migration_name>` in `apps/api`.
 3. Update `packages/types` if data structures changed.
+
+#### Migration Naming
+
+Migration names use `snake_case` and follow the pattern:
+
+```
+<action>_<target>[_<detail>]
+```
+
+| Action   | When to use                          |
+| -------- | ------------------------------------ |
+| `create` | new table                            |
+| `add`    | new column, index, or constraint     |
+| `remove` | drop column, index, or table         |
+| `rename` | rename a column or table             |
+| `alter`  | change type, nullability, or default |
+| `init`   | first / baseline migration           |
+
+Examples:
+
+```bash
+pnpm exec prisma migrate dev --name init_schema
+pnpm exec prisma migrate dev --name create_transactions_table
+pnpm exec prisma migrate dev --name add_category_to_transactions
+pnpm exec prisma migrate dev --name add_unique_email_to_users
+pnpm exec prisma migrate dev --name add_index_on_transactions_user_id
+pnpm exec prisma migrate dev --name remove_legacy_token_from_sessions
+pnpm exec prisma migrate dev --name rename_amount_to_total_in_transactions
+pnpm exec prisma migrate dev --name alter_balance_type_to_decimal
+```
+
+Prisma prepends a timestamp automatically — the name you provide becomes the human-readable suffix: `20240518143022_add_category_to_transactions`.
 
 ## Pull Request Process
 
@@ -639,11 +707,11 @@ Keep a script only in `apps/*` when:
 
 The standard cycle for any change — bug fix, feature, or chore:
 
-1. **Open an issue** using the appropriate template (fix / feat / chore). Describe the problem or goal clearly before writing any code.
+1. **Open an issue** using one of the templates in [`.github/ISSUE_TEMPLATE/`](./.github/ISSUE_TEMPLATE/) — [`fix_request.md`](./.github/ISSUE_TEMPLATE/fix_request.md), [`feat_request.md`](./.github/ISSUE_TEMPLATE/feat_request.md), or [`chore_request.md`](./.github/ISSUE_TEMPLATE/chore_request.md). Keep the prefilled title prefix (`fix: `, `feat: `, `chore: `) and fill every section before writing any code.
 2. **Create a branch** from `master` following the [Branch Naming](#branch-naming) convention. Optionally prefix with the issue number for traceability: `feat/42-csv-export`, `fix/17-refresh-token`.
 3. **Make your changes** — commit incrementally following [Commit Conventions](#commit-conventions).
-4. Quality checks run automatically — lint + format on `git commit`, type-check + light tests on `git push`. See [Quality Gates](#quality-gates) for the full breakdown.
-5. **Open a PR** targeting `master`. Reference the issue in the description with `Closes #N` (GitHub will auto-close the issue on merge). Fill in the PR template fully.
+4. Quality checks run automatically — lint + format on `git commit`, type-check + web tests + light API tests on `git push`. See [Quality Gates](#quality-gates) for the full breakdown.
+5. **Open a PR** targeting `master` — GitHub auto-loads [`.github/PULL_REQUEST_TEMPLATE.md`](./.github/PULL_REQUEST_TEMPLATE.md). Reuse the issue title verbatim, fill every section (Description, Type of change, How Has This Been Tested?, Checklist), and link the issue with `Closes #N` so GitHub auto-closes it on merge.
 6. **After merge** — delete the branch.
 
 ### Merge Strategy
@@ -671,15 +739,15 @@ Drop everything and rebuild from scratch:
 **Local:**
 
 ```bash
-npm run db:api:drop:all   # drops fintrack + fintrack_test DBs and the fintrack role
-npm run setup:local       # recreates both DBs, runs migrations, seeds dev DB
+pnpm run db:api:drop:all   # drops fintrack + fintrack_test DBs and the fintrack role
+pnpm run setup:local       # recreates both DBs, runs migrations, seeds dev DB
 ```
 
 **Docker:**
 
 ```bash
-bash dx down              # stop and remove all containers
-npm run setup:dx          # start containers + initialize both DBs
+bash dx downv              # stop and remove all containers and volumes
+bash dx run setup:dx       # start containers + initialize both DBs
 ```
 
 ---

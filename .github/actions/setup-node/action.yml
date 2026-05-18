@@ -1,21 +1,26 @@
-name: Setup Node and Install Dependencies
-description: Setup Node.js and run npm ci
+name: Setup pnpm and Install Dependencies
+description: Setup Node.js, pnpm, and run pnpm install
 
 inputs:
   node-version:
     description: Node.js version
     required: false
-    default: "20"
+    default: "22"
 
 runs:
   using: "composite"
   steps:
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v4
+      with:
+        run_install: false
+
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
         node-version: ${{ inputs.node-version }}
-        cache: npm
+        cache: pnpm
 
     - name: Install dependencies
-      run: npm ci
+      run: pnpm install --frozen-lockfile
       shell: bash

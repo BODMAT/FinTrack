@@ -16,7 +16,7 @@
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
-    "@fintrack/types": "*",
+    "@fintrack/types": "workspace:*",
     "@tanstack/react-query": "^5.84.2",
     "@tanstack/react-query-devtools": "^5.84.2",
     "axios": "^1.16.0",

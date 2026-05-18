@@ -1,4 +1,4 @@
-# FinTrack
+# FinTrack <!-- omit in toc -->
 
 > **Personal Finance Tracker** — a full-stack monorepo for tracking income and expenses, with AI-powered analytics, Monobank integration, multi-currency support, and a donation system.
 
@@ -12,22 +12,33 @@
 
 ## Table of Contents
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 - [Overview](#overview)
 - [Screenshots](#screenshots)
 - [Tech Stack](#tech-stack)
+  - [Backend (`apps/api`)](#backend-appsapi)
+  - [Frontend (`apps/web`)](#frontend-appsweb)
+  - [Telegram Bot (`apps/bot`)](#telegram-bot-appsbot)
+  - [Monorepo](#monorepo)
 - [Getting Started](#getting-started)
 - [Backend](#backend)
-  - [Architecture](#backend-architecture)
+  - [Backend Architecture](#backend-architecture)
   - [Database Schema](#database-schema)
   - [API Modules](#api-modules)
   - [Security](#security)
 - [Frontend](#frontend)
-  - [Architecture](#frontend-architecture)
+  - [Frontend Architecture](#frontend-architecture)
   - [Pages & Features](#pages--features)
   - [State Management](#state-management)
 - [Deployment Topology](#deployment-topology)
 - [CI/CD](#cicd)
+  - [Auto Migration Secrets (GitHub)](#auto-migration-secrets-github)
+  - [Docker Images (GHCR)](#docker-images-ghcr)
 - [License](#license)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ---
 
@@ -68,7 +79,7 @@ FinTrack is a monorepo (Turborepo) personal finance application that allows user
 
 | Layer      | Technology                                             |
 | ---------- | ------------------------------------------------------ |
-| Runtime    | Node.js 20+, TypeScript 5.9                            |
+| Runtime    | Node.js 22, TypeScript 5.9                             |
 | Framework  | Express 4                                              |
 | ORM / DB   | Prisma 6 + PostgreSQL 15                               |
 | Auth       | JWT (access + session tokens), bcrypt, Google OAuth    |
@@ -93,12 +104,22 @@ FinTrack is a monorepo (Turborepo) personal finance application that allows user
 | Animations     | Framer Motion 12                                  |
 | i18n           | i18next + react-i18next (EN / UK / DE)            |
 | Forms / select | react-select 5                                    |
-| HTTP client    | Axios 1.15                                        |
+| HTTP client    | Axios 1.16                                        |
+| Testing        | Vitest 4 + Testing Library                        |
+
+### Telegram Bot (`apps/bot`)
+
+| Layer     | Technology                  |
+| --------- | --------------------------- |
+| Runtime   | Node.js 22, TypeScript 5.9  |
+| Framework | Grammy 1 (Telegram Bot API) |
+| Config    | dotenv                      |
 
 ### Monorepo
 
 | Tool                | Purpose                                   |
 | ------------------- | ----------------------------------------- |
+| pnpm 10             | Package manager with workspace support    |
 | Turborepo 2         | Task orchestration and pipeline caching   |
 | `dx` (CLI)          | Project-agnostic Docker Executioner       |
 | `packages/types`    | Shared Zod schemas and TypeScript types   |
@@ -119,7 +140,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for the full setup guide, environment v
 
 ### Backend Architecture
 
-The API follows a **module-based architecture** — each feature domain (`auth`, `transaction`, `ai`, `user`, `summary`, `monobank`, `donation`, `admin`, `user-api-key`) exposes its own `controller.ts`, `service.ts`, and `route.ts`. Business logic lives in services; controllers handle HTTP and delegate to services; routes wire up middleware and controllers.
+The API follows a **module-based architecture** — each feature domain (`auth`, `transaction`, `ai`, `user`, `summary`, `donation`, `admin`, `user-api-key`) exposes its own `controller.ts`, `service.ts`, and `route.ts`. Business logic lives in services; controllers handle HTTP and delegate to services; routes wire up middleware and controllers. Monobank integration is not a separate module — it lives inside the `transaction` module and is exposed under the `/transactions/monobank/*` sub-route.
 
 All incoming request bodies and query parameters are validated with **Zod** schemas sourced from the shared `packages/types` package, keeping the frontend and backend in sync.
 
@@ -127,17 +148,19 @@ All incoming request bodies and query parameters are validated with **Zod** sche
 
 The database uses **PostgreSQL 15** managed via Prisma migrations. Key models:
 
-| Model             | Description                                                                                      |
-| ----------------- | ------------------------------------------------------------------------------------------------ |
-| `User`            | Core user profile; roles: `USER`, `ADMIN`; `isVerified` flag                                     |
-| `AuthMethod`      | Polymorphic auth: `EMAIL`, `TELEGRAM`, `GOOGLE` per user                                         |
-| `Session`         | Hardened session store with token hash, family ID, IP, user-agent, revocation                    |
-| `Transaction`     | Income/expense record; supports `MANUAL` and `MONOBANK` sources; currencies: `USD`, `UAH`, `EUR` |
-| `Location`        | Optional lat/lng attached to a transaction (1:1)                                                 |
-| `Message`         | AI conversation history per user                                                                 |
-| `UserApiKey`      | Encrypted user-provided API keys for `GROQ` or `GEMINI`                                          |
-| `ErrorLog`        | Client-reported errors; admin-reviewable with `OPEN` / `RESOLVED` status                         |
-| `DonationPayment` | Stripe payment records: `PENDING`, `SUCCEEDED`, `CANCELED`, `FAILED`                             |
+| Model                    | Description                                                                                      |
+| ------------------------ | ------------------------------------------------------------------------------------------------ |
+| `User`                   | Core user profile; roles: `USER`, `ADMIN`; `isVerified` flag                                     |
+| `AuthMethod`             | Polymorphic auth: `EMAIL`, `TELEGRAM`, `GOOGLE` per user                                         |
+| `EmailVerificationToken` | Short-lived token for email address verification; hashed at rest, auto-expires                   |
+| `Session`                | Hardened session store with token hash, family ID, IP, user-agent, revocation                    |
+| `Transaction`            | Income/expense record; supports `MANUAL` and `MONOBANK` sources; currencies: `USD`, `UAH`, `EUR` |
+| `Location`               | Optional lat/lng attached to a transaction (1:1)                                                 |
+| `Message`                | AI conversation history per user                                                                 |
+| `UserApiKey`             | Encrypted user-provided API keys for `GROQ` or `GEMINI`                                          |
+| `ErrorLog`               | Client-reported errors; admin-reviewable with `OPEN` / `RESOLVED` status                         |
+| `DonationPayment`        | Stripe payment records: `PENDING`, `SUCCEEDED`, `CANCELED`, `FAILED`                             |
+| `StripeWebhookEvent`     | Idempotency log for processed Stripe webhook events; deduplicates replays via unique event ID    |
 
 ### API Modules
 
@@ -171,7 +194,7 @@ Interactive Swagger docs are available at `/api-docs` (`ENABLE_SWAGGER_IN_PROD=t
 
 ### Frontend Architecture
 
-The web app uses **Next.js 16 App Router** with a clear separation between server components (data prefetching via `server/prefetchProtected.ts`) and client components. All protected routes are nested under `app/protected/` and gated by `ProtectedClientGate`.
+The web app uses **Next.js 16 App Router** with a clear separation between server components (data prefetching via `lib/server/prefetchProtected.ts`) and client components. All protected routes are nested under the `app/(protected)/` route group and gated by `ProtectedClientGate`.
 
 API communication is split into typed modules under `src/api/` (one file per domain), all built on a shared Axios instance (`api.ts`) with a 401-interceptor for transparent token refresh. Every response is validated against Zod schemas from `@fintrack/types`.
 
@@ -245,6 +268,7 @@ Production deployment flow:
 - **Vercel** -> `apps/web` (Next.js)
 - **Render** -> `apps/api` (Express + Prisma)
 - **Supabase** -> PostgreSQL
+- **TBD** -> `apps/bot` (Telegram bot — no production host configured yet)
 
 Database migrations are applied automatically from GitHub Actions on pushes to `master` when Prisma schema or migrations change.
 
@@ -252,16 +276,19 @@ Database migrations are applied automatically from GitHub Actions on pushes to `
 
 ## CI/CD
 
-GitHub Actions runs the following checks on every pull request and push to `master`:
+GitHub Actions runs the following checks on every pull request and push to `master`/`main`:
 
-1.  **Format & Lint** — `prettier` and `eslint`.
-2.  **Type check** — `tsc --noEmit` across the monorepo.
-3.  **Migration Drift** — ensures `schema.prisma` is in sync with migrations.
-4.  **Security Audit** — `npm audit` and dependency review.
-5.  **Integration Tests** — Jest + Supertest tests against a real PostgreSQL container.
-6.  **Automated Releases** — builds and pushes images to **GHCR**.
-7.  **Security Scanning** — **Trivy** scans every Docker image for vulnerabilities (CRITICAL, HIGH).
-8.  **Prisma Auto-Migrate (`master`)** — applies `apps/api` migrations to Supabase after schema/migration changes.
+1.  **ENV Docs Validation** — verifies `apps/api/.env.example` and `apps/api/.env.docker.example` stay in sync.
+2.  **Migration Drift** — non-blocking check that `schema.prisma` matches migrations (advisory).
+3.  **Format & Lint** — `prettier`, `eslint`, and ToC freshness check.
+4.  **Type check** — `tsc --noEmit` across the monorepo.
+5.  **Security Audit** — `pnpm audit` and dependency review.
+6.  **Tests** — Jest + Supertest API tests and Vitest web tests against a real PostgreSQL container.
+7.  **Release Gate** — on push to `master`/`main`, `gate.yml` listens for CI completion and dispatches `release.yml` only when CI succeeds; if CI fails, dispatch is skipped and a failure is logged.
+8.  **Release Workflow (`release.yml`)** — also triggers directly on push/PR to `master`/`main`; builds and (on push) publishes images to **GHCR**.
+9.  **Security Scanning** — **Trivy** scans every Docker image for vulnerabilities (CRITICAL, HIGH).
+10. **CodeQL Analysis** — static analysis of JavaScript/TypeScript on every PR and push, plus a weekly scheduled scan.
+11. **Prisma Auto-Migrate (`master`)** — applies `apps/api` migrations to Supabase after schema/migration changes.
 
 ### Auto Migration Secrets (GitHub)
 
