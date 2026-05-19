@@ -98,8 +98,8 @@ importers:
         specifier: ^4.0.3
         version: 4.0.3
       dotenv:
-        specifier: ^16.6.1
-        version: 16.6.1
+        specifier: ^17.4.2
+        version: 17.4.2
       express:
         specifier: ^4.19.2
         version: 4.22.2
@@ -210,8 +210,8 @@ importers:
   apps/bot:
     dependencies:
       dotenv:
-        specifier: ^16.6.1
-        version: 16.6.1
+        specifier: ^17.4.2
+        version: 17.4.2
       grammy:
         specifier: ^1.38.2
         version: 1.43.0
