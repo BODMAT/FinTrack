@@ -44,6 +44,7 @@ Please read our [Code of Conduct](./CODE_OF_CONDUCT.md) before contributing. To 
   - [Merge Strategy](#merge-strategy)
 - [Troubleshooting](#troubleshooting)
   - [Database is in a broken state / migrations fail](#database-is-in-a-broken-state--migrations-fail)
+  - [Stale `node_modules`, lock files, or build output](#stale-node_modules-lock-files-or-build-output)
 - [Questions?](#questions)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -626,6 +627,10 @@ Add coverage for the main untested API flows:
 - `pnpm run check-types` — Type-check all packages without emitting.
 - `pnpm run db:api:reset` — Wipe and re-seed the dev database.
 - `pnpm run db:api:test:reset` — Wipe and re-migrate the test database.
+- `pnpm run reinstall` — Wipe `node_modules` and reinstall dependencies (`reinstall:dx` for Docker — preserves database volumes).
+- `pnpm run reinstall:fresh` — Wipe `node_modules`, lock files, build output and reinstall (`reinstall:fresh:dx` for Docker).
+- `pnpm run clean:dist` — Remove build output and lint/build caches only (`clean:dist:dx` for Docker).
+- `pnpm run clean:locks` — Remove all lock files only (run `pnpm install` after to regenerate).
 
 ### Script Naming Convention
 
@@ -749,6 +754,55 @@ pnpm run setup:local       # recreates both DBs, runs migrations, seeds dev DB
 bash dx downv              # stop and remove all containers and volumes
 bash dx run setup:dx       # start containers + initialize both DBs
 ```
+
+### Stale `node_modules`, lock files, or build output
+
+`scripts/clean.sh` (wired into `package.json`) wipes any combination of
+`node_modules` / lock files / build output across the whole monorepo. Local
+variants prompt for confirmation; `:dx` variants skip confirmation (`-y`) and
+target the Docker environment — run them via `bash dx run <script>` or
+`pnpm run <script>`.
+
+**Common workflows:**
+
+```bash
+# Reinstall after a dependency or package-manager change
+pnpm run reinstall              # wipe node_modules + pnpm install (host)
+bash dx run reinstall:dx        # same, Docker (stops containers, wipes node_modules volumes, restarts)
+
+# Fresh reinstall — wipe lock files and build output too
+pnpm run reinstall:fresh        # host
+bash dx run reinstall:fresh:dx  # Docker
+
+# Clear only build output and lint/build caches
+pnpm run clean:dist             # host
+bash dx run clean:dist:dx       # Docker runner
+
+# Remove lock files and regenerate
+pnpm run clean:locks && pnpm install                     # host
+bash dx run clean:locks:dx && bash dx exec pnpm install  # Docker
+```
+
+> **Note (Docker):** `node_modules` directories are Docker named volumes — they cannot be removed via `rm`, so there is no `clean:modules:dx`. Use `reinstall:dx` instead: stops containers, removes `node_modules` volumes via the Docker API, restarts. Database volumes (`postgres_data`, `pgadmin_data`) are preserved.
+
+**Granular flags (run the script directly):**
+
+```bash
+bash scripts/clean.sh --help          # full flag reference
+bash scripts/clean.sh --modules       # node_modules only
+bash scripts/clean.sh --locks         # lock files only
+bash scripts/clean.sh --dist          # build output + caches
+bash scripts/clean.sh --all           # everything
+bash scripts/clean.sh --all -y        # skip confirmation (CI / containers)
+```
+
+Targets covered by `--dist`: `dist/`, `.next/`, `out/`, `build/`, `.turbo/`,
+`coverage/`, `.svelte-kit/`, `.nuxt/`, `.astro/`, `.vite/`, `.cache/`,
+`.parcel-cache/`, plus `*.tsbuildinfo`, `.eslintcache`, `.prettiercache`,
+`.stylelintcache`.
+
+The script previews what will be deleted before acting and skips `.git`
+and nested `node_modules` automatically.
 
 ---
 
