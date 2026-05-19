@@ -215,6 +215,14 @@ dx — Docker eXecutioner CLI
                            Falls back to run --rm if not running (dev only).
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  DEPENDENCIES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  reinstall                Wipe node_modules volumes and reinstall.
+                           Stops containers, removes node_modules
+                           named volumes (preserves database data),
+                           then restarts — init reinstalls deps.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   RUNNER  (proxied through the runner container)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   run <script> [args]      pnpm run <script> at monorepo root.
@@ -340,6 +348,21 @@ EOF
 
   sh)
     runner sh
+    ;;
+
+  # ── Dependency management ───────────────────────────────────────
+  reinstall)
+    require_cmd docker
+    log "Stopping containers..."
+    dev_compose down
+    project=$(dev_compose config 2>/dev/null | grep -m1 '^name:' | awk '{print $2}')
+    log "Removing node_modules volumes (project: ${project})..."
+    dev_compose config --volumes 2>/dev/null | grep node_modules | \
+      while IFS= read -r vol; do
+        docker volume rm "${project}_${vol}" 2>/dev/null && log "Removed: ${vol}" || true
+      done
+    log "Restarting (init will reinstall dependencies)..."
+    dev_compose up -d
     ;;
 
   # ── Service shortcuts (api, web, etc.) ──────────────────────────
