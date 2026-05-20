@@ -1,6 +1,10 @@
 FROM node:24-alpine AS base
 WORKDIR /app
-RUN npm install -g npm@latest
+RUN npm install -g npm@latest && \
+    mkdir -p /tmp/patch && cd /tmp/patch && npm init -y && \
+    npm install brace-expansion@^5.0.6 && \
+    cp -r node_modules/brace-expansion /usr/local/lib/node_modules/npm/node_modules/ && \
+    rm -rf /tmp/patch
 COPY package.json /tmp/package.json
 RUN corepack enable && \
     PNPM_VERSION=$(node -e "process.stdout.write(require('/tmp/package.json').packageManager.split('@')[1])") && \
@@ -34,7 +38,11 @@ RUN pnpm --filter fintrack-web build
 # ── runner ────────────────────────────────────────────────────────────────────
 FROM node:24-alpine AS runner
 WORKDIR /app
-RUN npm install -g npm@latest
+RUN npm install -g npm@latest && \
+    mkdir -p /tmp/patch && cd /tmp/patch && npm init -y && \
+    npm install brace-expansion@^5.0.6 && \
+    cp -r node_modules/brace-expansion /usr/local/lib/node_modules/npm/node_modules/ && \
+    rm -rf /tmp/patch
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
