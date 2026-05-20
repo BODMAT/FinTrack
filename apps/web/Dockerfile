@@ -1,5 +1,6 @@
 FROM node:24-alpine AS base
 WORKDIR /app
+RUN npm install -g npm@latest
 COPY package.json /tmp/package.json
 RUN corepack enable && \
     PNPM_VERSION=$(node -e "process.stdout.write(require('/tmp/package.json').packageManager.split('@')[1])") && \
@@ -33,6 +34,7 @@ RUN pnpm --filter fintrack-web build
 # ── runner ────────────────────────────────────────────────────────────────────
 FROM node:24-alpine AS runner
 WORKDIR /app
+RUN npm install -g npm@latest
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV HOSTNAME=0.0.0.0
