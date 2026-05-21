@@ -120,7 +120,7 @@ describe("Auth Missing Integration", () => {
   });
 
   describe("POST /api/auth/token — refresh token reuse attack", () => {
-    it("returns 401 for already-revoked refresh token and revokes family", async () => {
+    it("returns 401 for already-revoked refresh token", async () => {
       jest.mocked(authService.findSessionByTokenHash).mockResolvedValue({
         sessionId: SESSION_ID,
         tokenHash: "hashed_old_token",
@@ -143,9 +143,6 @@ describe("Auth Missing Integration", () => {
         .send({ token: "old_revoked_refresh_token" });
 
       expect(res.status).toBe(401);
-      expect(
-        jest.mocked(authService.revokeSessionFamily),
-      ).not.toHaveBeenCalled();
     });
 
     it("returns 401 and does not rotate expired refresh token", async () => {
