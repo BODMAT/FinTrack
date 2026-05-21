@@ -13,7 +13,9 @@ jest.unstable_mockModule("../../src/modules/auth/service.js", () => ({
   createSession: jest.fn(),
   logoutByTokenHash: jest.fn(),
   revokeAllUserSessions: jest.fn(),
+  markSessionUsed: jest.fn(),
   loginWithGoogle: jest.fn(),
+  loginWithTelegram: jest.fn(),
   findVerificationTokenByUserId: jest.fn(),
   findAuthMethodByEmail: jest.fn(),
   login: jest.fn(),
@@ -233,7 +235,9 @@ describe("Auth Rate Limiting", () => {
       createSession: jest.fn(),
       logoutByTokenHash: jest.fn(),
       revokeAllUserSessions: jest.fn(),
+      markSessionUsed: jest.fn(),
       loginWithGoogle: jest.fn(),
+      loginWithTelegram: jest.fn(),
       findVerificationTokenByUserId: jest.fn(),
       findAuthMethodByEmail: jest.fn(),
       login: jest.fn(),
@@ -265,7 +269,12 @@ describe("Auth Rate Limiting", () => {
       createSession: jest.fn(),
       logoutByTokenHash: jest.fn(),
       revokeAllUserSessions: jest.fn(),
+      markSessionUsed: jest.fn(),
       loginWithGoogle: jest.fn(),
+      loginWithTelegram: jest.fn(),
+      findVerificationTokenByUserId: jest.fn(),
+      findAuthMethodByEmail: jest.fn(),
+      login: jest.fn(),
     }));
 
     const { app: freshApp } = await import("../../src/app.js");

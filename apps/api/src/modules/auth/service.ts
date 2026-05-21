@@ -321,3 +321,31 @@ export async function findVerificationTokenByUserId(userId: string) {
 export async function findAuthMethodByEmail(email: string) {
   return prisma.authMethod.findUnique({ where: { email } });
 }
+
+export async function loginWithTelegram(telegramId: string, name: string) {
+  const existing = await prisma.authMethod.findUnique({
+    where: { telegram_id: telegramId },
+  });
+
+  if (existing) {
+    return userService.getUser(existing.userId);
+  }
+
+  return prisma.user.create({
+    data: {
+      name,
+      isVerified: true,
+      authMethods: {
+        create: {
+          type: "TELEGRAM",
+          telegram_id: telegramId,
+        },
+      },
+    },
+    include: {
+      authMethods: {
+        omit: { password_hash: true, userId: true },
+      },
+    },
+  });
+}

@@ -32,6 +32,7 @@
     "check-types": "tsc --noEmit"
   },
   "dependencies": {
+    "@grammyjs/conversations": "^2.1.0",
     "dotenv": "^17.4.2",
     "grammy": "^1.38.2"
   },

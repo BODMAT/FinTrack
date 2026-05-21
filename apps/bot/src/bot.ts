@@ -1,36 +1,31 @@
-import dotenv from "dotenv";
 import { Bot, GrammyError, HttpError } from "grammy";
+import { conversations, createConversation } from "@grammyjs/conversations";
+import { config } from "./config.js";
+import type { MyContext } from "./context.js";
+import { BotError } from "./utils/BotError.js";
+import { authMiddleware } from "./middlewares/auth.js";
+import { startRouter } from "./commands/start.js";
+import { summaryRouter } from "./commands/summary.js";
+import { registerCommands } from "./commands/register.js";
+import { addTransactionConversation } from "./conversations/addTransaction.js";
+import { transactionRouter } from "./handlers/transaction.js";
+import { fallbackRouter } from "./handlers/fallback.js";
 
-dotenv.config();
+const bot = new Bot<MyContext>(config.BOT_TOKEN);
 
-const BOT_API_KEY = process.env.BOT_API_KEY || undefined;
+bot.use(conversations());
+bot.use(createConversation(addTransactionConversation));
+bot.use(authMiddleware);
 
-if (!BOT_API_KEY) {
-  throw new Error("BOT_API_KEY is required in .env");
-}
-
-export const bot = new Bot(BOT_API_KEY);
-
-bot.api.setMyCommands([
-  {
-    command: "start",
-    description: "start chat with a bot",
-  },
-]);
-
-bot.command("start", async (ctx) => {
-  await ctx.reply("Hi! I'm your FinTrack bot 🚀");
-});
-
-bot.on("message", async (ctx) => {
-  await ctx.reply("I don't get it.");
-});
+bot.use(startRouter);
+bot.use(summaryRouter);
+bot.use(transactionRouter);
+bot.use(fallbackRouter);
 
 bot.catch((err) => {
   const ctx = err.ctx;
   console.error(`Error while handling update ${ctx.update.update_id}`);
   const e = err.error;
-
   if (e instanceof GrammyError) {
     console.error("Error in request:", e.description);
   } else if (e instanceof HttpError) {
@@ -38,6 +33,16 @@ bot.catch((err) => {
   } else {
     console.error("Unknown error:", e);
   }
+  const msg =
+    e instanceof BotError
+      ? e.userMessage
+      : "⚠️ Something went wrong. Please try again.";
+  ctx.reply(msg).catch(() => {});
 });
+
+registerCommands(bot);
+
+process.once("SIGINT", () => bot.stop());
+process.once("SIGTERM", () => bot.stop());
 
 bot.start();

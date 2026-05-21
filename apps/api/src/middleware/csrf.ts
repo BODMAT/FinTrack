@@ -7,6 +7,8 @@ const CSRF_BYPASS_PATHS = new Set([
   "/api/donations/webhook",
   "/api/auth/login",
   "/api/auth/google/exchange",
+  "/api/auth/telegram/exchange",
+  "/api/auth/telegram/refresh",
   "/api/auth/token",
   "/api/auth/logout",
   "/api/auth/logout-all",

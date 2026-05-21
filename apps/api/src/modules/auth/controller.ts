@@ -488,6 +488,142 @@ export async function verifyEmail(
   }
 }
 
+export async function telegramExchange(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const parsed = z
+      .object({
+        telegramId: z.string().min(1),
+        name: z.string().min(1),
+      })
+      .safeParse(req.body);
+    if (!parsed.success)
+      throw new AppError("Invalid Telegram exchange payload", 400);
+
+    const user = await authService.loginWithTelegram(
+      parsed.data.telegramId,
+      parsed.data.name,
+    );
+    if (!user) throw new AppError("Unable to complete Telegram login", 401);
+
+    const payload = buildPayload(user);
+
+    const refreshToken = generateSecureToken();
+    const refreshTokenHash = hashToken(refreshToken);
+    const refreshTokenExpirationDate = new Date(
+      Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
+    );
+
+    const createdSession = await authService.createSession({
+      tokenHash: refreshTokenHash,
+      familyId: generateFamilyId(),
+      expiresAt: refreshTokenExpirationDate,
+      userAgent: req.headers["user-agent"]?.slice(0, 512) || null,
+      ip:
+        extractClientIp(req.headers["x-forwarded-for"] as string | undefined) ||
+        req.ip ||
+        null,
+      lastUsedAt: new Date(),
+      userId: user.id,
+    });
+
+    const accessToken = generateAccessToken({
+      ...payload,
+      sessionId: createdSession.sessionId,
+    });
+
+    logSecurityEvent("auth.telegram.exchange.success", { userId: user.id });
+    res.status(200).json({ accessToken, refreshToken });
+  } catch (err) {
+    logSecurityEvent("auth.telegram.exchange.failed", { ip: req.ip });
+    next(err);
+  }
+}
+
+export async function telegramRefresh(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const parsed = z
+      .object({ refreshToken: z.string().min(1) })
+      .safeParse(req.body);
+    if (!parsed.success) throw new AppError("Missing refresh token", 400);
+
+    const refreshTokenHash = hashToken(parsed.data.refreshToken);
+    const existingSession =
+      await authService.findSessionByTokenHash(refreshTokenHash);
+
+    if (!existingSession) {
+      logSecurityEvent("auth.telegram.refresh.invalid_token", { ip: req.ip });
+      throw new AppError("Invalid refresh token", 401);
+    }
+
+    if (existingSession.revokedAt) {
+      await authService.revokeSessionFamily(existingSession.familyId);
+      logSecurityEvent("auth.telegram.refresh.reuse_detected", {
+        userId: existingSession.userId,
+        familyId: existingSession.familyId,
+      });
+      throw new AppError("Refresh token reuse detected", 401);
+    }
+
+    if (existingSession.expiresAt < new Date()) {
+      await authService.revokeSession(existingSession.sessionId);
+      throw new AppError("Refresh token expired", 401);
+    }
+
+    const user = await userService.getUser(existingSession.userId);
+    if (!user) {
+      await authService.revokeSessionFamily(existingSession.familyId);
+      throw new AppError("User not found", 401);
+    }
+
+    const payload = buildPayload(user);
+    const nextRefreshToken = generateSecureToken();
+    const nextRefreshTokenHash = hashToken(nextRefreshToken);
+    const nextRefreshTokenExpirationDate = new Date(
+      Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
+    );
+
+    const rotatedSession = await authService.rotateSession(
+      existingSession.sessionId,
+      {
+        tokenHash: nextRefreshTokenHash,
+        familyId: existingSession.familyId,
+        parentSessionId: existingSession.sessionId,
+        expiresAt: nextRefreshTokenExpirationDate,
+        userAgent: req.headers["user-agent"]?.slice(0, 512) || null,
+        ip:
+          extractClientIp(
+            req.headers["x-forwarded-for"] as string | undefined,
+          ) ||
+          req.ip ||
+          null,
+        lastUsedAt: new Date(),
+        userId: existingSession.userId,
+      },
+    );
+
+    const accessToken = generateAccessToken({
+      ...payload,
+      sessionId: rotatedSession.sessionId,
+    });
+
+    logSecurityEvent("auth.telegram.refresh.rotated", {
+      userId: existingSession.userId,
+      familyId: existingSession.familyId,
+    });
+    res.status(200).json({ accessToken, refreshToken: nextRefreshToken });
+  } catch (err) {
+    next(err);
+  }
+}
+
 export async function resendVerification(
   req: Request,
   res: Response,

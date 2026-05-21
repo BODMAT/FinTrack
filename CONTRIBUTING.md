@@ -785,24 +785,7 @@ bash dx run clean:locks:dx && bash dx exec pnpm install  # Docker
 
 > **Note (Docker):** `node_modules` directories are Docker named volumes — they cannot be removed via `rm`, so there is no `clean:modules:dx`. Use `reinstall:dx` instead: stops containers, removes `node_modules` volumes via the Docker API, restarts. Database volumes (`postgres_data`, `pgadmin_data`) are preserved.
 
-**Granular flags (run the script directly):**
-
-```bash
-bash scripts/clean.sh --help          # full flag reference
-bash scripts/clean.sh --modules       # node_modules only
-bash scripts/clean.sh --locks         # lock files only
-bash scripts/clean.sh --dist          # build output + caches
-bash scripts/clean.sh --all           # everything
-bash scripts/clean.sh --all -y        # skip confirmation (CI / containers)
-```
-
-Targets covered by `--dist`: `dist/`, `.next/`, `out/`, `build/`, `.turbo/`,
-`coverage/`, `.svelte-kit/`, `.nuxt/`, `.astro/`, `.vite/`, `.cache/`,
-`.parcel-cache/`, plus `*.tsbuildinfo`, `.eslintcache`, `.prettiercache`,
-`.stylelintcache`.
-
-The script previews what will be deleted before acting and skips `.git`
-and nested `node_modules` automatically.
+Run `bash scripts/clean.sh --help` for the full flag reference and list of `--dist` targets.
 
 ---
 

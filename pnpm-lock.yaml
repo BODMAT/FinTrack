@@ -209,6 +209,9 @@ importers:
 
   apps/bot:
     dependencies:
+      '@grammyjs/conversations':
+        specifier: ^2.1.0
+        version: 2.1.1(grammy@1.43.0)
       dotenv:
         specifier: ^17.4.2
         version: 17.4.2
@@ -1391,6 +1394,12 @@ packages:
 
   '@floating-ui/utils@0.2.11':
     resolution: {integrity: sha512-RiB/yIh78pcIxl6lLMG0CgBXAZ2Y0eVHqMPYugu+9U0AeT6YBeiJpf7lbdJNIugFP5SIjwNRgo4DhR1Qxi26Gg==}
+
+  '@grammyjs/conversations@2.1.1':
+    resolution: {integrity: sha512-hoxqwSkaXDeU7mzXulpk3A4Cmd6UZO3HU4aPoITX5ekSHK7ZcUEmMl7RhKKkqw3z6zVbbAShQreJoVV5/dDSLA==}
+    engines: {node: ^12.20.0 || >=14.13.1}
+    peerDependencies:
+      grammy: ^1.20.1
 
   '@grammyjs/types@3.27.3':
     resolution: {integrity: sha512-yUKMLliGsGbnxu96YUJ7km7B0zy4PzeH/Jvti5705R/LeKDMqkDV4DckMSt+OrliWQpTwQljHE0QLol5zgxBkg==}
@@ -6973,6 +6982,10 @@ snapshots:
       '@floating-ui/utils': 0.2.11
 
   '@floating-ui/utils@0.2.11': {}
+
+  '@grammyjs/conversations@2.1.1(grammy@1.43.0)':
+    dependencies:
+      grammy: 1.43.0
 
   '@grammyjs/types@3.27.3': {}
 
