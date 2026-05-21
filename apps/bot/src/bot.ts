@@ -10,6 +10,7 @@ import { registerCommands } from "./commands/register.js";
 import { addTransactionConversation } from "./conversations/addTransaction.js";
 import { transactionRouter } from "./handlers/transaction.js";
 import { fallbackRouter } from "./handlers/fallback.js";
+import { redis } from "./redis.js";
 
 const bot = new Bot<MyContext>(config.BOT_TOKEN);
 
@@ -45,4 +46,13 @@ registerCommands(bot);
 process.once("SIGINT", () => bot.stop());
 process.once("SIGTERM", () => bot.stop());
 
-bot.start();
+async function main() {
+  await redis.connect();
+  console.log("[Redis] connected");
+  bot.start();
+}
+
+main().catch((err) => {
+  console.error("[Bot] startup failed:", err);
+  process.exit(1);
+});

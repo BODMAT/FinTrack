@@ -1,10 +1,13 @@
 import { config } from "../config.js";
+import {
+  type TokenPair,
+  deleteTokens,
+  getTokens,
+  hasTokens,
+  setTokens,
+} from "./tokenStore.js";
 
 const { API_URL } = config;
-
-type TokenPair = { accessToken: string; refreshToken: string };
-
-const tokenStore = new Map<number, TokenPair>();
 
 async function apiFetch(
   method: string,
@@ -12,7 +15,7 @@ async function apiFetch(
   telegramId: number,
   body?: unknown,
 ): Promise<Response> {
-  const tokens = tokenStore.get(telegramId);
+  const tokens = await getTokens(telegramId);
 
   const res = await fetch(`${API_URL}${path}`, {
     method,
@@ -44,12 +47,12 @@ async function tryRefresh(
   });
 
   if (!res.ok) {
-    tokenStore.delete(telegramId);
+    await deleteTokens(telegramId);
     return false;
   }
 
   const data = (await res.json()) as TokenPair;
-  tokenStore.set(telegramId, data);
+  await setTokens(telegramId, data);
   return true;
 }
 
@@ -68,11 +71,11 @@ export async function authenticateUser(
   }
 
   const data = (await res.json()) as TokenPair;
-  tokenStore.set(telegramId, data);
+  await setTokens(telegramId, data);
 }
 
-export function isAuthenticated(telegramId: number): boolean {
-  return tokenStore.has(telegramId);
+export async function isAuthenticated(telegramId: number): Promise<boolean> {
+  return hasTokens(telegramId);
 }
 
 export const api = {

@@ -1,5 +1,17 @@
 services:
 
+  # ── Redis ──────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: "unless-stopped"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # ── PostgreSQL ─────────────────────────────────────────────────────────────
   postgres:
     image: postgres:15-alpine
@@ -26,8 +38,12 @@ services:
       # Copy apps/api/.env.docker.example → apps/api/.env.docker and fill in
       # your values before running docker compose up.
       - apps/api/.env.docker
+    environment:
+      - REDIS_URL=redis://redis:6379
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     healthcheck:
       test: [ "CMD-SHELL", "wget -qO- http://localhost:8000/api/health || exit 1" ]
@@ -45,8 +61,12 @@ services:
     env_file:
       # Copy apps/bot/.env.example → apps/bot/.env.docker and set BOT_API_KEY
       - apps/bot/.env.docker
+    environment:
+      - REDIS_URL=redis://redis:6379
     depends_on:
       api:
+        condition: service_healthy
+      redis:
         condition: service_healthy
 
   # ── Next.js web ────────────────────────────────────────────────────────────
@@ -94,3 +114,4 @@ services:
 
 volumes:
   postgres_data:
+  redis_data:

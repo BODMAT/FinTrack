@@ -15,7 +15,7 @@ export async function authMiddleware(
     return;
   }
 
-  if (!isAuthenticated(telegramId)) {
+  if (!(await isAuthenticated(telegramId))) {
     try {
       await authenticateUser(telegramId, name);
     } catch {

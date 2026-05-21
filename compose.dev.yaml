@@ -1,5 +1,18 @@
 services:
 
+  # ── Redis ──────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   # ── PostgreSQL ─────────────────────────────────────────────────────────────
   postgres:
     image: postgres:15-alpine
@@ -65,6 +78,7 @@ services:
       - NODE_ENV=development
       - DX_SERVICE_NAME=api
       - COREPACK_HOME=/corepack
+      - REDIS_URL=redis://redis:6379
     env_file:
       - apps/api/.env.docker
     # Apply any pending migrations before starting the dev server.
@@ -72,6 +86,8 @@ services:
     command: sh -c "corepack enable && pnpm run prisma:migrate:deploy && pnpm run dev"
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
         condition: service_healthy
       init:
         condition: service_completed_successfully
@@ -113,10 +129,13 @@ services:
       - NODE_ENV=development
       - DX_SERVICE_NAME=bot
       - COREPACK_HOME=/corepack
+      - REDIS_URL=redis://redis:6379
     env_file:
       - apps/bot/.env.docker
     command: sh -c "corepack enable && pnpm run dev"
     depends_on:
+      redis:
+        condition: service_healthy
       init:
         condition: service_completed_successfully
       api:
@@ -152,6 +171,7 @@ services:
 volumes:
   postgres_data:
   pgadmin_data:
+  redis_data:
   root_node_modules:
   api_node_modules:
   bot_node_modules:
