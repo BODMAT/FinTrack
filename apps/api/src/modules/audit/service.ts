@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { AuditEventModel } from "./model.js";
+import { logger } from "../../lib/logger.js";
 
 export async function logEvent(
   type: string,
@@ -14,6 +15,6 @@ export async function logEvent(
       ...(userId ? { userId } : {}),
     });
   } catch (err) {
-    console.error("[Audit] failed to log event:", err);
+    logger.error({ err }, "Audit: failed to log event");
   }
 }

@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { logEvent } from "../modules/audit/index.js";
+import { getLogger } from "../lib/logger.js";
 
 export function generateSecureToken(size = 48): string {
   return crypto.randomBytes(size).toString("base64url");
@@ -23,14 +24,7 @@ export function logSecurityEvent(
   event: string,
   details: Record<string, unknown> = {},
 ) {
-  console.info(
-    JSON.stringify({
-      level: "security",
-      event,
-      at: new Date().toISOString(),
-      ...details,
-    }),
-  );
+  getLogger().info({ event, ...details }, "security");
   void logEvent(
     `security.${event}`,
     details,

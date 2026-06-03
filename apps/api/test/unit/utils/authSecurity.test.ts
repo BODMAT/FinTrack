@@ -6,6 +6,7 @@ import {
   extractClientIp,
   logSecurityEvent,
 } from "../../../src/utils/authSecurity.js";
+import { logger } from "../../../src/lib/logger.js";
 
 describe("generateSecureToken", () => {
   it("default size (48 bytes) produces 64-char base64url string", () => {
@@ -83,26 +84,26 @@ describe("extractClientIp", () => {
 });
 
 describe("logSecurityEvent", () => {
-  it("writes JSON with level=security and event name to console.info", () => {
-    const spy = jest.spyOn(console, "info").mockImplementation(() => {});
+  it("calls logger.info with event name and details", () => {
+    const spy = jest
+      .spyOn(logger, "info")
+      .mockImplementation(jest.fn() as unknown as typeof logger.info);
 
     logSecurityEvent("user.login", { userId: "abc123" });
 
     expect(spy).toHaveBeenCalledTimes(1);
-    const logged = JSON.parse(spy.mock.calls[0]?.[0] as string) as Record<
-      string,
-      unknown
-    >;
-    expect(logged.level).toBe("security");
-    expect(logged.event).toBe("user.login");
-    expect(logged.userId).toBe("abc123");
-    expect(typeof logged.at).toBe("string");
+    expect(spy).toHaveBeenCalledWith(
+      expect.objectContaining({ event: "user.login", userId: "abc123" }),
+      "security",
+    );
 
     spy.mockRestore();
   });
 
   it("works with no details argument (no crash)", () => {
-    const spy = jest.spyOn(console, "info").mockImplementation(() => {});
+    const spy = jest
+      .spyOn(logger, "info")
+      .mockImplementation(jest.fn() as unknown as typeof logger.info);
     expect(() => logSecurityEvent("test.event")).not.toThrow();
     spy.mockRestore();
   });

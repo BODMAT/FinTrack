@@ -5,6 +5,7 @@ import { decryptApiKey } from "../../utils/crypto.js";
 import type { AiProvider, DonationStatus, UserRole } from "@prisma/client";
 import type { AiErrorCode } from "@fintrack/types";
 import { AppError } from "../../middleware/errorHandler.js";
+import { logger } from "../../lib/logger.js";
 
 const CONTEXT_LIMIT = 20;
 const DEFAULT_ANALYSIS_LIMIT = 10;
@@ -350,12 +351,15 @@ export async function getAiResponse(
       await saveMessages(userId, prompt, content);
       return { model: completion.model, result: content };
     } catch (err: unknown) {
-      console.error("[AI] Provider error:", {
-        status: (err as { status?: number }).status,
-        code: (err as { code?: string }).code,
-        message: err instanceof Error ? err.message : String(err),
-        userId,
-      });
+      logger.error(
+        {
+          status: (err as { status?: number }).status,
+          code: (err as { code?: string }).code,
+          message: err instanceof Error ? err.message : String(err),
+          userId,
+        },
+        "AI provider error",
+      );
       const msg = err instanceof Error ? err.message : String(err);
       const status = (err as { status?: number }).status;
 

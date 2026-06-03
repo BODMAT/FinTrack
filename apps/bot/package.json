@@ -35,13 +35,15 @@
     "@grammyjs/conversations": "^2.1.0",
     "dotenv": "^17.4.2",
     "grammy": "^1.38.2",
-    "ioredis": "5.10.1"
+    "ioredis": "5.10.1",
+    "pino": "10.3.1"
   },
   "devDependencies": {
     "@types/node": "^24.3.1",
     "concurrently": "^9.2.1",
     "dotenv-cli": "^11.0.0",
     "nodemon": "^3.1.10",
+    "pino-pretty": "13.1.3",
     "rimraf": "^6.0.1",
     "typescript": "^6.0.3"
   }

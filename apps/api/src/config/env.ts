@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
 import { AppError } from "../middleware/errorHandler.js";
+import { logger } from "../lib/logger.js";
 
 dotenv.config();
 
@@ -23,7 +24,7 @@ const GROQAPITOKENS = Object.keys(process.env)
   .filter((token): token is string => Boolean(token));
 
 if (GROQAPITOKENS.length === 0 && process.env.NODE_ENV !== "test") {
-  console.warn("Warning: No Groq API tokens (GROQ_API_KEY_x) found in .env");
+  logger.warn("No Groq API tokens (GROQ_API_KEY_x) found in .env");
 }
 
 if (

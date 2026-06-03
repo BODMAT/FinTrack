@@ -10,7 +10,8 @@ import { registerCommands } from "./commands/register.js";
 import { addTransactionConversation } from "./conversations/addTransaction.js";
 import { transactionRouter } from "./handlers/transaction.js";
 import { fallbackRouter } from "./handlers/fallback.js";
-import { redis } from "./redis.js";
+import { redis } from "./lib/redis.js";
+import { logger } from "./lib/logger.js";
 
 const bot = new Bot<MyContext>(config.BOT_TOKEN);
 
@@ -25,14 +26,17 @@ bot.use(fallbackRouter);
 
 bot.catch((err) => {
   const ctx = err.ctx;
-  console.error(`Error while handling update ${ctx.update.update_id}`);
+  logger.error(
+    { updateId: ctx.update.update_id },
+    "Error while handling update",
+  );
   const e = err.error;
   if (e instanceof GrammyError) {
-    console.error("Error in request:", e.description);
+    logger.error({ description: e.description }, "Error in request");
   } else if (e instanceof HttpError) {
-    console.error("Could not contact Telegram:", e);
+    logger.error({ err: e }, "Could not contact Telegram");
   } else {
-    console.error("Unknown error:", e);
+    logger.error({ err: e }, "Unknown error");
   }
   const msg =
     e instanceof BotError
@@ -48,11 +52,11 @@ process.once("SIGTERM", () => bot.stop());
 
 async function main() {
   await redis.connect();
-  console.log("[Redis] connected");
+  logger.info("Redis connected");
   bot.start();
 }
 
 main().catch((err) => {
-  console.error("[Bot] startup failed:", err);
+  logger.error({ err }, "Bot startup failed");
   process.exit(1);
 });

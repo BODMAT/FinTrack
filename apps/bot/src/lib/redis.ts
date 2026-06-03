@@ -1,5 +1,6 @@
 import { Redis } from "ioredis";
-import { config } from "./config.js";
+import { config } from "../config.js";
+import { logger } from "./logger.js";
 
 export const redis = new Redis(config.REDIS_URL, {
   lazyConnect: true,
@@ -8,5 +9,5 @@ export const redis = new Redis(config.REDIS_URL, {
 });
 
 redis.on("error", (err: Error) => {
-  console.error("[Redis] connection error:", err.message);
+  logger.error({ err }, "Redis connection error");
 });

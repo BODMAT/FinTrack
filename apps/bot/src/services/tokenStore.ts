@@ -1,4 +1,4 @@
-import { redis } from "../redis.js";
+import { redis } from "../lib/redis.js";
 
 export type TokenPair = { accessToken: string; refreshToken: string };
 
