@@ -1,4 +1,15 @@
 services:
+  # ── MongoDB ────────────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:7
+    restart: "unless-stopped"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # ── Redis ──────────────────────────────────────────────────────────────────
   redis:
@@ -7,7 +18,7 @@ services:
     volumes:
       - redis_data:/data
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,7 +34,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U fintrack -d fintrack" ]
+      test: ["CMD-SHELL", "pg_isready -U fintrack -d fintrack"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -40,13 +51,17 @@ services:
       - apps/api/.env.docker
     environment:
       - REDIS_URL=redis://redis:6379
+      - MONGO_URL=mongodb://mongo:27017/fintrack
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      mongo:
+        condition: service_healthy
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://localhost:8000/api/health || exit 1" ]
+      test:
+        ["CMD-SHELL", "wget -qO- http://localhost:8000/api/health || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -85,7 +100,7 @@ services:
       api:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1:5173/FinTrack/ || exit 1" ]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:5173/FinTrack/ || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -106,7 +121,7 @@ services:
       api:
         condition: service_healthy
     healthcheck:
-      test: [ "CMD-SHELL", "wget -qO- http://127.0.0.1/FinTrack/ || exit 1" ]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1/FinTrack/ || exit 1"]
       interval: 20s
       timeout: 5s
       retries: 3
@@ -115,3 +130,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  mongo_data:

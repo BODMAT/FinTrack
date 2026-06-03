@@ -1,6 +1,7 @@
 import { ENV } from "./config/env.js";
 import { app } from "./app.js";
 import { prisma } from "./prisma/client.js";
+import { connectMongo, disconnectMongo } from "./lib/mongo.js";
 
 const HOST = ENV.HOST;
 const PORT = ENV.PORT;
@@ -10,6 +11,7 @@ let server: ReturnType<typeof app.listen>;
 (async () => {
   try {
     await prisma.$connect();
+    await connectMongo();
 
     server = app.listen(PORT, () => {
       console.log(`🚀 Server is running on http://${HOST}:${PORT}`);
@@ -32,6 +34,7 @@ function gracefulShutdown(signal: string) {
       try {
         await prisma.$disconnect();
         console.log("🔌 Prisma disconnected.");
+        await disconnectMongo();
         process.exit(0);
       } catch (err) {
         console.error("❌ Error during shutdown:", err);

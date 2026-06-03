@@ -3,6 +3,7 @@ import { prisma } from "../../prisma/client.js";
 import * as userService from "../user/service.js";
 import { AppError } from "../../middleware/errorHandler.js";
 import { generateSecureToken, hashToken } from "../../utils/authSecurity.js";
+import { logEvent } from "../audit/index.js";
 import type { Prisma } from "@prisma/client";
 
 const DUMMY_PASSWORD_HASH =
@@ -20,13 +21,12 @@ export async function login(email: string, password: string) {
   const passwordHash = authMethod?.password_hash ?? DUMMY_PASSWORD_HASH;
   const isPasswordValid = await bcrypt.compare(password, passwordHash);
   if (!authMethod || !isPasswordValid) {
+    void logEvent("auth.login_failed", { method: "email" });
     throw new AppError("Invalid credentials", 401);
   }
 
-  if (isPasswordValid) {
-    return await userService.getUser(authMethod.userId);
-  }
-  throw new AppError("Invalid credentials", 401);
+  void logEvent("auth.login", { method: "email" }, authMethod.userId);
+  return await userService.getUser(authMethod.userId);
 }
 
 export async function createSession(data: Prisma.SessionUncheckedCreateInput) {
@@ -145,6 +145,7 @@ export async function logoutByTokenHash(tokenHash: string) {
 
   if (!session) return null;
   await revokeSession(session.sessionId);
+  void logEvent("auth.logout", {}, session.userId);
   return session;
 }
 
@@ -166,6 +167,11 @@ export async function loginWithGoogle(params: {
   });
 
   if (existingGoogleMethod) {
+    void logEvent(
+      "auth.login",
+      { method: "google" },
+      existingGoogleMethod.userId,
+    );
     return userService.getUser(existingGoogleMethod.userId);
   }
 
@@ -201,6 +207,11 @@ export async function loginWithGoogle(params: {
       },
     });
 
+    void logEvent(
+      "auth.login",
+      { method: "google" },
+      existingEmailMethod.userId,
+    );
     return userService.getUser(existingEmailMethod.userId);
   }
 
@@ -231,6 +242,11 @@ export async function loginWithGoogle(params: {
       },
     });
 
+    void logEvent(
+      "auth.login",
+      { method: "google" },
+      existingByPrimaryEmail.id,
+    );
     return userService.getUser(existingByPrimaryEmail.id);
   }
 
@@ -261,6 +277,7 @@ export async function loginWithGoogle(params: {
     },
   });
 
+  void logEvent("auth.login", { method: "google" }, user.id);
   return user;
 }
 
@@ -328,10 +345,11 @@ export async function loginWithTelegram(telegramId: string, name: string) {
   });
 
   if (existing) {
+    void logEvent("auth.login", { method: "telegram" }, existing.userId);
     return userService.getUser(existing.userId);
   }
 
-  return prisma.user.create({
+  const newUser = await prisma.user.create({
     data: {
       name,
       isVerified: true,
@@ -348,4 +366,6 @@ export async function loginWithTelegram(telegramId: string, name: string) {
       },
     },
   });
+  void logEvent("auth.login", { method: "telegram" }, newUser.id);
+  return newUser;
 }
