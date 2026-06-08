@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "target": "esnext",
+    "types": ["node", "jest"],
+    "verbatimModuleSyntax": false
+  },
+  "include": ["test/**/*.ts", "src/**/*.ts"]
+}
