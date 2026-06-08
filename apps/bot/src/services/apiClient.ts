@@ -63,7 +63,11 @@ export async function authenticateUser(
   const res = await fetch(`${API_URL}/auth/telegram/exchange`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId: String(telegramId), name }),
+    body: JSON.stringify({
+      source: "bot",
+      telegramId: String(telegramId),
+      name,
+    }),
   });
 
   if (!res.ok) {

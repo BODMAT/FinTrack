@@ -184,6 +184,7 @@ services:
     environment:
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://localhost:8000/api
+      - NEXT_PUBLIC_TELEGRAM_BOT_ID=${NEXT_PUBLIC_TELEGRAM_BOT_ID:-}
       - DX_SERVICE_NAME=web
       - COREPACK_HOME=/corepack
     env_file:

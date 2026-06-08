@@ -74,7 +74,7 @@ services:
       dockerfile: apps/bot/Dockerfile
     restart: "unless-stopped"
     env_file:
-      # Copy apps/bot/.env.example → apps/bot/.env.docker and set BOT_API_KEY
+      # Copy apps/bot/.env.example → apps/bot/.env.docker and set TELEGRAM_BOT_TOKEN
       - apps/bot/.env.docker
     environment:
       - REDIS_URL=redis://redis:6379
@@ -93,6 +93,7 @@ services:
         # Nginx forwards /api/* → api:8000, so the browser always calls its
         # own origin (/api/…) and never needs the internal service address.
         NEXT_PUBLIC_API_URL: /api
+        NEXT_PUBLIC_TELEGRAM_BOT_ID: ${NEXT_PUBLIC_TELEGRAM_BOT_ID:-}
     restart: "unless-stopped"
     env_file:
       - apps/web/.env.docker

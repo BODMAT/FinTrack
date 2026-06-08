@@ -4,7 +4,7 @@ import * as userService from "../user/service.js";
 import { AppError } from "../../middleware/errorHandler.js";
 import { generateSecureToken, hashToken } from "../../utils/authSecurity.js";
 import { logEvent } from "../audit/index.js";
-import type { Prisma } from "@prisma/client";
+import { Prisma, type Prisma as PrismaTypes } from "@prisma/client";
 
 const DUMMY_PASSWORD_HASH =
   "$2b$10$9QebfQfX8hS8GDYQz9G8vOhF8vwPUfY2K/BysI0h9M2v8a1FhLB2K";
@@ -29,7 +29,9 @@ export async function login(email: string, password: string) {
   return await userService.getUser(authMethod.userId);
 }
 
-export async function createSession(data: Prisma.SessionUncheckedCreateInput) {
+export async function createSession(
+  data: PrismaTypes.SessionUncheckedCreateInput,
+) {
   return prisma.session.create({ data });
 }
 
@@ -57,7 +59,7 @@ export async function findSessionById(sessionId: string) {
 
 export async function rotateSession(
   currentSessionId: string,
-  newSessionData: Prisma.SessionUncheckedCreateInput,
+  newSessionData: PrismaTypes.SessionUncheckedCreateInput,
 ) {
   return prisma.$transaction(async (tx) => {
     const now = new Date();
@@ -368,4 +370,62 @@ export async function loginWithTelegram(telegramId: string, name: string) {
   });
   void logEvent("auth.login", { method: "telegram" }, newUser.id);
   return newUser;
+}
+
+export async function linkTelegramToUser(params: {
+  userId: string;
+  telegramId: string;
+}) {
+  const { userId, telegramId } = params;
+
+  const existingTelegramMethod = await prisma.authMethod.findUnique({
+    where: { telegram_id: telegramId },
+  });
+
+  if (existingTelegramMethod) {
+    if (existingTelegramMethod.userId === userId) {
+      void logEvent("auth.telegram.link.idempotent", { telegramId }, userId);
+      return userService.getUser(userId);
+    }
+
+    void logEvent("auth.telegram.link_conflict", { telegramId }, userId);
+    throw new AppError("Telegram account is already linked", 409);
+  }
+
+  const currentTelegramMethod = await prisma.authMethod.findFirst({
+    where: {
+      userId,
+      type: "TELEGRAM",
+    },
+  });
+
+  if (currentTelegramMethod?.telegram_id) {
+    void logEvent(
+      "auth.telegram.link_conflict",
+      { existingTelegramId: currentTelegramMethod.telegram_id },
+      userId,
+    );
+    throw new AppError("User already has a linked Telegram account", 409);
+  }
+
+  try {
+    await prisma.authMethod.create({
+      data: {
+        type: "TELEGRAM",
+        telegram_id: telegramId,
+        user: { connect: { id: userId } },
+      },
+    });
+  } catch (err) {
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2002"
+    ) {
+      throw new AppError("Telegram account is already linked", 409);
+    }
+    throw err;
+  }
+
+  void logEvent("auth.telegram.linked", { telegramId }, userId);
+  return userService.getUser(userId);
 }

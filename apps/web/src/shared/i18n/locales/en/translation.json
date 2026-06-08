@@ -32,7 +32,9 @@
     "registerProfileTitle": "Register New Profile",
     "addProfile": "Add profile",
     "anonymous": "Anonymous",
-    "userPhotoAlt": "user photo"
+    "userPhotoAlt": "user photo",
+    "linkTelegram": "Link Telegram",
+    "linkGoogle": "Link Google"
   },
   "dashboard": {
     "title": "Dashboard",

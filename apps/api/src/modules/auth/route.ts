@@ -8,6 +8,7 @@ import {
   googleExchange,
   telegramExchange,
   telegramRefresh,
+  linkTelegram,
   verifyEmail,
   resendVerification,
 } from "./controller.js";
@@ -24,6 +25,12 @@ authRouter.post("/login", authLoginLimiter, login);
 authRouter.post("/google/exchange", authLoginLimiter, googleExchange);
 authRouter.post("/telegram/exchange", authLoginLimiter, telegramExchange);
 authRouter.post("/telegram/refresh", authRefreshLimiter, telegramRefresh);
+authRouter.post(
+  "/link/telegram",
+  authenticateToken,
+  authLoginLimiter,
+  linkTelegram,
+);
 authRouter.post("/token", authRefreshLimiter, token);
 authRouter.delete("/logout", authLogoutLimiter, logout);
 authRouter.post("/logout-all", authenticateToken, authLogoutLimiter, logoutAll);

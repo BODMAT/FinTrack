@@ -32,7 +32,9 @@
     "registerProfileTitle": "Neues Profil registrieren",
     "addProfile": "Profil hinzufuegen",
     "anonymous": "Anonym",
-    "userPhotoAlt": "Benutzerfoto"
+    "userPhotoAlt": "Benutzerfoto",
+    "linkTelegram": "Telegram verknüpfen",
+    "linkGoogle": "Google verknüpfen"
   },
   "dashboard": {
     "title": "Dashboard",

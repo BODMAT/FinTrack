@@ -2,12 +2,16 @@ import { ENV } from "../../config/env.js";
 import type { CookieOptions, Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import jwt from "jsonwebtoken";
+import crypto from "node:crypto";
 import { OAuth2Client } from "google-auth-library";
 import type { VerifyIdTokenOptions } from "google-auth-library";
 import type { JwtPayload } from "../../types/jwt.js";
 import { AppError } from "../../middleware/errorHandler.js";
 import * as authService from "./service.js";
-import { LoginUserBodySchema } from "@fintrack/types";
+import {
+  LoginUserBodySchema,
+  TelegramWidgetPayloadSchema,
+} from "@fintrack/types";
 import {
   extractClientIp,
   generateFamilyId,
@@ -28,6 +32,7 @@ const GOOGLE_ISSUERS = new Set([
   "https://accounts.google.com",
   "accounts.google.com",
 ]);
+const TELEGRAM_WIDGET_AUTH_TTL_SECONDS = 24 * 60 * 60;
 
 const isProduction = ENV.NODE_ENV === "production";
 const cookieBaseOptions: CookieOptions = {
@@ -120,6 +125,38 @@ async function issueUserSession(
   });
 
   setAuthCookies(res, accessToken, refreshToken, refreshTokenExpirationDate);
+}
+
+async function issueTelegramTokenPair(
+  req: Request,
+  userId: string,
+  payload: JwtPayload,
+) {
+  const refreshToken = generateSecureToken();
+  const refreshTokenHash = hashToken(refreshToken);
+  const refreshTokenExpirationDate = new Date(
+    Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
+  );
+
+  const createdSession = await authService.createSession({
+    tokenHash: refreshTokenHash,
+    familyId: generateFamilyId(),
+    expiresAt: refreshTokenExpirationDate,
+    userAgent: req.headers["user-agent"]?.slice(0, 512) || null,
+    ip:
+      extractClientIp(req.headers["x-forwarded-for"] as string | undefined) ||
+      req.ip ||
+      null,
+    lastUsedAt: new Date(),
+    userId,
+  });
+
+  const accessToken = generateAccessToken({
+    ...payload,
+    sessionId: createdSession.sessionId,
+  });
+
+  return { accessToken, refreshToken };
 }
 
 const GoogleTokenInfoSchema = z.object({
@@ -215,6 +252,66 @@ async function verifyGoogleToken(idToken: string) {
   }
 
   return verifyGoogleTokenViaIdToken(idToken);
+}
+
+function verifyTelegramWidgetPayload(rawPayload: unknown) {
+  const parsed = TelegramWidgetPayloadSchema.safeParse(rawPayload);
+  if (!parsed.success) {
+    throw new AppError("Invalid Telegram widget payload", 400);
+  }
+
+  if (!ENV.TELEGRAM_BOT_TOKEN) {
+    throw new AppError("Telegram bot token is not configured", 500);
+  }
+
+  const payload = parsed.data;
+  const authDate = Number(payload.auth_date);
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  if (
+    !Number.isFinite(authDate) ||
+    authDate <= 0 ||
+    nowSeconds - authDate > TELEGRAM_WIDGET_AUTH_TTL_SECONDS
+  ) {
+    throw new AppError("Telegram login payload expired", 401);
+  }
+
+  const dataCheckString = Object.entries(payload)
+    .filter(([key, value]) => key !== "hash" && value !== undefined)
+    .map(([key, value]) => `${key}=${String(value)}`)
+    .sort()
+    .join("\n");
+
+  const secret = crypto
+    .createHash("sha256")
+    .update(ENV.TELEGRAM_BOT_TOKEN)
+    .digest();
+  const expectedHash = crypto
+    .createHmac("sha256", secret)
+    .update(dataCheckString)
+    .digest("hex");
+
+  const receivedHash = payload.hash.toLowerCase();
+  if (
+    expectedHash.length !== receivedHash.length ||
+    !crypto.timingSafeEqual(
+      Buffer.from(expectedHash, "hex"),
+      Buffer.from(receivedHash, "hex"),
+    )
+  ) {
+    throw new AppError("Invalid Telegram login signature", 401);
+  }
+
+  const firstName = payload.first_name?.trim();
+  const lastName = payload.last_name?.trim();
+  const username = payload.username?.trim();
+  const name =
+    [firstName, lastName].filter(Boolean).join(" ") ||
+    (username ? `@${username}` : `Telegram ${String(payload.id)}`);
+
+  return {
+    telegramId: String(payload.id),
+    name,
+  };
 }
 
 export async function login(req: Request, res: Response, next: NextFunction) {
@@ -495,50 +592,88 @@ export async function telegramExchange(
 ) {
   try {
     const parsed = z
-      .object({
-        telegramId: z.string().min(1),
-        name: z.string().min(1),
-      })
-      .safeParse(req.body);
+      .discriminatedUnion("source", [
+        z.object({
+          source: z.literal("bot"),
+          telegramId: z.string().min(1),
+          name: z.string().min(1),
+        }),
+        z.object({
+          source: z.literal("widget"),
+          telegram: TelegramWidgetPayloadSchema,
+        }),
+      ])
+      .safeParse({ source: req.body?.source ?? "bot", ...req.body });
     if (!parsed.success)
       throw new AppError("Invalid Telegram exchange payload", 400);
 
+    const telegram =
+      parsed.data.source === "widget"
+        ? verifyTelegramWidgetPayload(parsed.data.telegram)
+        : {
+            telegramId: parsed.data.telegramId,
+            name: parsed.data.name,
+          };
+
     const user = await authService.loginWithTelegram(
-      parsed.data.telegramId,
-      parsed.data.name,
+      telegram.telegramId,
+      telegram.name,
     );
     if (!user) throw new AppError("Unable to complete Telegram login", 401);
 
     const payload = buildPayload(user);
 
-    const refreshToken = generateSecureToken();
-    const refreshTokenHash = hashToken(refreshToken);
-    const refreshTokenExpirationDate = new Date(
-      Date.now() + REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
-    );
+    if (parsed.data.source === "widget") {
+      await issueUserSession(req, res, user.id, payload);
+      logSecurityEvent("auth.telegram.widget_exchange.success", {
+        userId: user.id,
+      });
+      return res.status(200).json({ authenticated: true });
+    }
 
-    const createdSession = await authService.createSession({
-      tokenHash: refreshTokenHash,
-      familyId: generateFamilyId(),
-      expiresAt: refreshTokenExpirationDate,
-      userAgent: req.headers["user-agent"]?.slice(0, 512) || null,
-      ip:
-        extractClientIp(req.headers["x-forwarded-for"] as string | undefined) ||
-        req.ip ||
-        null,
-      lastUsedAt: new Date(),
-      userId: user.id,
-    });
-
-    const accessToken = generateAccessToken({
-      ...payload,
-      sessionId: createdSession.sessionId,
-    });
-
+    const tokenPair = await issueTelegramTokenPair(req, user.id, payload);
     logSecurityEvent("auth.telegram.exchange.success", { userId: user.id });
-    res.status(200).json({ accessToken, refreshToken });
+    return res.status(200).json(tokenPair);
   } catch (err) {
     logSecurityEvent("auth.telegram.exchange.failed", { ip: req.ip });
+    next(err);
+  }
+}
+
+export async function linkTelegram(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const userId = req.user?.id;
+    if (!userId) throw new AppError("Unauthorized", 401);
+
+    const parsed = z
+      .object({
+        telegram: TelegramWidgetPayloadSchema,
+      })
+      .safeParse(req.body);
+    if (!parsed.success)
+      throw new AppError("Invalid Telegram link payload", 400);
+
+    const telegram = verifyTelegramWidgetPayload(parsed.data.telegram);
+    const user = await authService.linkTelegramToUser({
+      userId,
+      telegramId: telegram.telegramId,
+    });
+
+    if (!user) throw new AppError("User not found", 404);
+    logSecurityEvent("auth.telegram.link.success", {
+      userId,
+      telegramId: telegram.telegramId,
+    });
+    return res.status(200).json({ linked: true });
+  } catch (err) {
+    logSecurityEvent("auth.telegram.link.failed", {
+      userId: req.user?.id,
+      ip: req.ip,
+    });
     next(err);
   }
 }

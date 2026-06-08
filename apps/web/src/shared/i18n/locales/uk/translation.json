@@ -31,7 +31,9 @@
     "registerProfileTitle": "Новий профіль",
     "addProfile": "Додати профіль",
     "anonymous": "Анонімний",
-    "userPhotoAlt": "фото користувача"
+    "userPhotoAlt": "фото користувача",
+    "linkTelegram": "Прив'язати Telegram",
+    "linkGoogle": "Прив'язати Google"
   },
   "dashboard": {
     "title": "Дашборд",

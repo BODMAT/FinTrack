@@ -5,6 +5,9 @@ import {
   TokenUserResponseSchema,
   type TokenUserResponse,
   type LoginUserResponse,
+  type TelegramWidgetPayload,
+  type LinkTelegramResponse,
+  LinkTelegramResponseSchema,
 } from "@fintrack/types";
 import { handleRequest } from "@/utils/api";
 import api from "./api";
@@ -37,6 +40,23 @@ export const logoutAllUser = async (): Promise<void> => {
 
 export const exchangeGoogleSession = async (idToken: string): Promise<void> => {
   await handleRequest(api.post("/auth/google/exchange", { idToken }));
+};
+
+export const exchangeTelegramWidgetSession = async (
+  telegram: TelegramWidgetPayload,
+): Promise<void> => {
+  await handleRequest(
+    api.post("/auth/telegram/exchange", { source: "widget", telegram }),
+  );
+};
+
+export const linkTelegramAccount = async (
+  telegram: TelegramWidgetPayload,
+): Promise<LinkTelegramResponse> => {
+  return handleRequest(
+    api.post("/auth/link/telegram", { telegram }),
+    LinkTelegramResponseSchema,
+  );
 };
 
 export const resendVerificationEmail = async (

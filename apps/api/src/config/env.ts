@@ -10,6 +10,8 @@ const requiredEnvVars = [
   "ACCESS_TOKEN_SECRET",
   "CSRF_SECRET",
   "API_KEY_ENCRYPTION_SECRET",
+  "TELEGRAM_BOT_TOKEN",
+  "GOOGLE_CLIENT_ID",
 ];
 
 for (const key of requiredEnvVars) {
@@ -47,6 +49,14 @@ if (
   );
 }
 
+if (process.env.PORT && Number.isNaN(Number(process.env.PORT))) {
+  throw new AppError("Invalid PORT. It must be a number.", 500);
+}
+
+if (process.env.SMTP_PORT && Number.isNaN(Number(process.env.SMTP_PORT))) {
+  throw new AppError("Invalid SMTP_PORT. It must be a number.", 500);
+}
+
 export const ENV = {
   NODE_ENV: process.env.NODE_ENV ?? "development",
   ENABLE_SWAGGER_IN_PROD: process.env.ENABLE_SWAGGER_IN_PROD === "true",
@@ -55,11 +65,12 @@ export const ENV = {
   SWAGGER_SERVER_URL: process.env.SWAGGER_SERVER_URL ?? "",
   CORS_ORIGINS: process.env.CORS_ORIGINS ?? "",
   FRONTEND_URL: process.env.FRONTEND_URL ?? "",
-  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? "",
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID as string,
   GOOGLE_OAUTH_VERIFY_MODE:
     process.env.GOOGLE_OAUTH_VERIFY_MODE === "tokeninfo"
       ? "tokeninfo"
       : "verifyIdToken",
+  TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN as string,
   DATABASE_URL: process.env.DATABASE_URL as string,
   REDIS_URL: process.env.REDIS_URL as string,
   MONGO_URL: process.env.MONGO_URL ?? "",

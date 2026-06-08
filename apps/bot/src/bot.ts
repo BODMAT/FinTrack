@@ -13,7 +13,7 @@ import { fallbackRouter } from "./handlers/fallback.js";
 import { redis } from "./lib/redis.js";
 import { logger } from "./lib/logger.js";
 
-const bot = new Bot<MyContext>(config.BOT_TOKEN);
+const bot = new Bot<MyContext>(config.TELEGRAM_BOT_TOKEN);
 
 bot.use(conversations());
 bot.use(createConversation(addTransactionConversation));
