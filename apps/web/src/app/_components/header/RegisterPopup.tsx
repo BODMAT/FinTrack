@@ -125,9 +125,7 @@ export function RegisterPopup() {
       emailMethod?.type === "EMAIL" &&
       !/(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}/.test(emailMethod.password)
     ) {
-      setPasswordValidationError(
-        "Password must contain uppercase, lowercase letters and a number",
-      );
+      setPasswordValidationError(t("auth.passwordComplexity"));
       return;
     }
 
@@ -186,11 +184,11 @@ export function RegisterPopup() {
         setTelegramLinkSuccess(true);
       } catch (err) {
         setTelegramLinkError(
-          err instanceof Error ? err.message : "Telegram link failed",
+          err instanceof Error ? err.message : t("auth.telegramLinkFailed"),
         );
       }
     },
-    [],
+    [t],
   );
 
   return (
@@ -241,13 +239,13 @@ export function RegisterPopup() {
           )}
           {verificationPendingEmail && (
             <div className="text-amber-500 text-sm">
-              Account created. We sent a verification link to{" "}
-              <strong>{verificationPendingEmail}</strong>. Please verify your
-              email, then log in.
+              {t("auth.accountCreatedVerify", {
+                email: verificationPendingEmail,
+              })}
             </div>
           )}
           {telegramLinkSuccess && (
-            <span className="text-green-500">Telegram account linked.</span>
+            <span className="text-green-500">{t("auth.telegramLinked")}</span>
           )}
           {telegramLinkError && (
             <span className="text-red-500">{telegramLinkError}</span>

@@ -174,7 +174,11 @@ export function LoginPopup() {
           />
           <button
             type="button"
-            aria-label={isPasswordVisible ? "Hide password" : "Show password"}
+            aria-label={
+              isPasswordVisible
+                ? t("auth.hidePassword")
+                : t("auth.showPassword")
+            }
             onClick={() => {
               setIsPasswordVisible((prev) => !prev);
             }}
@@ -249,12 +253,12 @@ export function LoginPopup() {
                 className="custom-btn"
               >
                 {isResendingVerification
-                  ? "Sending verification email..."
-                  : "Resend verification email"}
+                  ? t("auth.sendingVerification")
+                  : t("auth.resendVerification")}
               </button>
               {resendSuccess && (
                 <span className="text-green-500">
-                  Verification email sent. Check your inbox.
+                  {t("auth.verificationEmailSent")}
                 </span>
               )}
               {resendVerificationError && (

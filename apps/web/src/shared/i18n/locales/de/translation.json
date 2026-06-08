@@ -34,7 +34,21 @@
     "anonymous": "Anonym",
     "userPhotoAlt": "Benutzerfoto",
     "linkTelegram": "Telegram verknüpfen",
-    "linkGoogle": "Google verknüpfen"
+    "linkGoogle": "Google verknüpfen",
+    "showPassword": "Passwort anzeigen",
+    "hidePassword": "Passwort verbergen",
+    "resendVerification": "Bestätigungs-E-Mail erneut senden",
+    "sendingVerification": "Bestätigungs-E-Mail wird gesendet...",
+    "verificationEmailSent": "Bestätigungs-E-Mail gesendet. Prüfen Sie Ihren Posteingang.",
+    "passwordComplexity": "Passwort muss Groß-, Kleinbuchstaben und eine Zahl enthalten",
+    "accountCreatedVerify": "Konto erstellt. Wir haben einen Bestätigungslink an {{email}} gesendet. Bitte bestätigen Sie Ihre E-Mail und melden Sie sich an.",
+    "telegramLinked": "Telegram-Konto verknüpft.",
+    "telegramScriptApiMissing": "Telegram-Skript geladen, aber Auth-API fehlt",
+    "telegramScriptFailed": "Telegram-Skript konnte nicht geladen werden",
+    "telegramNotInitialized": "Telegram nicht initialisiert",
+    "telegramAuthCancelled": "Telegram-Anmeldung abgebrochen",
+    "telegramAuthFailed": "Telegram-Anmeldung fehlgeschlagen",
+    "telegramLinkFailed": "Telegram-Verknüpfung fehlgeschlagen"
   },
   "dashboard": {
     "title": "Dashboard",

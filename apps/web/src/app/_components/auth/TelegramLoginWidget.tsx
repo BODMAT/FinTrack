@@ -46,7 +46,7 @@ export function TelegramLoginWidget({
       if (typeof window.Telegram?.Login?.auth === "function") {
         setScriptReady(true);
       } else {
-        setError("Telegram script loaded but auth API missing");
+        setError(t("auth.telegramScriptApiMissing"));
       }
     };
 
@@ -64,16 +64,16 @@ export function TelegramLoginWidget({
     script.src = TELEGRAM_WIDGET_SRC;
     script.addEventListener("load", markReady);
     script.addEventListener("error", () => {
-      setError("Failed to load Telegram script");
+      setError(t("auth.telegramScriptFailed"));
     });
     document.body.appendChild(script);
 
     return () => script?.removeEventListener("load", markReady);
-  }, [botId, scriptReady]);
+  }, [botId, scriptReady, t]);
 
   const handleClick = () => {
     if (typeof window.Telegram?.Login?.auth !== "function" || !botId) {
-      setError("Telegram not initialized");
+      setError(t("auth.telegramNotInitialized"));
       return;
     }
     setIsLoading(true);
@@ -84,11 +84,13 @@ export function TelegramLoginWidget({
       (data) => {
         setIsLoading(false);
         if (!data) {
-          setError("Telegram auth cancelled");
+          setError(t("auth.telegramAuthCancelled"));
           return;
         }
         void onAuth(data).catch((err: unknown) => {
-          setError(err instanceof Error ? err.message : "Telegram auth failed");
+          setError(
+            err instanceof Error ? err.message : t("auth.telegramAuthFailed"),
+          );
         });
       },
     );
