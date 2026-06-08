@@ -376,6 +376,13 @@ paths:
           required: true
           schema:
             type: string
+      responses:
+        "204":
+          description: Transaction deleted successfully.
+        "401":
+          description: Unauthorized.
+        "404":
+          description: Transaction not found.
 
   /transactions/monobank/accounts:
     post:
