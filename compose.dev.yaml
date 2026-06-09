@@ -109,6 +109,12 @@ services:
     # Apply any pending migrations before starting the dev server.
     # `migrate deploy` is safe to run repeatedly — it only applies new migrations.
     command: sh -c "corepack enable && pnpm run prisma:migrate:deploy && pnpm run dev"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
     depends_on:
       postgres:
         condition: service_healthy
@@ -166,7 +172,7 @@ services:
       init:
         condition: service_completed_successfully
       api:
-        condition: service_started
+        condition: service_healthy
 
   # ── Next.js web ────────────────────────────────────────────────────────────
   web:
@@ -194,7 +200,7 @@ services:
       init:
         condition: service_completed_successfully
       api:
-        condition: service_started
+        condition: service_healthy
 
 volumes:
   postgres_data:
