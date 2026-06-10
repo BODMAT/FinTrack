@@ -21,6 +21,7 @@ jest.unstable_mockModule("../../../src/prisma/client.js", () => ({
     authMethod: {
       findMany: mockFindMany,
       findFirst: mockFindFirst,
+      create: mockCreate,
     },
     user: {
       deleteMany: mockDeleteMany,
