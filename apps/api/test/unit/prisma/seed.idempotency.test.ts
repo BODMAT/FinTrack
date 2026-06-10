@@ -66,11 +66,9 @@ describe("seed idempotency", () => {
   });
 
   it("deletes stale users when previous seed data exists", async () => {
-    mockFindMany.mockResolvedValue([
-      { userId: "old-id-1" },
-      { userId: "old-id-2" },
-    ]);
-    mockFindFirst.mockResolvedValue({ userId: "old-id-3" });
+    mockFindMany
+      .mockResolvedValueOnce([{ userId: "old-id-1" }, { userId: "old-id-2" }]) // email methods
+      .mockResolvedValueOnce([{ userId: "old-id-3" }]); // telegram methods
 
     await runSeed();
 

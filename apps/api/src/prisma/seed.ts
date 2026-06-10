@@ -23,7 +23,21 @@ const SEED_EMAILS = [
 ] as const;
 const SEED_TELEGRAM_ID = "9876543210";
 
+// Opt-in: link the admin user to the developer's real Telegram ID so the bot
+// authenticates as admin and shows the rich seeded transactions.
+const SEED_TELEGRAM_LINK_ID = process.env.SEED_TELEGRAM_LINK_ID?.trim() || null;
+if (SEED_TELEGRAM_LINK_ID === SEED_TELEGRAM_ID) {
+  throw new Error(
+    `SEED_TELEGRAM_LINK_ID collides with reserved seed telegram_id ${SEED_TELEGRAM_ID}`,
+  );
+}
+
 export async function runSeed(): Promise<void> {
+  if (process.env.NODE_ENV === "production") {
+    console.log("⏭  Skipping seed in production");
+    return;
+  }
+
   await prisma.$connect();
   console.log("🌱 Seeding database...");
 
@@ -32,13 +46,16 @@ export async function runSeed(): Promise<void> {
     where: { email: { in: [...SEED_EMAILS] } },
     select: { userId: true },
   });
-  const telegramMethod = await prisma.authMethod.findFirst({
-    where: { telegram_id: SEED_TELEGRAM_ID },
+  const telegramIds = [SEED_TELEGRAM_ID, SEED_TELEGRAM_LINK_ID].filter(
+    (id): id is string => id != null,
+  );
+  const telegramMethods = await prisma.authMethod.findMany({
+    where: { telegram_id: { in: telegramIds } },
     select: { userId: true },
   });
   const staleIds = [
     ...emailMethods.map((m) => m.userId),
-    telegramMethod?.userId,
+    ...telegramMethods.map((m) => m.userId),
   ].filter((id): id is string => id != null);
   if (staleIds.length > 0) {
     await prisma.user.deleteMany({ where: { id: { in: staleIds } } });
@@ -76,6 +93,18 @@ export async function runSeed(): Promise<void> {
       },
     },
   });
+
+  // Link the developer's real Telegram ID to admin when provided
+  if (SEED_TELEGRAM_LINK_ID) {
+    await prisma.authMethod.create({
+      data: {
+        type: AuthType.TELEGRAM,
+        telegram_id: SEED_TELEGRAM_LINK_ID,
+        userId: admin.id,
+      },
+    });
+    console.log(`🔗 Linked admin to Telegram ID ${SEED_TELEGRAM_LINK_ID}`);
+  }
 
   const donor = await prisma.user.create({
     data: {
