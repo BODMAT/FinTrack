@@ -5,6 +5,7 @@ export type HistoryTransaction = {
   amount: string | number;
   currencyCode: string;
   created_at: string;
+  source?: "MANUAL" | "MONOBANK";
 };
 
 export type HistoryResponse = {

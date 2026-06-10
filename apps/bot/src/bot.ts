@@ -8,6 +8,7 @@ import { startRouter } from "./commands/start.js";
 import { summaryRouter } from "./commands/summary.js";
 import { historyRouter } from "./commands/history.js";
 import { helpRouter } from "./commands/help.js";
+import { deleteRouter } from "./commands/delete.js";
 import { registerCommands } from "./commands/register.js";
 import { addTransactionConversation } from "./conversations/addTransaction.js";
 import { transactionRouter } from "./handlers/transaction.js";
@@ -25,6 +26,7 @@ bot.use(startRouter);
 bot.use(summaryRouter);
 bot.use(historyRouter);
 bot.use(helpRouter);
+bot.use(deleteRouter);
 bot.use(transactionRouter);
 bot.use(fallbackRouter);
 

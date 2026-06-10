@@ -9,6 +9,7 @@ const HELP_TEXT = [
   "*Commands:*",
   "/summary — balance, income & expenses",
   "/history — recent transactions",
+  "/delete — delete a transaction",
   "/help — this message",
   "",
   "*Add a transaction:*",
