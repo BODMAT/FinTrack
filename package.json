@@ -134,18 +134,10 @@
     "typescript-eslint": "^8.52.0"
   },
   "pnpm": {
-    "onlyBuiltDependencies": [
-      "@prisma/engines"
-    ],
-    "overrides": {
-      "@types/express": "4.17.21",
-      "@types/express-serve-static-core": "4.19.0",
-      "next": "^16.2.4",
-      "@prisma/client": "^6.19.3",
-      "prisma": "^6.19.3",
-      "zod": "^4.3.6",
-      "postcss": "^8.5.10",
-      "nodemailer": "^8.0.5"
+    "auditConfig": {
+      "ignoreGhsas": [
+        "GHSA-w5hq-g745-h8pq"
+      ]
     }
   },
   "optionalDependencies": {

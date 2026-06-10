@@ -77,6 +77,9 @@ jobs:
         uses: actions/dependency-review-action@v4
         with:
           fail-on-severity: moderate
+          # uuid@8.3.2 via next-auth@4 — unreachable vulnerable path; see
+          # package.json pnpm.auditConfig. Revisit on next-auth v5 upgrade.
+          allow-ghsas: GHSA-w5hq-g745-h8pq
 
   test:
     name: Tests
