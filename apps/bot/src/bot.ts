@@ -7,6 +7,7 @@ import { authMiddleware } from "./middlewares/auth.js";
 import { startRouter } from "./commands/start.js";
 import { summaryRouter } from "./commands/summary.js";
 import { historyRouter } from "./commands/history.js";
+import { helpRouter } from "./commands/help.js";
 import { registerCommands } from "./commands/register.js";
 import { addTransactionConversation } from "./conversations/addTransaction.js";
 import { transactionRouter } from "./handlers/transaction.js";
@@ -23,6 +24,7 @@ bot.use(authMiddleware);
 bot.use(startRouter);
 bot.use(summaryRouter);
 bot.use(historyRouter);
+bot.use(helpRouter);
 bot.use(transactionRouter);
 bot.use(fallbackRouter);
 
