@@ -42,16 +42,19 @@ export async function addTransactionConversation(
     };
   }
 
-  let res: Response;
+  // conversation.external must return a serializable value for replay —
+  // never a Response object. Read status inside, return a plain result.
+  let res: { ok: boolean; status: number };
   try {
-    res = await conversation.external(() =>
-      api.post(telegramId, "/transactions", {
+    res = await conversation.external(async () => {
+      const r = await api.post(telegramId, "/transactions", {
         title: title || "Transaction",
         type,
         amount: absAmount,
         ...(location ? { location } : {}),
-      }),
-    );
+      });
+      return { ok: r.ok, status: r.status };
+    });
   } catch {
     await ctx.reply("❌ Network error. Try again.", {
       reply_markup: { remove_keyboard: true },
