@@ -59,7 +59,7 @@
   "homepage": "https://github.com/BODMAT/FinTrack#readme",
   "dependencies": {
     "@fintrack/types": "workspace:*",
-    "@prisma/client": "^6.19.3",
+    "@prisma/client": "^7.8.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
