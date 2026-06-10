@@ -1,3 +1,24 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+# Migrated from package.json "pnpm" block: pnpm v10 no longer reads these from
+# package.json and ignores them there (see https://pnpm.io/settings).
+onlyBuiltDependencies:
+  - "@prisma/engines"
+
+overrides:
+  "@types/express": "4.17.21"
+  "@types/express-serve-static-core": "4.19.0"
+  next: "^16.2.4"
+  "@prisma/client": "^6.19.3"
+  prisma: "^6.19.3"
+  zod: "^4.3.6"
+  postcss: "^8.5.10"
+  nodemailer: "^8.0.5"
+  # Security: force patched shell-quote (CVE GHSA-w7jw-789q-3m8p, critical).
+  # Pulled transitively (dev-only) by concurrently@9.2.1, which pins 1.8.3.
+  shell-quote: "^1.8.4"
+
+# Note: pnpm audit reads `auditConfig.ignoreGhsas` from package.json, not from
+# this file, so the uuid (GHSA-w5hq-g745-h8pq) ignore lives there.
