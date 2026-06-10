@@ -72,7 +72,7 @@
     "jsonwebtoken": "^9.0.2",
     "nodemailer": "^8.0.5",
     "openai": "^6.38.0",
-    "prisma": "^6.19.3",
+    "prisma": "^7.8.0",
     "stripe": "^22.0.1",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
