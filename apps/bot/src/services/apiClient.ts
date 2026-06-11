@@ -88,6 +88,8 @@ export const api = {
     apiFetch("POST", path, telegramId, body),
   put: (telegramId: number, path: string, body: unknown) =>
     apiFetch("PUT", path, telegramId, body),
+  patch: (telegramId: number, path: string, body: unknown) =>
+    apiFetch("PATCH", path, telegramId, body),
   delete: (telegramId: number, path: string) =>
     apiFetch("DELETE", path, telegramId),
 };

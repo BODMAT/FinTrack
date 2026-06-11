@@ -10,6 +10,7 @@ const HELP_TEXT = [
   "/summary — balance, income & expenses",
   "/history — recent transactions",
   "/delete — delete a transaction",
+  "/edit — edit a transaction",
   "/help — this message",
   "",
   "*Add a transaction:*",

@@ -7,6 +7,7 @@ export async function registerCommands(bot: Bot<MyContext>) {
     { command: "summary", description: "summary of incomes/expenses" },
     { command: "history", description: "recent transactions" },
     { command: "delete", description: "delete a transaction" },
+    { command: "edit", description: "edit a transaction" },
     { command: "help", description: "how to use this bot" },
   ]);
 }

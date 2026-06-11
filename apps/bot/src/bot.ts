@@ -9,8 +9,10 @@ import { summaryRouter } from "./commands/summary.js";
 import { historyRouter } from "./commands/history.js";
 import { helpRouter } from "./commands/help.js";
 import { deleteRouter } from "./commands/delete.js";
+import { editRouter } from "./commands/edit.js";
 import { registerCommands } from "./commands/register.js";
 import { addTransactionConversation } from "./conversations/addTransaction.js";
+import { editTransactionConversation } from "./conversations/editTransaction.js";
 import { transactionRouter } from "./handlers/transaction.js";
 import { fallbackRouter } from "./handlers/fallback.js";
 import { redis } from "./lib/redis.js";
@@ -20,6 +22,7 @@ const bot = new Bot<MyContext>(config.TELEGRAM_BOT_TOKEN);
 
 bot.use(conversations());
 bot.use(createConversation(addTransactionConversation));
+bot.use(createConversation(editTransactionConversation));
 bot.use(authMiddleware);
 
 bot.use(startRouter);
@@ -27,6 +30,7 @@ bot.use(summaryRouter);
 bot.use(historyRouter);
 bot.use(helpRouter);
 bot.use(deleteRouter);
+bot.use(editRouter);
 bot.use(transactionRouter);
 bot.use(fallbackRouter);
 
