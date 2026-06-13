@@ -1,6 +1,7 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
 import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
+import { useCurrencyStore } from "@/store/currency";
 import {
   LANGUAGE_TO_CURRENCY,
   type CachedRatesPayload,
@@ -83,7 +84,11 @@ function getLocaleByLanguage(language: string) {
 export function useCurrency() {
   const { i18n } = useSafeTranslation();
   const language = i18n.language?.split("-")[0] || "en";
+  const selectedCurrency = useCurrencyStore((state) => state.selectedCurrency);
+  // Currency is independent from language: use the explicitly chosen currency,
+  // and only fall back to the language-derived default when none was picked.
   const displayCurrency =
+    selectedCurrency ??
     LANGUAGE_TO_CURRENCY[language as keyof typeof LANGUAGE_TO_CURRENCY] ??
     "USD";
 

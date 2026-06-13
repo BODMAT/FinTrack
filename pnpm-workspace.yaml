@@ -19,6 +19,10 @@ overrides:
   # Security: force patched shell-quote (CVE GHSA-w7jw-789q-3m8p, critical).
   # Pulled transitively (dev-only) by concurrently@9.2.1, which pins 1.8.3.
   shell-quote: "^1.8.4"
-
-# Note: pnpm audit reads `auditConfig.ignoreGhsas` from package.json, not from
-# this file, so the uuid (GHSA-w5hq-g745-h8pq) ignore lives there.
+  # Security: force patched esbuild (GHSA-gv7w-rqvm-qjhr high, GHSA-g7r4-m6w7-qqqr
+  # low). Pulled transitively (dev-only) via vite/tsx; patched only in >=0.28.1.
+  esbuild: "^0.28.1"
+  # Security: force patched uuid (GHSA-w5hq-g745-h8pq, missing bounds check in
+  # v3/v5/v6). Pulled transitively by next-auth@4, which only uses v4 (unreachable
+  # path), but bumped to clear the advisory. Patched in 11.1.1.
+  uuid: "^11.1.1"

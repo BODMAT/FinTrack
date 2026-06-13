@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { MenuLink } from "./MenuLink";
 import { SwitchTheme } from "./SwitchTheme";
 import { SwitchLanguage } from "./SwitchLanguage";
+import { SwitchCurrency } from "./SwitchCurrency";
 import Logo from "@/assets/finance-icon.svg?react";
 import { useBurgerStore } from "@/store/burger";
 import { ProfileInfo } from "./ProfileInfo";
@@ -95,9 +96,10 @@ export function FixedHeader() {
             {user?.role === "ADMIN" && <MenuLink name="admin" />}
           </ul>
           <div className="mt-3 py-3 px-2.5 flex justify-center">
-            <div className="w-auto max-w-55">
+            <div className="flex w-auto max-w-55 flex-col items-center">
               <SwitchTheme />
               <SwitchLanguage />
+              <SwitchCurrency />
             </div>
           </div>
         </nav>
