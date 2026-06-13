@@ -16,3 +16,5 @@ export const LANGUAGE_TO_CURRENCY = {
   uk: "UAH",
   de: "EUR",
 } as const;
+
+export const SUPPORTED_CURRENCIES = ["USD", "UAH", "EUR"] as const;
