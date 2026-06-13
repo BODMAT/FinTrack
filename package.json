@@ -133,13 +133,6 @@
     "typescript": "6.0.3",
     "typescript-eslint": "^8.61.0"
   },
-  "pnpm": {
-    "auditConfig": {
-      "ignoreGhsas": [
-        "GHSA-w5hq-g745-h8pq"
-      ]
-    }
-  },
   "optionalDependencies": {
     "@rolldown/binding-linux-x64-gnu": "*",
     "@rolldown/binding-linux-x64-musl": "*",
