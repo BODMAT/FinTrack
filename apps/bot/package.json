@@ -36,7 +36,7 @@
     "grammy": "^1.38.2"
   },
   "devDependencies": {
-    "@types/node": "^24.3.1",
+    "@types/node": "^24.13.2",
     "concurrently": "^9.2.1",
     "dotenv-cli": "^11.0.0",
     "nodemon": "^3.1.10",
