@@ -10,7 +10,9 @@ export async function editTransactionConversation(
   ctx: MyContext,
   id: string,
 ) {
-  const telegramId = ctx.telegramId;
+  // ctx.from.id, not ctx.telegramId: outer-middleware ctx props are lost on replay.
+  const telegramId = ctx.from?.id;
+  if (!telegramId) return;
 
   await ctx.reply("Send the new value like `+1500 salary` or `-50 coffee`:", {
     parse_mode: "Markdown",

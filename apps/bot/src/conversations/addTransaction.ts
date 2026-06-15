@@ -9,7 +9,9 @@ export async function addTransactionConversation(
   conversation: Conversation<MyContext, MyContext>,
   ctx: MyContext,
 ) {
-  const telegramId = ctx.telegramId;
+  // ctx.from.id, not ctx.telegramId: outer-middleware ctx props are lost on replay.
+  const telegramId = ctx.from?.id;
+  if (!telegramId) return;
 
   const txt = ctx.message?.text;
   if (!txt) return;
