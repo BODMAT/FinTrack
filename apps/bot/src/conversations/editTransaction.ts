@@ -1,3 +1,4 @@
+import { Keyboard } from "grammy";
 import type { Conversation } from "@grammyjs/conversations";
 import type { MyContext } from "../context.js";
 import { capitalizeFirstLetter } from "../utils/capitalize.js";
@@ -34,6 +35,26 @@ export async function editTransactionConversation(
   const type: "INCOME" | "EXPENSE" = amount >= 0 ? "INCOME" : "EXPENSE";
   const absAmount = Math.abs(amount);
 
+  const keyboard = new Keyboard()
+    .requestLocation("📍 Yes")
+    .text("No")
+    .resized();
+
+  await ctx.reply("Update location? (No keeps the current one)", {
+    reply_markup: keyboard,
+  });
+
+  const locationMsg = await conversation.wait();
+
+  // "No" / any non-location reply keeps the existing location: omit the field.
+  let location: { latitude: number; longitude: number } | undefined;
+  if (locationMsg.message?.location) {
+    location = {
+      latitude: locationMsg.message.location.latitude,
+      longitude: locationMsg.message.location.longitude,
+    };
+  }
+
   // conversation.external must return a serializable value for replay —
   // never a Response object. Read status inside, return a plain result.
   let res: { ok: boolean; status: number };
@@ -43,26 +64,37 @@ export async function editTransactionConversation(
         title: title || "Transaction",
         type,
         amount: absAmount,
+        ...(location ? { location } : {}),
       });
       return { ok: r.ok, status: r.status };
     });
   } catch {
-    await ctx.reply("❌ Network error. Try again.");
+    await ctx.reply("❌ Network error. Try again.", {
+      reply_markup: { remove_keyboard: true },
+    });
     return;
   }
 
   if (res.status === 403) {
-    await ctx.reply("🔒 Monobank transactions are read-only.");
+    await ctx.reply("🔒 Monobank transactions are read-only.", {
+      reply_markup: { remove_keyboard: true },
+    });
     return;
   }
   if (res.status === 404) {
-    await ctx.reply("Transaction not found. It may have been deleted.");
+    await ctx.reply("Transaction not found. It may have been deleted.", {
+      reply_markup: { remove_keyboard: true },
+    });
     return;
   }
   if (!res.ok) {
-    await ctx.reply("❌ Failed to update. Try again.");
+    await ctx.reply("❌ Failed to update. Try again.", {
+      reply_markup: { remove_keyboard: true },
+    });
     return;
   }
 
-  await ctx.reply("✅ Transaction updated!");
+  await ctx.reply("✅ Transaction updated!", {
+    reply_markup: { remove_keyboard: true },
+  });
 }
