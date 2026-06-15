@@ -26,3 +26,12 @@ overrides:
   # v3/v5/v6). Pulled transitively by next-auth@4, which only uses v4 (unreachable
   # path), but bumped to clear the advisory. Patched in 11.1.1.
   uuid: "^11.1.1"
+  # Security: force patched form-data (GHSA-hmw2-7cc7-3qxx high, CRLF injection
+  # via unescaped multipart field names). Pulled transitively (dev-only) by
+  # supertest/@types/supertest and (web) by axios. Patched in 4.0.6.
+  form-data: "^4.0.6"
+  # Security: force patched js-yaml (GHSA-h67p-54hq-rp68 moderate, quadratic DoS
+  # in merge-key handling). Pulled transitively (dev-only) via eslint (4.1.1) and
+  # jest/istanbul (3.14.2); both call only js-yaml.load(), present in v4. Patched
+  # in 4.2.0.
+  js-yaml: "^4.2.0"
