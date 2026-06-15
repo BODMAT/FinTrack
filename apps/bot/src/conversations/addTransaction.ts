@@ -1,8 +1,8 @@
-import { Keyboard } from "grammy";
 import type { Conversation } from "@grammyjs/conversations";
 import type { MyContext } from "../context.js";
-import { capitalizeFirstLetter } from "../utils/capitalize.js";
 import { api } from "../services/apiClient.js";
+import { parseTransaction } from "../utils/parseTransaction.js";
+import { extractLocation, locationKeyboard } from "../utils/location.js";
 
 export async function addTransactionConversation(
   conversation: Conversation<MyContext, MyContext>,
@@ -14,33 +14,18 @@ export async function addTransactionConversation(
   const txt = ctx.message?.text;
   if (!txt) return;
 
-  const parts = txt.trim().split(/\s+/);
-  const rawAmount = parts[0] ?? "0";
-  const amount = parseFloat(rawAmount.replace(",", "."));
-  const title = capitalizeFirstLetter(parts.slice(1).join(" ") || "");
-  const type: "INCOME" | "EXPENSE" = amount >= 0 ? "INCOME" : "EXPENSE";
-  const absAmount = Math.abs(amount);
+  const parsed = parseTransaction(txt);
+  if (!parsed) return;
+  const { absAmount, title, type } = parsed;
   const typeLabel = type === "INCOME" ? "🟢 Income" : "🔴 Expense";
-
-  const keyboard = new Keyboard()
-    .requestLocation("📍 Yes")
-    .text("No")
-    .resized();
 
   await ctx.reply(
     `${typeLabel}: *${absAmount}*\nTitle: ${title || "—"}\n\nShare location?`,
-    { reply_markup: keyboard, parse_mode: "Markdown" },
+    { reply_markup: locationKeyboard(), parse_mode: "Markdown" },
   );
 
   const locationMsg = await conversation.wait();
-
-  let location: { latitude: number; longitude: number } | undefined;
-  if (locationMsg.message?.location) {
-    location = {
-      latitude: locationMsg.message.location.latitude,
-      longitude: locationMsg.message.location.longitude,
-    };
-  }
+  const location = extractLocation(locationMsg);
 
   // conversation.external must return a serializable value for replay —
   // never a Response object. Read status inside, return a plain result.

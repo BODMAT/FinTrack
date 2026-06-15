@@ -1,8 +1,8 @@
-import { Keyboard } from "grammy";
 import type { Conversation } from "@grammyjs/conversations";
 import type { MyContext } from "../context.js";
-import { capitalizeFirstLetter } from "../utils/capitalize.js";
 import { api } from "../services/apiClient.js";
+import { parseTransaction } from "../utils/parseTransaction.js";
+import { extractLocation, locationKeyboard } from "../utils/location.js";
 
 export async function editTransactionConversation(
   conversation: Conversation<MyContext, MyContext>,
@@ -23,37 +23,20 @@ export async function editTransactionConversation(
     return;
   }
 
-  const parts = txt.trim().split(/\s+/);
-  const rawAmount = parts[0] ?? "";
-  const amount = parseFloat(rawAmount.replace(",", "."));
-  if (!Number.isFinite(amount)) {
+  const parsed = parseTransaction(txt);
+  if (!parsed) {
     await ctx.reply("❌ Couldn't read the amount. Cancelled.");
     return;
   }
-
-  const title = capitalizeFirstLetter(parts.slice(1).join(" ") || "");
-  const type: "INCOME" | "EXPENSE" = amount >= 0 ? "INCOME" : "EXPENSE";
-  const absAmount = Math.abs(amount);
-
-  const keyboard = new Keyboard()
-    .requestLocation("📍 Yes")
-    .text("No")
-    .resized();
+  const { absAmount, title, type } = parsed;
 
   await ctx.reply("Update location? (No keeps the current one)", {
-    reply_markup: keyboard,
+    reply_markup: locationKeyboard(),
   });
 
   const locationMsg = await conversation.wait();
-
   // "No" / any non-location reply keeps the existing location: omit the field.
-  let location: { latitude: number; longitude: number } | undefined;
-  if (locationMsg.message?.location) {
-    location = {
-      latitude: locationMsg.message.location.latitude,
-      longitude: locationMsg.message.location.longitude,
-    };
-  }
+  const location = extractLocation(locationMsg);
 
   // conversation.external must return a serializable value for replay —
   // never a Response object. Read status inside, return a plain result.
