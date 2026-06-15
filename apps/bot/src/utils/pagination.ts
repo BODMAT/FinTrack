@@ -1,5 +1,7 @@
 import type { InlineKeyboard } from "grammy";
 
+export const PER_PAGE = 10;
+
 // Appends a ◀ Prev / Next ▶ row to an inline keyboard when there is more than
 // one page. Callback data is `${prefix}:${targetPage}`. Returns true when a nav
 // row was added (i.e. pagination is meaningful).

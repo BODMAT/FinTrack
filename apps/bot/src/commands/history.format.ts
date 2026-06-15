@@ -1,3 +1,5 @@
+import { formatAmount } from "../utils/format.js";
+
 export type HistoryTransaction = {
   id: string;
   title: string;
@@ -22,11 +24,6 @@ function formatDate(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
   return d.toISOString().slice(0, 10);
-}
-
-function formatAmount(amount: string | number): string {
-  const n = typeof amount === "number" ? amount : parseFloat(amount);
-  return Number.isFinite(n) ? n.toFixed(2) : "0.00";
 }
 
 export function formatHistory(res: HistoryResponse): string {

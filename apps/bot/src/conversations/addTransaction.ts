@@ -3,13 +3,13 @@ import type { MyContext } from "../context.js";
 import { api } from "../services/apiClient.js";
 import { parseTransaction } from "../utils/parseTransaction.js";
 import { extractLocation, locationKeyboard } from "../utils/location.js";
+import { callExternal } from "../utils/apiExternal.js";
 
 export async function addTransactionConversation(
   conversation: Conversation<MyContext, MyContext>,
   ctx: MyContext,
 ) {
-  const telegramId = ctx.from?.id;
-  if (!telegramId) return;
+  const telegramId = ctx.telegramId;
 
   const txt = ctx.message?.text;
   if (!txt) return;
@@ -27,26 +27,21 @@ export async function addTransactionConversation(
   const locationMsg = await conversation.wait();
   const location = extractLocation(locationMsg);
 
-  // conversation.external must return a serializable value for replay —
-  // never a Response object. Read status inside, return a plain result.
-  let res: { ok: boolean; status: number };
-  try {
-    res = await conversation.external(async () => {
-      const r = await api.post(telegramId, "/transactions", {
-        title: title || "Transaction",
-        type,
-        amount: absAmount,
-        ...(location ? { location } : {}),
-      });
-      return { ok: r.ok, status: r.status };
-    });
-  } catch {
+  const res = await callExternal(conversation, () =>
+    api.post(telegramId, "/transactions", {
+      title: title || "Transaction",
+      type,
+      amount: absAmount,
+      ...(location ? { location } : {}),
+    }),
+  );
+
+  if ("error" in res) {
     await ctx.reply("❌ Network error. Try again.", {
       reply_markup: { remove_keyboard: true },
     });
     return;
   }
-
   if (!res.ok) {
     await ctx.reply("❌ Failed to save. Try again.", {
       reply_markup: { remove_keyboard: true },

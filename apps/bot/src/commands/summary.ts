@@ -1,6 +1,7 @@
 import { Composer } from "grammy";
 import type { MyContext } from "../context.js";
 import { api } from "../services/apiClient.js";
+import { formatAmount } from "../utils/format.js";
 
 type SummaryPerRange = {
   totalIncomePerRange: number;
@@ -20,10 +21,7 @@ type Summary = {
 const composer = new Composer<MyContext>();
 
 composer.command("summary", async (ctx) => {
-  const telegramId = ctx.from?.id;
-  if (!telegramId) return;
-
-  const res = await api.get(telegramId, "/summary");
+  const res = await api.get(ctx.telegramId, "/summary");
   if (!res.ok) {
     await ctx.reply("Failed to load summary. Please try again.");
     return;
@@ -32,7 +30,7 @@ composer.command("summary", async (ctx) => {
   const data = (await res.json()) as Summary;
   const { currentBalance, dataStatsPerMonth, dataStatsPerAllTime } = data;
 
-  const fmt = (n: number) => n.toFixed(2);
+  const fmt = formatAmount;
   const pct = (n: number) => (n >= 0 ? `+${n}%` : `${n}%`);
 
   const text = [

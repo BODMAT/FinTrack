@@ -15,10 +15,7 @@ const PICKER: PickerConfig = {
 };
 
 composer.command("edit", async (ctx) => {
-  const telegramId = ctx.from?.id;
-  if (!telegramId) return;
-
-  const picker = await buildTransactionPicker(telegramId, 1, PICKER);
+  const picker = await buildTransactionPicker(ctx.telegramId, 1, PICKER);
   if (picker === "error") {
     await ctx.reply("Failed to load transactions. Please try again.");
     return;
@@ -31,16 +28,9 @@ composer.command("edit", async (ctx) => {
   await ctx.reply(picker.text, { reply_markup: picker.keyboard });
 });
 
-// ◀/▶ navigation: re-render the picker on the requested page.
 composer.callbackQuery(/^epg:(\d+)$/, async (ctx) => {
-  const telegramId = ctx.from?.id;
-  if (!telegramId) {
-    await ctx.answerCallbackQuery();
-    return;
-  }
-
   const page = Number(ctx.match[1]);
-  const picker = await buildTransactionPicker(telegramId, page, PICKER);
+  const picker = await buildTransactionPicker(ctx.telegramId, page, PICKER);
   if (picker === "error") {
     await ctx.answerCallbackQuery({ text: "Failed to load page." });
     return;
@@ -54,7 +44,6 @@ composer.callbackQuery(/^epg:(\d+)$/, async (ctx) => {
   await ctx.answerCallbackQuery();
 });
 
-// User picked a transaction → enter conversation to collect the new value.
 composer.callbackQuery(/^edit:(.+)$/, async (ctx) => {
   const id = ctx.match[1];
   await ctx.answerCallbackQuery();

@@ -7,13 +7,8 @@ export async function authMiddleware(
   ctx: MyContext,
   next: NextFunction,
 ): Promise<void> {
-  const telegramId = ctx.from?.id;
+  const { telegramId } = ctx;
   const name = ctx.from?.first_name ?? "User";
-
-  if (!telegramId) {
-    await next();
-    return;
-  }
 
   if (!(await isAuthenticated(telegramId))) {
     try {

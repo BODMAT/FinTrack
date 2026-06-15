@@ -16,10 +16,7 @@ const PICKER: PickerConfig = {
 };
 
 composer.command("delete", async (ctx) => {
-  const telegramId = ctx.from?.id;
-  if (!telegramId) return;
-
-  const picker = await buildTransactionPicker(telegramId, 1, PICKER);
+  const picker = await buildTransactionPicker(ctx.telegramId, 1, PICKER);
   if (picker === "error") {
     await ctx.reply("Failed to load transactions. Please try again.");
     return;
@@ -32,16 +29,9 @@ composer.command("delete", async (ctx) => {
   await ctx.reply(picker.text, { reply_markup: picker.keyboard });
 });
 
-// ◀/▶ navigation: re-render the picker on the requested page.
 composer.callbackQuery(/^dpg:(\d+)$/, async (ctx) => {
-  const telegramId = ctx.from?.id;
-  if (!telegramId) {
-    await ctx.answerCallbackQuery();
-    return;
-  }
-
   const page = Number(ctx.match[1]);
-  const picker = await buildTransactionPicker(telegramId, page, PICKER);
+  const picker = await buildTransactionPicker(ctx.telegramId, page, PICKER);
   if (picker === "error") {
     await ctx.answerCallbackQuery({ text: "Failed to load page." });
     return;
@@ -55,7 +45,7 @@ composer.callbackQuery(/^dpg:(\d+)$/, async (ctx) => {
   await ctx.answerCallbackQuery();
 });
 
-// Step 1: user picked a transaction → ask for confirmation.
+// Picked a transaction → confirm before deleting (irreversible).
 composer.callbackQuery(/^del:(.+)$/, async (ctx) => {
   const id = ctx.match[1];
   const kb = new InlineKeyboard()
@@ -68,16 +58,9 @@ composer.callbackQuery(/^del:(.+)$/, async (ctx) => {
   await ctx.answerCallbackQuery();
 });
 
-// Step 2a: confirmed → delete.
 composer.callbackQuery(/^delok:(.+)$/, async (ctx) => {
-  const telegramId = ctx.from?.id;
-  if (!telegramId) {
-    await ctx.answerCallbackQuery();
-    return;
-  }
-
   const id = ctx.match[1];
-  const res = await api.delete(telegramId, `/transactions/${id}`);
+  const res = await api.delete(ctx.telegramId, `/transactions/${id}`);
 
   let msg: string;
   if (res.status === 204) {
@@ -94,7 +77,6 @@ composer.callbackQuery(/^delok:(.+)$/, async (ctx) => {
   await ctx.answerCallbackQuery();
 });
 
-// Step 2b: cancelled.
 composer.callbackQuery("delx", async (ctx) => {
   await ctx.editMessageText("Cancelled.");
   await ctx.answerCallbackQuery();

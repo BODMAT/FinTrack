@@ -1,12 +1,10 @@
 import { Composer, InlineKeyboard } from "grammy";
 import type { MyContext } from "../context.js";
 import { api } from "../services/apiClient.js";
-import { navRow } from "../utils/pagination.js";
+import { PER_PAGE, navRow } from "../utils/pagination.js";
 import { formatHistory, type HistoryResponse } from "./history.format.js";
 
 const composer = new Composer<MyContext>();
-
-const PER_PAGE = 10;
 
 async function loadPage(telegramId: number, page: number) {
   const res = await api.get(
@@ -25,10 +23,7 @@ function buildKeyboard(data: HistoryResponse): InlineKeyboard | undefined {
 }
 
 composer.command("history", async (ctx) => {
-  const telegramId = ctx.from?.id;
-  if (!telegramId) return;
-
-  const data = await loadPage(telegramId, 1);
+  const data = await loadPage(ctx.telegramId, 1);
   if (!data) {
     await ctx.reply("Failed to load history. Please try again.");
     return;
@@ -38,16 +33,9 @@ composer.command("history", async (ctx) => {
   await ctx.reply(formatHistory(data), kb ? { reply_markup: kb } : undefined);
 });
 
-// ◀/▶ navigation: re-render the same message with the requested page.
 composer.callbackQuery(/^hpg:(\d+)$/, async (ctx) => {
-  const telegramId = ctx.from?.id;
-  if (!telegramId) {
-    await ctx.answerCallbackQuery();
-    return;
-  }
-
   const page = Number(ctx.match[1]);
-  const data = await loadPage(telegramId, page);
+  const data = await loadPage(ctx.telegramId, page);
   if (!data) {
     await ctx.answerCallbackQuery({ text: "Failed to load page." });
     return;

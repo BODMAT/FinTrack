@@ -4,6 +4,7 @@ import { config } from "./config.js";
 import type { MyContext } from "./context.js";
 import { BotError } from "./utils/BotError.js";
 import { authMiddleware } from "./middlewares/auth.js";
+import { telegramIdMiddleware } from "./middlewares/telegramId.js";
 import { startRouter } from "./commands/start.js";
 import { summaryRouter } from "./commands/summary.js";
 import { historyRouter } from "./commands/history.js";
@@ -20,6 +21,7 @@ import { logger } from "./lib/logger.js";
 
 const bot = new Bot<MyContext>(config.TELEGRAM_BOT_TOKEN);
 
+bot.use(telegramIdMiddleware);
 bot.use(conversations());
 bot.use(createConversation(addTransactionConversation));
 bot.use(createConversation(editTransactionConversation));

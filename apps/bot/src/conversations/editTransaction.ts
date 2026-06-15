@@ -3,14 +3,14 @@ import type { MyContext } from "../context.js";
 import { api } from "../services/apiClient.js";
 import { parseTransaction } from "../utils/parseTransaction.js";
 import { extractLocation, locationKeyboard } from "../utils/location.js";
+import { callExternal } from "../utils/apiExternal.js";
 
 export async function editTransactionConversation(
   conversation: Conversation<MyContext, MyContext>,
   ctx: MyContext,
   id: string,
 ) {
-  const telegramId = ctx.from?.id;
-  if (!telegramId) return;
+  const telegramId = ctx.telegramId;
 
   await ctx.reply("Send the new value like `+1500 salary` or `-50 coffee`:", {
     parse_mode: "Markdown",
@@ -35,29 +35,23 @@ export async function editTransactionConversation(
   });
 
   const locationMsg = await conversation.wait();
-  // "No" / any non-location reply keeps the existing location: omit the field.
   const location = extractLocation(locationMsg);
 
-  // conversation.external must return a serializable value for replay —
-  // never a Response object. Read status inside, return a plain result.
-  let res: { ok: boolean; status: number };
-  try {
-    res = await conversation.external(async () => {
-      const r = await api.patch(telegramId, `/transactions/${id}`, {
-        title: title || "Transaction",
-        type,
-        amount: absAmount,
-        ...(location ? { location } : {}),
-      });
-      return { ok: r.ok, status: r.status };
-    });
-  } catch {
+  const res = await callExternal(conversation, () =>
+    api.patch(telegramId, `/transactions/${id}`, {
+      title: title || "Transaction",
+      type,
+      amount: absAmount,
+      ...(location ? { location } : {}),
+    }),
+  );
+
+  if ("error" in res) {
     await ctx.reply("❌ Network error. Try again.", {
       reply_markup: { remove_keyboard: true },
     });
     return;
   }
-
   if (res.status === 403) {
     await ctx.reply("🔒 Monobank transactions are read-only.", {
       reply_markup: { remove_keyboard: true },

@@ -1,10 +1,8 @@
 import { InlineKeyboard } from "grammy";
 import { api } from "../services/apiClient.js";
-import { navRow } from "./pagination.js";
+import { PER_PAGE, navRow } from "./pagination.js";
 import { txLabel } from "./txLabel.js";
 import type { HistoryResponse } from "../commands/history.format.js";
-
-const PER_PAGE = 10;
 
 export type Picker = { text: string; keyboard: InlineKeyboard };
 // "error" = load failed; null = nothing actionable on this page.
@@ -13,11 +11,10 @@ export type PickerResult = Picker | null | "error";
 export type PickerConfig = {
   itemPrefix: string; // callback for an item → `${itemPrefix}:${id}`
   navPrefix: string; // callback for nav → `${navPrefix}:${page}`
-  verb: string; // "edit" / "delete" → "Pick a transaction to <verb>"
-  emoji: string; // title emoji
+  verb: string;
+  emoji: string;
 };
 
-// Builds a paginated, Monobank-filtered transaction picker for a given page.
 export async function buildTransactionPicker(
   telegramId: number,
   page: number,
