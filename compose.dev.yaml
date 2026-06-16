@@ -193,6 +193,7 @@ services:
       - NEXT_PUBLIC_TELEGRAM_BOT_ID=${NEXT_PUBLIC_TELEGRAM_BOT_ID:-}
       - DX_SERVICE_NAME=web
       - COREPACK_HOME=/corepack
+      - WATCHPACK_POLLING=true
     env_file:
       - apps/web/.env.docker
     command: sh -c "corepack enable && pnpm run dev"

@@ -39,5 +39,10 @@
     "moduleDetection": "force",
     "skipLibCheck": true
   },
+  "watchOptions": {
+    "watchFile": "priorityPollingInterval",
+    "watchDirectory": "dynamicPriorityPolling",
+    "fallbackPolling": "dynamicPriority"
+  },
   "include": ["src"]
 }

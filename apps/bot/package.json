@@ -24,7 +24,7 @@
   "type": "module",
   "main": "bot.js",
   "scripts": {
-    "dev": "concurrently \"pnpm exec tsc -w\" \"nodemon dist/bot.js\"",
+    "dev": "concurrently \"pnpm exec tsc -w\" \"nodemon\"",
     "build": "rimraf dist && pnpm exec tsc",
     "start": "node dist/bot.js",
     "prestart": "pnpm run build",
