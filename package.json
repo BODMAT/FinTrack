@@ -119,7 +119,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
-    "doctoc": "2.4.1",
+    "doctoc": "2.5.0",
     "eslint": "^9.30.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-react": "^7.37.5",
@@ -129,9 +129,9 @@
     "lint-staged": "^17.0.7",
     "next": "^16.2.9",
     "prettier": "^3.8.4",
-    "turbo": "^2.9.17",
+    "turbo": "^2.9.18",
     "typescript": "6.0.3",
-    "typescript-eslint": "^8.61.0"
+    "typescript-eslint": "^8.61.1"
   },
   "optionalDependencies": {
     "@rolldown/binding-linux-x64-gnu": "*",
