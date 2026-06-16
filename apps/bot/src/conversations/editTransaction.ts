@@ -2,7 +2,10 @@ import type { Conversation } from "@grammyjs/conversations";
 import type { MyContext } from "../context.js";
 import { api } from "../services/apiClient.js";
 import { parseTransaction } from "../utils/parseTransaction.js";
-import { extractLocation, locationKeyboard } from "../utils/location.js";
+import {
+  extractLocationEdit,
+  locationEditKeyboard,
+} from "../utils/location.js";
 import { callExternal } from "../utils/apiExternal.js";
 
 export async function editTransactionConversation(
@@ -32,19 +35,23 @@ export async function editTransactionConversation(
   }
   const { absAmount, title, type } = parsed;
 
-  await ctx.reply("Update location? (No keeps the current one)", {
-    reply_markup: locationKeyboard(),
-  });
+  await ctx.reply(
+    "Update location? Keep current, send a new one, or remove it.",
+    {
+      reply_markup: locationEditKeyboard(),
+    },
+  );
 
   const locationMsg = await conversation.wait();
-  const location = extractLocation(locationMsg);
+  const location = extractLocationEdit(locationMsg);
 
   const res = await callExternal(conversation, () =>
     api.patch(telegramId, `/transactions/${id}`, {
       title: title || "Transaction",
       type,
       amount: absAmount,
-      ...(location ? { location } : {}),
+      // undefined = keep (omit); null = remove; LatLng = set.
+      ...(location !== undefined ? { location } : {}),
     }),
   );
 
