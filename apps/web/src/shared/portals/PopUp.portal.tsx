@@ -19,6 +19,15 @@ export function PopUpPortal() {
     };
   }, [active]);
 
+  useEffect(() => {
+    if (!active) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [active, close]);
+
   if (typeof document === "undefined") return null;
 
   return ReactDOM.createPortal(
