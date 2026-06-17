@@ -1,5 +1,6 @@
 "use client";
 import { useQuery } from "@tanstack/react-query";
+import { currencyCodeSchema } from "@fintrack/types";
 import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
 import { useCurrencyStore } from "@/store/currency";
 import {
@@ -12,17 +13,17 @@ import {
 const FX_CACHE_KEY = "fintrack.fx.usd.v1";
 const ONE_HOUR_MS = 60 * 60 * 1000;
 
+// Approximate offline fallback so amounts stay roughly sane when both the
+// network and the cache are unavailable. Real rates overwrite these on fetch.
 const DEFAULT_RATES: SupportedRates = {
   USD: 1,
-  UAH: 1,
-  EUR: 1,
+  UAH: 44,
+  EUR: 0.86,
 };
 
 function normalizeCurrency(value?: string): CurrencyCode {
-  const normalized = value?.trim().toUpperCase();
-  if (normalized === "UAH") return "UAH";
-  if (normalized === "EUR") return "EUR";
-  return "USD";
+  const parsed = currencyCodeSchema.safeParse(value?.trim().toUpperCase());
+  return parsed.success ? parsed.data : "USD";
 }
 
 function readCachedRates(): CachedRatesPayload | null {
@@ -95,18 +96,16 @@ export function useCurrency() {
   const ratesQuery = useQuery({
     queryKey: ["fx-rates", "usd"],
     queryFn: async () => {
-      const cached = readCachedRates();
-      if (cached && Date.now() - cached.updatedAt < ONE_HOUR_MS) {
-        return cached;
-      }
-
       try {
         return await fetchRatesFromApi();
       } catch (error) {
+        const cached = readCachedRates();
         if (cached) return cached;
         throw error;
       }
     },
+    initialData: () => readCachedRates() ?? undefined,
+    initialDataUpdatedAt: () => readCachedRates()?.updatedAt,
     staleTime: ONE_HOUR_MS,
     refetchInterval: ONE_HOUR_MS,
     retry: 1,

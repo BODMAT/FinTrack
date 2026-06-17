@@ -1,13 +1,17 @@
 import dotenv from "dotenv";
 import { AppError } from "../middleware/errorHandler.js";
+import { logger } from "../lib/logger.js";
 
 dotenv.config();
 
 const requiredEnvVars = [
   "DATABASE_URL",
+  "REDIS_URL",
   "ACCESS_TOKEN_SECRET",
   "CSRF_SECRET",
   "API_KEY_ENCRYPTION_SECRET",
+  "TELEGRAM_BOT_TOKEN",
+  "GOOGLE_CLIENT_ID",
 ];
 
 for (const key of requiredEnvVars) {
@@ -22,7 +26,7 @@ const GROQAPITOKENS = Object.keys(process.env)
   .filter((token): token is string => Boolean(token));
 
 if (GROQAPITOKENS.length === 0 && process.env.NODE_ENV !== "test") {
-  console.warn("Warning: No Groq API tokens (GROQ_API_KEY_x) found in .env");
+  logger.warn("No Groq API tokens (GROQ_API_KEY_x) found in .env");
 }
 
 if (
@@ -45,20 +49,31 @@ if (
   );
 }
 
+if (process.env.PORT && Number.isNaN(Number(process.env.PORT))) {
+  throw new AppError("Invalid PORT. It must be a number.", 500);
+}
+
+if (process.env.SMTP_PORT && Number.isNaN(Number(process.env.SMTP_PORT))) {
+  throw new AppError("Invalid SMTP_PORT. It must be a number.", 500);
+}
+
 export const ENV = {
   NODE_ENV: process.env.NODE_ENV ?? "development",
   ENABLE_SWAGGER_IN_PROD: process.env.ENABLE_SWAGGER_IN_PROD === "true",
   HOST: process.env.HOST ?? "localhost",
   PORT: process.env.PORT ? Number(process.env.PORT) : 8000,
-  SWAGGER_SERVER_URL: process.env.SWAGGER_SERVER_URL as string,
+  SWAGGER_SERVER_URL: process.env.SWAGGER_SERVER_URL ?? "",
   CORS_ORIGINS: process.env.CORS_ORIGINS ?? "",
   FRONTEND_URL: process.env.FRONTEND_URL ?? "",
-  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ?? "",
+  GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID as string,
   GOOGLE_OAUTH_VERIFY_MODE:
     process.env.GOOGLE_OAUTH_VERIFY_MODE === "tokeninfo"
       ? "tokeninfo"
       : "verifyIdToken",
+  TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN as string,
   DATABASE_URL: process.env.DATABASE_URL as string,
+  REDIS_URL: process.env.REDIS_URL as string,
+  MONGO_URL: process.env.MONGO_URL ?? "",
   ACCESS_TOKEN_SECRET: process.env.ACCESS_TOKEN_SECRET as string,
   CSRF_SECRET: process.env.CSRF_SECRET as string,
   GROQAPITOKENS,

@@ -7,6 +7,7 @@ import * as authService from "../auth/service.js";
 import { AppError } from "../../middleware/errorHandler.js";
 import { logSecurityEvent } from "../../utils/authSecurity.js";
 import { sendVerificationEmail } from "../../utils/mailer.js";
+import { logger } from "../../lib/logger.js";
 import {
   CreateUserSchema as createUserSchema,
   UpdateUserSchema as updateUserSchema,
@@ -138,9 +139,9 @@ export async function createUser(
         await sendVerificationEmail(primaryEmail, verificationToken, user.name);
       } catch (mailErr) {
         // Non-fatal: user can request resend
-        console.error(
-          "[createUser] Failed to send verification email:",
-          mailErr,
+        logger.error(
+          { err: mailErr },
+          "createUser: failed to send verification email",
         );
       }
     }

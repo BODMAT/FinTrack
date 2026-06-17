@@ -1,43 +1,74 @@
-import dotenv from "dotenv";
 import { Bot, GrammyError, HttpError } from "grammy";
+import { conversations, createConversation } from "@grammyjs/conversations";
+import { config } from "./config.js";
+import type { MyContext } from "./context.js";
+import { BotError } from "./utils/BotError.js";
+import { authMiddleware } from "./middlewares/auth.js";
+import { telegramIdMiddleware } from "./middlewares/telegramId.js";
+import { startRouter } from "./commands/start.js";
+import { summaryRouter } from "./commands/summary.js";
+import { historyRouter } from "./commands/history.js";
+import { helpRouter } from "./commands/help.js";
+import { deleteRouter } from "./commands/delete.js";
+import { editRouter } from "./commands/edit.js";
+import { registerCommands } from "./commands/register.js";
+import { addTransactionConversation } from "./conversations/addTransaction.js";
+import { editTransactionConversation } from "./conversations/editTransaction.js";
+import { transactionRouter } from "./handlers/transaction.js";
+import { fallbackRouter } from "./handlers/fallback.js";
+import { redis } from "./lib/redis.js";
+import { logger } from "./lib/logger.js";
 
-dotenv.config();
+const bot = new Bot<MyContext>(config.TELEGRAM_BOT_TOKEN);
 
-const BOT_API_KEY = process.env.BOT_API_KEY || undefined;
+bot.use(telegramIdMiddleware);
+bot.use(conversations());
+bot.use(createConversation(addTransactionConversation));
+bot.use(createConversation(editTransactionConversation));
+bot.use(authMiddleware);
 
-if (!BOT_API_KEY) {
-  throw new Error("BOT_API_KEY is required in .env");
-}
-
-export const bot = new Bot(BOT_API_KEY);
-
-bot.api.setMyCommands([
-  {
-    command: "start",
-    description: "start chat with a bot",
-  },
-]);
-
-bot.command("start", async (ctx) => {
-  await ctx.reply("Hi! I'm your FinTrack bot 🚀");
-});
-
-bot.on("message", async (ctx) => {
-  await ctx.reply("I don't get it.");
-});
+bot.use(startRouter);
+bot.use(summaryRouter);
+bot.use(historyRouter);
+bot.use(helpRouter);
+bot.use(deleteRouter);
+bot.use(editRouter);
+bot.use(transactionRouter);
+bot.use(fallbackRouter);
 
 bot.catch((err) => {
   const ctx = err.ctx;
-  console.error(`Error while handling update ${ctx.update.update_id}`);
+  logger.error(
+    { updateId: ctx.update.update_id },
+    "Error while handling update",
+  );
   const e = err.error;
-
   if (e instanceof GrammyError) {
-    console.error("Error in request:", e.description);
+    logger.error({ description: e.description }, "Error in request");
   } else if (e instanceof HttpError) {
-    console.error("Could not contact Telegram:", e);
+    logger.error({ err: e }, "Could not contact Telegram");
   } else {
-    console.error("Unknown error:", e);
+    logger.error({ err: e }, "Unknown error");
   }
+  const msg =
+    e instanceof BotError
+      ? e.userMessage
+      : "⚠️ Something went wrong. Please try again.";
+  ctx.reply(msg).catch(() => {});
 });
 
-bot.start();
+registerCommands(bot);
+
+process.once("SIGINT", () => bot.stop());
+process.once("SIGTERM", () => bot.stop());
+
+async function main() {
+  await redis.connect();
+  logger.info("Redis connected");
+  bot.start();
+}
+
+main().catch((err) => {
+  logger.error({ err }, "Bot startup failed");
+  process.exit(1);
+});

@@ -7,12 +7,29 @@ const CSRF_BYPASS_PATHS = new Set([
   "/api/donations/webhook",
   "/api/auth/login",
   "/api/auth/google/exchange",
+  "/api/auth/telegram/exchange",
+  "/api/auth/telegram/refresh",
   "/api/auth/token",
   "/api/auth/logout",
   "/api/auth/logout-all",
   "/api/auth/verify-email",
   "/api/auth/resend-verification",
 ]);
+
+// CSRF (double-submit) only protects ambient-credential requests (browser
+// cookies). Header-token clients — the Telegram bot sends `Authorization:
+// Bearer` with no auth cookie — can't be forged cross-site, so CSRF is moot.
+// Skipping them also avoids forcing a stateless API client through the
+// cookie/token dance. The web app always sends the auth cookie, so it stays
+// protected.
+function isHeaderTokenClient(req: Request): boolean {
+  const hasBearer =
+    typeof req.headers.authorization === "string" &&
+    req.headers.authorization.startsWith("Bearer ");
+  const authCookie = req.cookies?.["fintrack_access_token"];
+  const hasAuthCookie = typeof authCookie === "string" && authCookie.length > 0;
+  return hasBearer && !hasAuthCookie;
+}
 
 export const { generateCsrfToken, doubleCsrfProtection } = doubleCsrf({
   getSecret: () => ENV.CSRF_SECRET,
@@ -38,7 +55,8 @@ export const { generateCsrfToken, doubleCsrfProtection } = doubleCsrf({
   skipCsrfProtection: (req: Request) =>
     ENV.NODE_ENV === "test" ||
     (ENV.NODE_ENV !== "production" && req.path.startsWith("/api-docs")) ||
-    CSRF_BYPASS_PATHS.has(req.path),
+    CSRF_BYPASS_PATHS.has(req.path) ||
+    isHeaderTokenClient(req),
 });
 
 export function csrfProtection(

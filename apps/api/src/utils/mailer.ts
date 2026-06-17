@@ -1,4 +1,5 @@
 import { ENV } from "../config/env.js";
+import { logger } from "../lib/logger.js";
 
 export async function sendVerificationEmail(
   to: string,
@@ -6,9 +7,7 @@ export async function sendVerificationEmail(
   name: string,
 ): Promise<void> {
   if (!ENV.SMTP_HOST || !ENV.SMTP_USER || !ENV.SMTP_PASS) {
-    console.warn(
-      "[mailer] SMTP not configured — skipping verification email send",
-    );
+    logger.warn("SMTP not configured — skipping verification email send");
     return;
   }
 

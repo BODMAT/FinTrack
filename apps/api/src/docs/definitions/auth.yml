@@ -34,6 +34,79 @@ components:
         error:
           type: string
 
+    TelegramWidgetPayload:
+      type: object
+      required: [ id, auth_date, hash ]
+      properties:
+        id:
+          oneOf:
+            - type: string
+            - type: integer
+        first_name:
+          type: string
+        last_name:
+          type: string
+        username:
+          type: string
+        photo_url:
+          type: string
+          format: uri
+        auth_date:
+          oneOf:
+            - type: string
+              pattern: '^\d+$'
+            - type: integer
+        hash:
+          type: string
+          pattern: '^[a-f0-9]{64}$'
+
+    AuthTelegramExchangeInput:
+      oneOf:
+        - description: Bot exchange (trusted, no signature check)
+          type: object
+          required: [ source, telegramId, name ]
+          properties:
+            source:
+              type: string
+              enum: [ bot ]
+            telegramId:
+              type: string
+            name:
+              type: string
+        - description: Widget exchange (HMAC-SHA256 verified)
+          type: object
+          required: [ source, telegram ]
+          properties:
+            source:
+              type: string
+              enum: [ widget ]
+            telegram:
+              $ref: "#/components/schemas/TelegramWidgetPayload"
+      discriminator:
+        propertyName: source
+
+    AuthLinkTelegramInput:
+      type: object
+      required: [ telegram ]
+      properties:
+        telegram:
+          $ref: "#/components/schemas/TelegramWidgetPayload"
+
+    AuthLinkTelegramResponse:
+      type: object
+      properties:
+        linked:
+          type: boolean
+          example: true
+
+    AuthTokenPairResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+
 paths:
   /auth/login:
     post:
@@ -59,6 +132,12 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/AuthError"
+        "403":
+          description: Email verification required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthError"
 
   /auth/google/exchange:
     post:
@@ -80,6 +159,8 @@ paths:
                 $ref: "#/components/schemas/AuthAuthenticatedResponse"
         "400":
           description: Invalid payload
+        "401":
+          description: Invalid or unverified Google token
 
   /auth/token:
     post:
@@ -132,3 +213,149 @@ paths:
           description: All sessions revoked
         "401":
           description: Unauthorized
+
+  /auth/telegram/exchange:
+    post:
+      tags: [ Auth ]
+      summary: Exchange Telegram identity for a backend session
+      description: |
+        Two sources accepted:
+        - `bot` — trusted internal call from the bot (no signature verification).
+        - `widget` — Telegram Login Widget payload with HMAC-SHA256 signature and 24 h TTL.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthTelegramExchangeInput"
+            examples:
+              bot:
+                summary: Bot source
+                value:
+                  source: bot
+                  telegramId: "123456789"
+                  name: "Ivan"
+              widget:
+                summary: Widget source
+                value:
+                  source: widget
+                  telegram:
+                    id: 123456789
+                    first_name: "Ivan"
+                    auth_date: 1717200000
+                    hash: "abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"
+      responses:
+        "200":
+          description: |
+            Session created. Body shape depends on source:
+            - `widget` — auth cookies set, body `{ authenticated: true }`.
+            - `bot` — no cookies, body `{ accessToken, refreshToken }`.
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/AuthAuthenticatedResponse"
+                  - $ref: "#/components/schemas/AuthTokenPairResponse"
+        "401":
+          description: Invalid or expired signature (widget source)
+        "400":
+          description: Malformed payload
+
+  /auth/telegram/refresh:
+    post:
+      tags: [ Auth ]
+      summary: Rotate Telegram bot session tokens
+      description: Bot-only refresh endpoint — rotates the session tied to the stored Telegram bot session.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ refreshToken ]
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        "200":
+          description: Session rotated — new token pair issued
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthTokenPairResponse"
+        "400":
+          description: Missing refresh token
+        "401":
+          description: Invalid, expired or reused refresh token
+
+  /auth/link/telegram:
+    post:
+      tags: [ Auth ]
+      summary: Link a Telegram account to the authenticated user
+      description: |
+        Attaches a Telegram identity (verified via HMAC widget payload) to the currently authenticated user.
+        Idempotent if the same telegram_id is already linked to this user.
+        Returns 409 if the telegram_id is linked to a different account.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AuthLinkTelegramInput"
+      responses:
+        "200":
+          description: Linked successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthLinkTelegramResponse"
+        "409":
+          description: telegram_id already linked to a different account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AuthError"
+        "401":
+          description: Unauthorized
+
+  /auth/verify-email:
+    get:
+      tags: [ Auth ]
+      summary: Verify email address via token from email link
+      security: []
+      parameters:
+        - in: query
+          name: token
+          required: true
+          schema:
+            type: string
+          description: Email verification token
+      responses:
+        "200":
+          description: Email verified
+        "400":
+          description: Invalid or expired token
+
+  /auth/resend-verification:
+    post:
+      tags: [ Auth ]
+      summary: Resend email verification link
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [ email ]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        "204":
+          description: Verification email sent (if account exists)
+        "429":
+          description: Rate limited

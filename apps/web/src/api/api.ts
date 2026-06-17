@@ -38,7 +38,8 @@ api.interceptors.response.use(
     const isAuthEndpoint =
       requestUrl.includes("/auth/token") ||
       requestUrl.includes("/auth/login") ||
-      requestUrl.includes("/auth/google/exchange");
+      requestUrl.includes("/auth/google/exchange") ||
+      requestUrl.includes("/auth/telegram/exchange");
 
     if (error.response?.status === 403 && !originalRequest?._csrfRetry) {
       const isCsrfInvalid =

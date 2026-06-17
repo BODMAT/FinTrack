@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import type { LoginUserBody } from "@fintrack/types";
 import { useAuth } from "@/hooks/useAuth";
 import { RegisterPopup } from "./RegisterPopup";
@@ -9,6 +9,11 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { APP_BASE_PATH } from "@/config/constants";
 import { clearProcessedGoogleIdToken } from "@/lib/oauthBridge";
+import { TelegramLoginWidget } from "../auth/TelegramLoginWidget";
+import { GoogleIcon } from "../auth/AuthProviderIcons";
+import { exchangeTelegramWidgetSession } from "@/api/auth";
+import { useAuthStore } from "@/store/useAuthStore";
+import type { TelegramWidgetPayload } from "@fintrack/types";
 
 function normalizeLocalPath(path: string | null) {
   if (!path) return null;
@@ -26,6 +31,8 @@ export function LoginPopup() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { open, close } = usePopupStore();
+  const setAuthenticated = useAuthStore((state) => state.setAuthenticated);
+  const setBootstrapping = useAuthStore((state) => state.setBootstrapping);
   const {
     user,
     status: {
@@ -99,6 +106,25 @@ export function LoginPopup() {
     }, 300);
   };
 
+  const handleTelegramLogin = useCallback(
+    async (payload: TelegramWidgetPayload) => {
+      await exchangeTelegramWidgetSession(payload);
+      setAuthenticated(true);
+      setBootstrapping(false);
+      await queryClient.invalidateQueries();
+      const normalizedCurrentPath = normalizeLocalPath(pathname) ?? pathname;
+      const nextPath = normalizeLocalPath(searchParams.get("next"));
+      if (normalizedCurrentPath === "/login" && nextPath) {
+        router.push(`${APP_BASE_PATH}${nextPath}`);
+      } else if (normalizedCurrentPath === "/login") {
+        router.push(`${APP_BASE_PATH}/dashboard`);
+      }
+      router.refresh();
+      close();
+    },
+    [close, pathname, router, searchParams, setAuthenticated, setBootstrapping],
+  );
+
   const handleResendVerification = async () => {
     if (!loginFields.email.trim()) return;
     try {
@@ -148,7 +174,11 @@ export function LoginPopup() {
           />
           <button
             type="button"
-            aria-label={isPasswordVisible ? "Hide password" : "Show password"}
+            aria-label={
+              isPasswordVisible
+                ? t("auth.hidePassword")
+                : t("auth.showPassword")
+            }
             onClick={() => {
               setIsPasswordVisible((prev) => !prev);
             }}
@@ -190,20 +220,24 @@ export function LoginPopup() {
         <button type="submit" disabled={isLoggingIn} className="custom-btn">
           {t("auth.loginButton")}
         </button>
-        <button
-          type="button"
-          onClick={() => {
-            clearProcessedGoogleIdToken();
-            void signIn("google", {
-              callbackUrl: `${APP_BASE_PATH}/dashboard`,
-            });
-          }}
-          className="custom-btn"
-        >
-          Continue with Google
-        </button>
+        <div className="flex flex-col sm:flex-row sm:items-start gap-3 w-full">
+          <button
+            type="button"
+            onClick={() => {
+              clearProcessedGoogleIdToken();
+              void signIn("google", {
+                callbackUrl: `${APP_BASE_PATH}/dashboard`,
+              });
+            }}
+            className="custom-btn flex flex-1 items-center justify-center gap-2"
+          >
+            <GoogleIcon />
+            Google
+          </button>
+          <TelegramLoginWidget mode="login" onAuth={handleTelegramLogin} />
+        </div>
 
-        <div className="">
+        <>
           {loginSuccess && (
             <span className="text-green-500">{t("auth.loginSuccess")}</span>
           )}
@@ -219,12 +253,12 @@ export function LoginPopup() {
                 className="custom-btn"
               >
                 {isResendingVerification
-                  ? "Sending verification email..."
-                  : "Resend verification email"}
+                  ? t("auth.sendingVerification")
+                  : t("auth.resendVerification")}
               </button>
               {resendSuccess && (
                 <span className="text-green-500">
-                  Verification email sent. Check your inbox.
+                  {t("auth.verificationEmailSent")}
                 </span>
               )}
               {resendVerificationError && (
@@ -233,7 +267,7 @@ export function LoginPopup() {
             </div>
           )}
           {isLoggingIn && <span>{t("common.loading")}</span>}
-        </div>
+        </>
         <span className="h-0.5 w-full bg-(--color-background) rounded" />
       </form>
       <div className="w-full flex gap-5 justify-space-between">

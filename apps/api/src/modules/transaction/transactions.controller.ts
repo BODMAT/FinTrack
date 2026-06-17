@@ -195,7 +195,8 @@ export async function updateTransaction(
         },
       };
     }
-    if (validatedBody.location === null) {
+    // Prisma throws P2025 (→404) on deleting a missing relation; skip if none exists.
+    if (validatedBody.location === null && transactionOfCurrentUser.location) {
       prismaData.location = { delete: true };
     }
 

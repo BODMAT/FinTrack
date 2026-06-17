@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { Prisma } from "@prisma/client";
 import { ZodError } from "zod";
+import { getLogger } from "../lib/logger.js";
 
 export class AppError extends Error {
   statusCode: number;
@@ -25,8 +26,6 @@ export function errorHandler(
   res: Response,
   _next: NextFunction,
 ) {
-  console.error(err instanceof Error ? err.stack : err);
-
   let statusCode: number = 500;
   let response: ErrorResponse = { error: "Internal Server Error" };
 
@@ -53,6 +52,12 @@ export function errorHandler(
   } else if ((err as { type?: string }).type === "entity.too.large") {
     statusCode = 413;
     response = { error: "Request entity too large" };
+  }
+
+  if (statusCode >= 500) {
+    getLogger().error({ err }, "Unhandled error");
+  } else {
+    getLogger().warn({ err }, "Request error");
   }
 
   return res.status(statusCode).json(response);

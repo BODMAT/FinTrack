@@ -5,7 +5,10 @@ import type { app as AppType } from "../../src/app.js";
 import type * as AuthServiceTypes from "../../src/modules/auth/service.js";
 import type * as UserServiceTypes from "../../src/modules/user/service.js";
 import type { AppError as AppErrorType } from "../../src/middleware/errorHandler.js";
+import crypto from "node:crypto";
 import type { generateAccessToken as GenerateAccessTokenType } from "../../src/modules/auth/controller.js";
+
+process.env.TELEGRAM_BOT_TOKEN = "123456:test_bot_token";
 
 const mockVerifyIdToken =
   jest.fn<
@@ -72,6 +75,30 @@ const userStub: UserStub = {
     },
   ],
 };
+
+function makeTelegramWidgetPayload(overrides: Record<string, unknown> = {}) {
+  const payload: Record<string, unknown> = {
+    id: "123456789",
+    first_name: "Telegram",
+    username: "fintrack_user",
+    auth_date: String(Math.floor(Date.now() / 1000)),
+    ...overrides,
+  };
+  const dataCheckString = Object.entries(payload)
+    .filter(([, value]) => value !== undefined)
+    .map(([key, value]) => `${key}=${String(value)}`)
+    .sort()
+    .join("\n");
+  const secret = crypto
+    .createHash("sha256")
+    .update(process.env.TELEGRAM_BOT_TOKEN as string)
+    .digest();
+  payload.hash = crypto
+    .createHmac("sha256", secret)
+    .update(dataCheckString)
+    .digest("hex");
+  return payload;
+}
 
 describe("Auth Integration", () => {
   beforeEach(() => {
@@ -193,6 +220,18 @@ describe("Auth Integration", () => {
 
     expect(response.status).toBe(401);
     expect(response.body.error).toBe("Unable to complete Google login");
+  });
+
+  it("rejects Telegram widget exchange with an invalid signature", async () => {
+    const telegram = makeTelegramWidgetPayload({ hash: undefined });
+    telegram.hash = "0".repeat(64);
+
+    const response = await request(app)
+      .post("/api/auth/telegram/exchange")
+      .send({ source: "widget", telegram });
+
+    expect(response.status).toBe(401);
+    expect(response.body.error).toBe("Invalid Telegram login signature");
   });
 
   it("returns 200 for /api/users/me with valid access token cookie", async () => {

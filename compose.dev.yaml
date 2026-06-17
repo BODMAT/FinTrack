@@ -1,4 +1,41 @@
 services:
+  # ── MongoDB ────────────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── mongo-express ─────────────────────────────────────────────────────────
+  mongo-express:
+    image: mongo-express:latest
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_URL: mongodb://mongo:27017/
+      ME_CONFIG_BASICAUTH: "false"
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  # ── Redis ──────────────────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   # ── PostgreSQL ─────────────────────────────────────────────────────────────
   postgres:
@@ -12,7 +49,7 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U fintrack -d fintrack" ]
+      test: ["CMD-SHELL", "pg_isready -U fintrack -d fintrack"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -65,13 +102,25 @@ services:
       - NODE_ENV=development
       - DX_SERVICE_NAME=api
       - COREPACK_HOME=/corepack
+      - REDIS_URL=redis://redis:6379
+      - MONGO_URL=mongodb://mongo:27017/fintrack
     env_file:
       - apps/api/.env.docker
     # Apply any pending migrations before starting the dev server.
     # `migrate deploy` is safe to run repeatedly — it only applies new migrations.
     command: sh -c "corepack enable && pnpm run prisma:migrate:deploy && pnpm run dev"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 40s
     depends_on:
       postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      mongo:
         condition: service_healthy
       init:
         condition: service_completed_successfully
@@ -84,7 +133,7 @@ services:
       context: .
       dockerfile: scripts/Dockerfile.runner
     working_dir: /app
-    profiles: [ "tools" ] # Prevent starting automatically with 'up'
+    profiles: ["tools"] # Prevent starting automatically with 'up'
     volumes:
       - .:/app
       - root_node_modules:/app/node_modules
@@ -113,14 +162,17 @@ services:
       - NODE_ENV=development
       - DX_SERVICE_NAME=bot
       - COREPACK_HOME=/corepack
+      - REDIS_URL=redis://redis:6379
     env_file:
       - apps/bot/.env.docker
     command: sh -c "corepack enable && pnpm run dev"
     depends_on:
+      redis:
+        condition: service_healthy
       init:
         condition: service_completed_successfully
       api:
-        condition: service_started
+        condition: service_healthy
 
   # ── Next.js web ────────────────────────────────────────────────────────────
   web:
@@ -138,8 +190,10 @@ services:
     environment:
       - NODE_ENV=development
       - NEXT_PUBLIC_API_URL=http://localhost:8000/api
+      - NEXT_PUBLIC_TELEGRAM_BOT_ID=${NEXT_PUBLIC_TELEGRAM_BOT_ID:-}
       - DX_SERVICE_NAME=web
       - COREPACK_HOME=/corepack
+      - WATCHPACK_POLLING=true
     env_file:
       - apps/web/.env.docker
     command: sh -c "corepack enable && pnpm run dev"
@@ -147,11 +201,13 @@ services:
       init:
         condition: service_completed_successfully
       api:
-        condition: service_started
+        condition: service_healthy
 
 volumes:
   postgres_data:
   pgadmin_data:
+  redis_data:
+  mongo_data:
   root_node_modules:
   api_node_modules:
   bot_node_modules:

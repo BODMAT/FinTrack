@@ -4,6 +4,7 @@ import cors from "cors";
 import helmet from "helmet";
 import cookieParser from "cookie-parser";
 import { errorHandler } from "./middleware/errorHandler.js";
+import { requestIdMiddleware } from "./middleware/requestId.js";
 import { csrfProtection } from "./middleware/csrf.js";
 import { apiRouter } from "./routes/apiRoutes.js";
 import { swaggerDocs } from "./docs/swagger.js";
@@ -28,6 +29,7 @@ const allowedOrigins =
     : Array.from(new Set([...configuredOrigins, ...defaultDevOrigins]));
 
 app.set("trust proxy", 1);
+app.use(requestIdMiddleware);
 
 app.use(
   helmet({

@@ -166,15 +166,16 @@ pnpm run dev
 
 `bash dx setup` copies all example files automatically. For manual setup:
 
-| File                        | Example                             | Notes                                                      |
-| --------------------------- | ----------------------------------- | ---------------------------------------------------------- |
-| `apps/api/.env`             | `apps/api/.env.example`             | Local dev — fill in secrets                                |
-| `apps/api/.env.docker`      | `apps/api/.env.docker.example`      | Docker dev — DB host is `postgres`                         |
-| `apps/api/.env.test`        | `apps/api/.env.test.example`        | Local tests — points to `fintrack_test`                    |
-| `apps/api/.env.test.docker` | `apps/api/.env.test.docker.example` | Docker tests — DB host is `postgres`                       |
-| `apps/web/.env`             | `apps/web/.env.example`             | Set `NEXT_PUBLIC_API_URL`, `NEXTAUTH_SECRET`, Google OAuth |
-| `apps/bot/.env`             | `apps/bot/.env.example`             | Local dev — set `BOT_API_KEY`, `HOST`, `PORT`              |
-| `apps/bot/.env.docker`      | `apps/bot/.env.docker.example`      | Docker dev — same vars, host points to Docker service      |
+| File                        | Example                             | Notes                                                        |
+| --------------------------- | ----------------------------------- | ------------------------------------------------------------ |
+| `.env` (repo root)          | `.env.example`                      | Docker Compose build args — `NEXT_PUBLIC_TELEGRAM_BOT_ID`    |
+| `apps/api/.env`             | `apps/api/.env.example`             | Local dev — fill in secrets                                  |
+| `apps/api/.env.docker`      | `apps/api/.env.docker.example`      | Docker dev — DB host is `postgres`                           |
+| `apps/api/.env.test`        | `apps/api/.env.test.example`        | Local tests — points to `fintrack_test`                      |
+| `apps/api/.env.test.docker` | `apps/api/.env.test.docker.example` | Docker tests — DB host is `postgres`                         |
+| `apps/web/.env`             | `apps/web/.env.example`             | Set `NEXT_PUBLIC_API_URL`, `NEXTAUTH_SECRET`, Google OAuth   |
+| `apps/bot/.env`             | `apps/bot/.env.example`             | Local dev — set `TELEGRAM_BOT_TOKEN`, `API_URL`, `REDIS_URL` |
+| `apps/bot/.env.docker`      | `apps/bot/.env.docker.example`      | Docker dev — same vars, host points to Docker service        |
 
 Each example file is annotated — read it for variable descriptions and required values.
 
@@ -256,7 +257,7 @@ The test database (`fintrack_test`) is separate from the dev DB and is used excl
 cd apps/api
 
 cp .env.example .env
-# fill in DATABASE_URL, ACCESS_TOKEN_SECRET, GROQ_API_KEY_1, STRIPE_*, GOOGLE_CLIENT_ID ...
+# fill in DATABASE_URL, ACCESS_TOKEN_SECRET, GROQ_API_KEY_1, STRIPE_*, GOOGLE_CLIENT_ID, TELEGRAM_BOT_TOKEN ...
 
 pnpm run prisma:migrate:dev  # apply migrations
 pnpm run prisma:seed         # optional seed data
@@ -283,7 +284,7 @@ Tests load `.env.test` automatically — no manual `NODE_ENV` export needed. Ens
 cd apps/web
 
 cp .env.example .env
-# set NEXT_PUBLIC_API_URL, NEXTAUTH_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET
+# set NEXT_PUBLIC_API_URL, NEXTAUTH_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, NEXT_PUBLIC_TELEGRAM_BOT_ID
 
 pnpm run dev    # http://localhost:5173/FinTrack
 ```
@@ -302,8 +303,8 @@ bash dx prod web     # start web container
 cd apps/bot
 
 cp .env.example .env
-# fill in BOT_API_KEY with your Telegram bot token (from @BotFather)
-# fill in HOST and PORT to point at the running API
+# fill in TELEGRAM_BOT_TOKEN with your Telegram bot token (from @BotFather)
+# fill in API_URL to point at the running API, and REDIS_URL
 
 pnpm run dev   # tsc -w + nodemon dist/bot.js
 ```
@@ -785,24 +786,7 @@ bash dx run clean:locks:dx && bash dx exec pnpm install  # Docker
 
 > **Note (Docker):** `node_modules` directories are Docker named volumes — they cannot be removed via `rm`, so there is no `clean:modules:dx`. Use `reinstall:dx` instead: stops containers, removes `node_modules` volumes via the Docker API, restarts. Database volumes (`postgres_data`, `pgadmin_data`) are preserved.
 
-**Granular flags (run the script directly):**
-
-```bash
-bash scripts/clean.sh --help          # full flag reference
-bash scripts/clean.sh --modules       # node_modules only
-bash scripts/clean.sh --locks         # lock files only
-bash scripts/clean.sh --dist          # build output + caches
-bash scripts/clean.sh --all           # everything
-bash scripts/clean.sh --all -y        # skip confirmation (CI / containers)
-```
-
-Targets covered by `--dist`: `dist/`, `.next/`, `out/`, `build/`, `.turbo/`,
-`coverage/`, `.svelte-kit/`, `.nuxt/`, `.astro/`, `.vite/`, `.cache/`,
-`.parcel-cache/`, plus `*.tsbuildinfo`, `.eslintcache`, `.prettiercache`,
-`.stylelintcache`.
-
-The script previews what will be deleted before acting and skips `.git`
-and nested `node_modules` automatically.
+Run `bash scripts/clean.sh --help` for the full flag reference and list of `--dist` targets.
 
 ---
 

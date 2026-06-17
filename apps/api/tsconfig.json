@@ -47,5 +47,10 @@
       "path": "../../packages/types"
     }
   ],
+  "watchOptions": {
+    "watchFile": "priorityPollingInterval",
+    "watchDirectory": "dynamicPriorityPolling",
+    "fallbackPolling": "dynamicPriority"
+  },
   "include": ["src/**/*"]
 }

@@ -3,7 +3,8 @@ import { prisma } from "../../prisma/client.js";
 import * as userService from "../user/service.js";
 import { AppError } from "../../middleware/errorHandler.js";
 import { generateSecureToken, hashToken } from "../../utils/authSecurity.js";
-import type { Prisma } from "@prisma/client";
+import { logEvent } from "../audit/index.js";
+import { Prisma, type Prisma as PrismaTypes } from "@prisma/client";
 
 const DUMMY_PASSWORD_HASH =
   "$2b$10$9QebfQfX8hS8GDYQz9G8vOhF8vwPUfY2K/BysI0h9M2v8a1FhLB2K";
@@ -20,16 +21,17 @@ export async function login(email: string, password: string) {
   const passwordHash = authMethod?.password_hash ?? DUMMY_PASSWORD_HASH;
   const isPasswordValid = await bcrypt.compare(password, passwordHash);
   if (!authMethod || !isPasswordValid) {
+    void logEvent("auth.login_failed", { method: "email" });
     throw new AppError("Invalid credentials", 401);
   }
 
-  if (isPasswordValid) {
-    return await userService.getUser(authMethod.userId);
-  }
-  throw new AppError("Invalid credentials", 401);
+  void logEvent("auth.login", { method: "email" }, authMethod.userId);
+  return await userService.getUser(authMethod.userId);
 }
 
-export async function createSession(data: Prisma.SessionUncheckedCreateInput) {
+export async function createSession(
+  data: PrismaTypes.SessionUncheckedCreateInput,
+) {
   return prisma.session.create({ data });
 }
 
@@ -57,7 +59,7 @@ export async function findSessionById(sessionId: string) {
 
 export async function rotateSession(
   currentSessionId: string,
-  newSessionData: Prisma.SessionUncheckedCreateInput,
+  newSessionData: PrismaTypes.SessionUncheckedCreateInput,
 ) {
   return prisma.$transaction(async (tx) => {
     const now = new Date();
@@ -145,6 +147,7 @@ export async function logoutByTokenHash(tokenHash: string) {
 
   if (!session) return null;
   await revokeSession(session.sessionId);
+  void logEvent("auth.logout", {}, session.userId);
   return session;
 }
 
@@ -166,6 +169,11 @@ export async function loginWithGoogle(params: {
   });
 
   if (existingGoogleMethod) {
+    void logEvent(
+      "auth.login",
+      { method: "google" },
+      existingGoogleMethod.userId,
+    );
     return userService.getUser(existingGoogleMethod.userId);
   }
 
@@ -201,6 +209,11 @@ export async function loginWithGoogle(params: {
       },
     });
 
+    void logEvent(
+      "auth.login",
+      { method: "google" },
+      existingEmailMethod.userId,
+    );
     return userService.getUser(existingEmailMethod.userId);
   }
 
@@ -231,6 +244,11 @@ export async function loginWithGoogle(params: {
       },
     });
 
+    void logEvent(
+      "auth.login",
+      { method: "google" },
+      existingByPrimaryEmail.id,
+    );
     return userService.getUser(existingByPrimaryEmail.id);
   }
 
@@ -261,6 +279,7 @@ export async function loginWithGoogle(params: {
     },
   });
 
+  void logEvent("auth.login", { method: "google" }, user.id);
   return user;
 }
 
@@ -320,4 +339,93 @@ export async function findVerificationTokenByUserId(userId: string) {
 
 export async function findAuthMethodByEmail(email: string) {
   return prisma.authMethod.findUnique({ where: { email } });
+}
+
+export async function loginWithTelegram(telegramId: string, name: string) {
+  const existing = await prisma.authMethod.findUnique({
+    where: { telegram_id: telegramId },
+  });
+
+  if (existing) {
+    void logEvent("auth.login", { method: "telegram" }, existing.userId);
+    return userService.getUser(existing.userId);
+  }
+
+  const newUser = await prisma.user.create({
+    data: {
+      name,
+      isVerified: true,
+      authMethods: {
+        create: {
+          type: "TELEGRAM",
+          telegram_id: telegramId,
+        },
+      },
+    },
+    include: {
+      authMethods: {
+        omit: { password_hash: true, userId: true },
+      },
+    },
+  });
+  void logEvent("auth.login", { method: "telegram" }, newUser.id);
+  return newUser;
+}
+
+export async function linkTelegramToUser(params: {
+  userId: string;
+  telegramId: string;
+}) {
+  const { userId, telegramId } = params;
+
+  const existingTelegramMethod = await prisma.authMethod.findUnique({
+    where: { telegram_id: telegramId },
+  });
+
+  if (existingTelegramMethod) {
+    if (existingTelegramMethod.userId === userId) {
+      void logEvent("auth.telegram.link.idempotent", { telegramId }, userId);
+      return userService.getUser(userId);
+    }
+
+    void logEvent("auth.telegram.link_conflict", { telegramId }, userId);
+    throw new AppError("Telegram account is already linked", 409);
+  }
+
+  const currentTelegramMethod = await prisma.authMethod.findFirst({
+    where: {
+      userId,
+      type: "TELEGRAM",
+    },
+  });
+
+  if (currentTelegramMethod?.telegram_id) {
+    void logEvent(
+      "auth.telegram.link_conflict",
+      { existingTelegramId: currentTelegramMethod.telegram_id },
+      userId,
+    );
+    throw new AppError("User already has a linked Telegram account", 409);
+  }
+
+  try {
+    await prisma.authMethod.create({
+      data: {
+        type: "TELEGRAM",
+        telegram_id: telegramId,
+        user: { connect: { id: userId } },
+      },
+    });
+  } catch (err) {
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2002"
+    ) {
+      throw new AppError("Telegram account is already linked", 409);
+    }
+    throw err;
+  }
+
+  void logEvent("auth.telegram.linked", { telegramId }, userId);
+  return userService.getUser(userId);
 }

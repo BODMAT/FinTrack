@@ -1,40 +1,53 @@
+import type { Server } from "node:http";
 import { ENV } from "./config/env.js";
-import { app } from "./app.js";
+import { redis } from "./lib/redis.js";
 import { prisma } from "./prisma/client.js";
+import { connectMongo, disconnectMongo } from "./lib/mongo.js";
+import { logger } from "./lib/logger.js";
 
 const HOST = ENV.HOST;
 const PORT = ENV.PORT;
 
-let server: ReturnType<typeof app.listen>;
+let server: Server;
 
 (async () => {
   try {
+    await redis.connect();
+    logger.info("Redis connected");
+
     await prisma.$connect();
+    await connectMongo();
+
+    // Dynamic import ensures app (and rate limiters) initialize after Redis is ready
+    const { app } = await import("./app.js");
 
     server = app.listen(PORT, () => {
-      console.log(`🚀 Server is running on http://${HOST}:${PORT}`);
-      console.log(`📡 API: http://${HOST}:${PORT}/api`);
-      console.log(`📚 API Docs: http://${HOST}:${PORT}/api-docs`);
+      logger.info(`Server running on http://${HOST}:${PORT}`);
+      logger.info(`API: http://${HOST}:${PORT}/api`);
+      logger.info(`Docs: http://${HOST}:${PORT}/api-docs`);
     });
   } catch (err) {
-    console.error("❌ Error while starting the app:", err);
+    logger.error({ err }, "Error while starting the app");
     process.exit(1);
   }
 })();
 
 function gracefulShutdown(signal: string) {
   return async () => {
-    console.log(`📴 Received ${signal}. Closing server...`);
+    logger.info(`Received ${signal}. Closing server...`);
 
     server.close(async () => {
-      console.log("🌙 HTTP server closed.");
+      logger.info("HTTP server closed");
 
       try {
         await prisma.$disconnect();
-        console.log("🔌 Prisma disconnected.");
+        logger.info("Prisma disconnected");
+        await disconnectMongo();
+        await redis.quit();
+        logger.info("Redis disconnected");
         process.exit(0);
       } catch (err) {
-        console.error("❌ Error during shutdown:", err);
+        logger.error({ err }, "Error during shutdown");
         process.exit(1);
       }
     });
@@ -45,12 +58,12 @@ process.on("SIGINT", gracefulShutdown("SIGINT"));
 process.on("SIGTERM", gracefulShutdown("SIGTERM"));
 
 process.on("uncaughtException", (err) => {
-  console.error("❌ Uncaught Exception:", err);
+  logger.error({ err }, "Uncaught Exception");
   process.exit(1);
 });
 process.on("unhandledRejection", (reason) => {
-  console.error(
-    "❌ Unhandled Rejection:",
-    reason instanceof Error ? reason.stack : reason,
+  logger.error(
+    { reason: reason instanceof Error ? reason.stack : reason },
+    "Unhandled Rejection",
   );
 });

@@ -10,6 +10,7 @@ module.exports = {
   moduleNameMapper: {
     "^(\\.{1,2}/.*)\\.js$": "$1",
     "^@fintrack/types$": "<rootDir>/../../packages/types/src/index.ts",
+    "^ioredis$": "<rootDir>/test/mocks/ioredis.ts",
   },
   transform: {
     "^.+\\.tsx?$": [
