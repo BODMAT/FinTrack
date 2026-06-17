@@ -3,6 +3,7 @@ import type { MyContext } from "../context.js";
 import { api } from "../services/apiClient.js";
 import { parseTransaction } from "../utils/parseTransaction.js";
 import { extractLocation, locationKeyboard } from "../utils/location.js";
+import { currencyKeyboard, extractCurrency } from "../utils/currency.js";
 import { callExternal } from "../utils/apiExternal.js";
 
 export async function addTransactionConversation(
@@ -22,9 +23,14 @@ export async function addTransactionConversation(
   const typeLabel = type === "INCOME" ? "🟢 Income" : "🔴 Expense";
 
   await ctx.reply(
-    `${typeLabel}: *${absAmount}*\nTitle: ${title || "—"}\n\nShare location?`,
-    { reply_markup: locationKeyboard(), parse_mode: "Markdown" },
+    `${typeLabel}: *${absAmount}*\nTitle: ${title || "—"}\n\nChoose currency:`,
+    { reply_markup: currencyKeyboard(), parse_mode: "Markdown" },
   );
+
+  const currencyMsg = await conversation.wait();
+  const currencyCode = extractCurrency(currencyMsg);
+
+  await ctx.reply("Share location?", { reply_markup: locationKeyboard() });
 
   const locationMsg = await conversation.wait();
   const location = extractLocation(locationMsg);
@@ -34,6 +40,7 @@ export async function addTransactionConversation(
       title: title || "Transaction",
       type,
       amount: absAmount,
+      currencyCode,
       ...(location ? { location } : {}),
     }),
   );

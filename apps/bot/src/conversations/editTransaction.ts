@@ -6,6 +6,10 @@ import {
   extractLocationEdit,
   locationEditKeyboard,
 } from "../utils/location.js";
+import {
+  currencyEditKeyboard,
+  extractCurrencyEdit,
+} from "../utils/currency.js";
 import { callExternal } from "../utils/apiExternal.js";
 
 export async function editTransactionConversation(
@@ -35,6 +39,13 @@ export async function editTransactionConversation(
   }
   const { absAmount, title, type } = parsed;
 
+  await ctx.reply("Choose currency or keep the current one:", {
+    reply_markup: currencyEditKeyboard(),
+  });
+
+  const currencyMsg = await conversation.wait();
+  const currencyCode = extractCurrencyEdit(currencyMsg);
+
   await ctx.reply(
     "Update location? Keep current, send a new one, or remove it.",
     {
@@ -50,6 +61,7 @@ export async function editTransactionConversation(
       title: title || "Transaction",
       type,
       amount: absAmount,
+      ...(currencyCode !== undefined ? { currencyCode } : {}),
       // undefined = keep (omit); null = remove; LatLng = set.
       ...(location !== undefined ? { location } : {}),
     }),
