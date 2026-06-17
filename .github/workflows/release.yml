@@ -77,3 +77,40 @@ jobs:
         with:
           sarif_file: trivy-${{ matrix.image_name }}.sarif
           category: ${{ matrix.image_name }}
+
+  deploy-bot:
+    name: Deploy bot to VM
+    needs: build-scan
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: read
+    steps:
+      - name: Resolve bot image ref
+        id: img
+        run: echo "image=ghcr.io/$(echo '${{ github.repository }}' | tr '[:upper:]' '[:lower:]')-bot:latest" >> "$GITHUB_OUTPUT"
+
+      - name: Pull new image and recreate container
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          envs: GHCR_USER,GHCR_TOKEN,IMAGE
+          script: |
+            set -e
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            docker pull "$IMAGE"
+            docker logout ghcr.io
+            docker rm -f fintrack-bot 2>/dev/null || true
+            docker run -d \
+              --name fintrack-bot \
+              --restart unless-stopped \
+              --env-file ~/bot.env \
+              "$IMAGE"
+            docker image prune -f
+        env:
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IMAGE: ${{ steps.img.outputs.image }}
