@@ -128,7 +128,7 @@ importers:
         version: 9.6.3
       nodemailer:
         specifier: ^8.0.5
-        version: 8.0.11
+        version: 9.0.1
       openai:
         specifier: ^6.42.0
         version: 6.43.0(zod@4.4.3)
@@ -4758,6 +4758,10 @@ packages:
 
   nodemailer@8.0.11:
     resolution: {integrity: sha512-nrO/pDAUKl+wXX+lx16tDLbnm0fW6sK/x8mgohaCpg+CdCEl482bD4tCuAZk2DyliruiNTIZxRCoWkDqJEnAiA==}
+    engines: {node: '>=6.0.0'}
+
+  nodemailer@9.0.1:
+    resolution: {integrity: sha512-Gwv8SQewT616ZM/URn0H54b8PWo/Wum7md3EW2aWy1lO27+WZCX+Xyak3J+NlmHUjDh5ME+uesJUDRbR3Ye8Bw==}
     engines: {node: '>=6.0.0'}
 
   nodemon@3.1.14:
@@ -11138,7 +11142,10 @@ snapshots:
 
   node-releases@2.0.47: {}
 
-  nodemailer@8.0.11: {}
+  nodemailer@8.0.11:
+    optional: true
+
+  nodemailer@9.0.1: {}
 
   nodemon@3.1.14:
     dependencies:
