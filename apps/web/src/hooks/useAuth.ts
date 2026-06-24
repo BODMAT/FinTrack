@@ -17,6 +17,7 @@ import {
 import { useAuthStore } from "@/store/useAuthStore";
 import type {
   CreateUserBody,
+  UpdateUserBody,
   LoginUserBody,
   LoginUserResponse,
   UserResponse,
@@ -83,7 +84,7 @@ export const useAuth = () => {
     mutationFn: resendVerificationEmail,
   });
 
-  const update = useMutation<UserResponse, ApiError, CreateUserBody>({
+  const update = useMutation<UserResponse, ApiError, UpdateUserBody>({
     mutationFn: updateMe,
     onSuccess: (data) => {
       queryClient.setQueryData(["user", "me"], data);

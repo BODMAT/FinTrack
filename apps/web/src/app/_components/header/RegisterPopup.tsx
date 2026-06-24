@@ -4,13 +4,11 @@ import type {
   CreateUserBody as User,
   CreateAuthMethodBody,
   TelegramWidgetPayload,
-  UserResponse,
 } from "@fintrack/types";
 import { usePopupStore } from "@/store/popup";
 import { LoginPopup } from "./LoginPopup";
 import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
 import { RegisterPopupForm } from "./RegisterPopupForm";
-import { RegisterPopupActions } from "./RegisterPopupActions";
 import { createInitialUserLocalInfo } from "@/utils/register";
 import { signIn } from "next-auth/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
@@ -18,11 +16,9 @@ import { APP_BASE_PATH } from "@/config/constants";
 import { clearProcessedGoogleIdToken } from "@/lib/oauthBridge";
 import { TelegramLoginWidget } from "../auth/TelegramLoginWidget";
 import { GoogleIcon } from "../auth/AuthProviderIcons";
-import { exchangeTelegramWidgetSession, linkTelegramAccount } from "@/api/auth";
+import { exchangeTelegramWidgetSession } from "@/api/auth";
 import { queryClient } from "@/api/queryClient";
 import { useAuthStore } from "@/store/useAuthStore";
-
-type AuthMethod = UserResponse["authMethods"][number];
 
 function normalizeLocalPath(path: string | null) {
   if (!path) return null;
@@ -43,50 +39,16 @@ export function RegisterPopup() {
   const setBootstrapping = useAuthStore((state) => state.setBootstrapping);
   const { open, close } = usePopupStore();
   const {
-    user,
-    status: {
-      registerError,
-      isRegistering,
-      isLoggingOutAll,
-      logoutAllError,
-      isDeletingAccount,
-      deleteAccountError,
-    },
-    actions: { register, logout, logoutAll, deleteAccount },
+    status: { registerError, isRegistering },
+    actions: { register },
   } = useAuth();
 
   const [registerSuccess, setRegisterSuccess] = useState(false);
-  const [telegramLinkSuccess, setTelegramLinkSuccess] = useState(false);
-  const [telegramLinkError, setTelegramLinkError] = useState("");
   const [verificationPendingEmail, setVerificationPendingEmail] = useState("");
   const [passwordValidationError, setPasswordValidationError] = useState("");
   const [userLocalInfo, setUserLocalInfo] = useState<User>(
     createInitialUserLocalInfo(),
   );
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch {
-      void 0;
-    }
-  };
-
-  const handleLogoutAll = async () => {
-    try {
-      await logoutAll();
-    } catch {
-      void 0;
-    }
-  };
-
-  const handleDeleteAccount = () => {
-    deleteAccount(undefined, {
-      onSuccess: () => {
-        close();
-      },
-    });
-  };
 
   const handleOpenLoginPopup = () => {
     close();
@@ -162,14 +124,6 @@ export function RegisterPopup() {
     }
   };
 
-  const hasTelegram = user?.authMethods.some(
-    (method: AuthMethod) => method.type === "TELEGRAM" && method.telegram_id,
-  );
-
-  const hasGoogle = user?.authMethods.some(
-    (method: AuthMethod) => method.type === "GOOGLE",
-  );
-
   const handleTelegramLogin = useCallback(
     async (payload: TelegramWidgetPayload) => {
       await exchangeTelegramWidgetSession(payload);
@@ -189,61 +143,35 @@ export function RegisterPopup() {
     [close, pathname, router, searchParams, setAuthenticated, setBootstrapping],
   );
 
-  const handleTelegramLink = useCallback(
-    async (payload: TelegramWidgetPayload) => {
-      setTelegramLinkSuccess(false);
-      setTelegramLinkError("");
-      try {
-        await linkTelegramAccount(payload);
-        await queryClient.invalidateQueries({ queryKey: ["user", "me"] });
-        setTelegramLinkSuccess(true);
-      } catch (err) {
-        setTelegramLinkError(
-          err instanceof Error ? err.message : t("auth.telegramLinkFailed"),
-        );
-      }
-    },
-    [t],
-  );
-
   return (
-    <section className="flex items-center flex-col gap-[20px] w-full">
+    <section className="flex items-center flex-col gap-5 w-full">
       <form
         onSubmit={(e) => {
           handleRegister(e);
         }}
-        className="flex flex-col gap-[20px] w-full"
+        className="flex flex-col gap-5 w-full"
       >
         <RegisterPopupForm
           userLocalInfo={userLocalInfo}
           setUserLocalInfo={setUserLocalInfo}
           isRegistering={isRegistering}
         />
-        {(!user || !hasGoogle || !hasTelegram) && (
-          <div className="flex flex-col sm:flex-row sm:items-start gap-3 w-full">
-            {(!user || !hasGoogle) && (
-              <button
-                type="button"
-                onClick={() => {
-                  clearProcessedGoogleIdToken();
-                  void signIn("google", {
-                    callbackUrl: `${APP_BASE_PATH}/dashboard`,
-                  });
-                }}
-                className="custom-btn flex flex-1 items-center justify-center gap-2"
-              >
-                <GoogleIcon />
-                {user ? t("auth.linkGoogle") : "Google"}
-              </button>
-            )}
-            {!user && (
-              <TelegramLoginWidget mode="login" onAuth={handleTelegramLogin} />
-            )}
-            {user && !hasTelegram && (
-              <TelegramLoginWidget mode="link" onAuth={handleTelegramLink} />
-            )}
-          </div>
-        )}
+        <div className="flex flex-col sm:flex-row sm:items-start gap-3 w-full">
+          <button
+            type="button"
+            onClick={() => {
+              clearProcessedGoogleIdToken();
+              void signIn("google", {
+                callbackUrl: `${APP_BASE_PATH}/dashboard`,
+              });
+            }}
+            className="custom-btn flex flex-1 items-center justify-center gap-2"
+          >
+            <GoogleIcon />
+            Google
+          </button>
+          <TelegramLoginWidget mode="login" onAuth={handleTelegramLogin} />
+        </div>
 
         <>
           {passwordValidationError && (
@@ -259,36 +187,16 @@ export function RegisterPopup() {
               })}
             </div>
           )}
-          {telegramLinkSuccess && (
-            <span className="text-green-500">{t("auth.telegramLinked")}</span>
-          )}
-          {telegramLinkError && (
-            <span className="text-red-500">{telegramLinkError}</span>
-          )}
           {registerError && (
             <span className="text-red-500">{registerError}</span>
           )}
           {isRegistering && <span>{t("common.loading")}</span>}
         </>
-        <span className="h-[2px] w-full bg-(--color-background) rounded" />
+        <span className="h-0.5 w-full bg-(--color-background) rounded" />
       </form>
-      <RegisterPopupActions
-        user={user}
-        isLoggingOutAll={isLoggingOutAll}
-        isDeletingAccount={isDeletingAccount}
-        onLogout={() => {
-          void handleLogout();
-        }}
-        onLogoutAll={() => {
-          void handleLogoutAll();
-        }}
-        onDeleteAccount={handleDeleteAccount}
-        onOpenLoginPopup={handleOpenLoginPopup}
-      />
-      {logoutAllError && <span className="text-red-500">{logoutAllError}</span>}
-      {deleteAccountError && (
-        <span className="text-red-500">{deleteAccountError}</span>
-      )}
+      <button onClick={handleOpenLoginPopup} className="custom-btn w-full">
+        {t("auth.loginTitle")}
+      </button>
     </section>
   );
 }

@@ -53,7 +53,12 @@
     "deleteAccountConfirm": "This permanently deletes your account and all your data (transactions, AI history, donations, linked logins). This cannot be undone.",
     "deleteAccountConfirmYes": "Yes, delete everything",
     "deleteAccountCancel": "Cancel",
-    "deleteAccountDeleting": "Deleting account..."
+    "deleteAccountDeleting": "Deleting account...",
+    "manageAccount": "Account",
+    "loginOrRegister": "Login / Register",
+    "saveProfile": "Save changes",
+    "profileUpdated": "Profile updated",
+    "linkMethodsTitle": "Link another login method"
   },
   "dashboard": {
     "title": "Dashboard",

@@ -74,5 +74,6 @@ export const UserResponseSchema = z.object({
 export type UserResponse = z.infer<typeof UserResponseSchema>;
 export type AuthMethod = z.infer<typeof AuthMethodResponseSchema>;
 export type CreateUserBody = z.infer<typeof CreateUserSchema>;
+export type UpdateUserBody = z.infer<typeof UpdateUserSchema>;
 export type CreateAuthMethodBody = z.infer<typeof CreateAuthMethodSchema>;
 export type UpdateAuthMethodBody = z.infer<typeof UpdateAuthMethodSchema>;

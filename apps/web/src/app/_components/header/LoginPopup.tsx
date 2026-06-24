@@ -34,17 +34,14 @@ export function LoginPopup() {
   const setAuthenticated = useAuthStore((state) => state.setAuthenticated);
   const setBootstrapping = useAuthStore((state) => state.setBootstrapping);
   const {
-    user,
     status: {
       loginError,
       loginErrorCode,
       isLoggingIn,
-      isLoggingOutAll,
       isResendingVerification,
       resendVerificationError,
-      logoutAllError,
     },
-    actions: { login, logout, logoutAll, resendVerification },
+    actions: { login, resendVerification },
   } = useAuth();
   const [loginSuccess, setLoginSuccess] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -80,22 +77,6 @@ export function LoginPopup() {
       setTimeout(() => {
         setLoginSuccess(false);
       }, 5000);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch {
-      void 0;
-    }
-  };
-
-  const handleLogoutAll = async () => {
-    try {
-      await logoutAll();
-    } catch {
-      void 0;
     }
   };
 
@@ -270,26 +251,9 @@ export function LoginPopup() {
         </>
         <span className="h-0.5 w-full bg-(--color-background) rounded" />
       </form>
-      <div className="w-full flex gap-5 justify-space-between">
-        {user && (
-          <>
-            <button onClick={handleLogout} className="custom-btn">
-              {t("auth.logout")}
-            </button>
-            <button
-              onClick={handleLogoutAll}
-              disabled={isLoggingOutAll}
-              className="custom-btn"
-            >
-              {t("auth.logoutAllSessions")}
-            </button>
-          </>
-        )}
-        <button onClick={handleOpenRegisterPopup} className="custom-btn">
-          {t("auth.registerNew")}
-        </button>
-      </div>
-      {logoutAllError && <span className="text-red-500">{logoutAllError}</span>}
+      <button onClick={handleOpenRegisterPopup} className="custom-btn w-full">
+        {t("auth.registerNew")}
+      </button>
     </section>
   );
 }

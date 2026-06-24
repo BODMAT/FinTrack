@@ -2,6 +2,7 @@ import { handleRequest } from "@/utils/api";
 import {
   UserResponseSchema,
   type CreateUserBody,
+  type UpdateUserBody,
   type UserResponse,
 } from "@fintrack/types";
 import api from "./api";
@@ -17,7 +18,7 @@ export const createUser = async (
 };
 
 export const updateMe = async (
-  payload: CreateUserBody,
+  payload: UpdateUserBody,
 ): Promise<UserResponse> => {
   return handleRequest(api.patch("/users/me", payload), UserResponseSchema);
 };

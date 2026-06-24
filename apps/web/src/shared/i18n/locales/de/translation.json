@@ -53,7 +53,12 @@
     "deleteAccountConfirm": "Dadurch werden Ihr Konto und alle Ihre Daten (Transaktionen, KI-Verlauf, Spenden, verknüpfte Logins) dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.",
     "deleteAccountConfirmYes": "Ja, alles löschen",
     "deleteAccountCancel": "Abbrechen",
-    "deleteAccountDeleting": "Konto wird gelöscht..."
+    "deleteAccountDeleting": "Konto wird gelöscht...",
+    "manageAccount": "Konto",
+    "loginOrRegister": "Anmelden / Registrieren",
+    "saveProfile": "Änderungen speichern",
+    "profileUpdated": "Profil aktualisiert",
+    "linkMethodsTitle": "Weitere Anmeldemethode verknüpfen"
   },
   "dashboard": {
     "title": "Dashboard",
