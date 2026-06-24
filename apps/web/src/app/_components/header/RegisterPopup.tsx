@@ -44,8 +44,15 @@ export function RegisterPopup() {
   const { open, close } = usePopupStore();
   const {
     user,
-    status: { registerError, isRegistering, isLoggingOutAll, logoutAllError },
-    actions: { register, logout, logoutAll },
+    status: {
+      registerError,
+      isRegistering,
+      isLoggingOutAll,
+      logoutAllError,
+      isDeletingAccount,
+      deleteAccountError,
+    },
+    actions: { register, logout, logoutAll, deleteAccount },
   } = useAuth();
 
   const [registerSuccess, setRegisterSuccess] = useState(false);
@@ -71,6 +78,14 @@ export function RegisterPopup() {
     } catch {
       void 0;
     }
+  };
+
+  const handleDeleteAccount = () => {
+    deleteAccount(undefined, {
+      onSuccess: () => {
+        close();
+      },
+    });
   };
 
   const handleOpenLoginPopup = () => {
@@ -260,15 +275,20 @@ export function RegisterPopup() {
       <RegisterPopupActions
         user={user}
         isLoggingOutAll={isLoggingOutAll}
+        isDeletingAccount={isDeletingAccount}
         onLogout={() => {
           void handleLogout();
         }}
         onLogoutAll={() => {
           void handleLogoutAll();
         }}
+        onDeleteAccount={handleDeleteAccount}
         onOpenLoginPopup={handleOpenLoginPopup}
       />
       {logoutAllError && <span className="text-red-500">{logoutAllError}</span>}
+      {deleteAccountError && (
+        <span className="text-red-500">{deleteAccountError}</span>
+      )}
     </section>
   );
 }

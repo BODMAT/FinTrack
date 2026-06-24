@@ -92,7 +92,9 @@ export const useAuth = () => {
 
   const deleteAccount = useMutation<void, ApiError>({
     mutationFn: deleteMe,
-    onSettled: () => {
+    // Only tear down the local session when the account was actually deleted.
+    // On error keep the user signed in so they can see the failure and retry.
+    onSuccess: () => {
       void signOut({ redirect: false });
       clearStore();
       queryClient.clear();

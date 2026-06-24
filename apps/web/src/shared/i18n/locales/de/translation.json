@@ -48,7 +48,12 @@
     "telegramNotInitialized": "Telegram nicht initialisiert",
     "telegramAuthCancelled": "Telegram-Anmeldung abgebrochen",
     "telegramAuthFailed": "Telegram-Anmeldung fehlgeschlagen",
-    "telegramLinkFailed": "Telegram-Verknüpfung fehlgeschlagen"
+    "telegramLinkFailed": "Telegram-Verknüpfung fehlgeschlagen",
+    "deleteAccount": "Konto löschen",
+    "deleteAccountConfirm": "Dadurch werden Ihr Konto und alle Ihre Daten (Transaktionen, KI-Verlauf, Spenden, verknüpfte Logins) dauerhaft gelöscht. Dies kann nicht rückgängig gemacht werden.",
+    "deleteAccountConfirmYes": "Ja, alles löschen",
+    "deleteAccountCancel": "Abbrechen",
+    "deleteAccountDeleting": "Konto wird gelöscht..."
   },
   "dashboard": {
     "title": "Dashboard",

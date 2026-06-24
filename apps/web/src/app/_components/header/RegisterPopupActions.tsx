@@ -1,42 +1,91 @@
+import { useState } from "react";
 import type { UserResponse } from "@fintrack/types";
 import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
 
 interface RegisterPopupActionsProps {
   user?: UserResponse;
   isLoggingOutAll: boolean;
+  isDeletingAccount: boolean;
   onLogout: () => void;
   onLogoutAll: () => void;
+  onDeleteAccount: () => void;
   onOpenLoginPopup: () => void;
 }
 
 export function RegisterPopupActions({
   user,
   isLoggingOutAll,
+  isDeletingAccount,
   onLogout,
   onLogoutAll,
+  onDeleteAccount,
   onOpenLoginPopup,
 }: RegisterPopupActionsProps) {
   const { t } = useSafeTranslation();
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
 
   return (
-    <div className="w-full flex gap-[20px] justify-space-between">
-      {user && (
-        <>
-          <button onClick={onLogout} className="custom-btn">
-            {t("auth.logout")}
-          </button>
+    <div className="w-full flex flex-col gap-5">
+      <div className="w-full flex gap-5 justify-space-between">
+        {user && (
+          <>
+            <button onClick={onLogout} className="custom-btn">
+              {t("auth.logout")}
+            </button>
+            <button
+              onClick={onLogoutAll}
+              disabled={isLoggingOutAll}
+              className="custom-btn"
+            >
+              {t("auth.logoutAllSessions")}
+            </button>
+          </>
+        )}
+        <button onClick={onOpenLoginPopup} className="custom-btn">
+          {t("auth.loginTitle")}
+        </button>
+      </div>
+
+      {user &&
+        (!confirmingDelete ? (
           <button
-            onClick={onLogoutAll}
-            disabled={isLoggingOutAll}
-            className="custom-btn"
+            type="button"
+            onClick={() => {
+              setConfirmingDelete(true);
+            }}
+            className="w-full rounded-[10px] border border-(--text-red) bg-(--bg-red) px-[14px] py-[9px] text-[14px] font-semibold text-(--text-red) transitioned not-disabled:cursor-pointer not-disabled:hover:opacity-85"
           >
-            {t("auth.logoutAllSessions")}
+            {t("auth.deleteAccount")}
           </button>
-        </>
-      )}
-      <button onClick={onOpenLoginPopup} className="custom-btn">
-        {t("auth.loginTitle")}
-      </button>
+        ) : (
+          <div className="flex flex-col gap-3 w-full rounded border border-(--color-red) p-3">
+            <span className="text-sm text-(--color-red)">
+              {t("auth.deleteAccountConfirm")}
+            </span>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={onDeleteAccount}
+                disabled={isDeletingAccount}
+                className="flex-1 rounded-[10px] border border-(--text-red) bg-(--bg-red) px-[14px] py-[9px] text-[14px] font-semibold text-(--text-red) transitioned not-disabled:cursor-pointer not-disabled:hover:opacity-85"
+              >
+                {isDeletingAccount
+                  ? t("auth.deleteAccountDeleting")
+                  : t("auth.deleteAccountConfirmYes")}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setConfirmingDelete(false);
+                }}
+                disabled={isDeletingAccount}
+                className="custom-btn flex-1"
+              >
+                {t("auth.deleteAccountCancel")}
+              </button>
+            </div>
+          </div>
+        ))}
     </div>
   );
 }

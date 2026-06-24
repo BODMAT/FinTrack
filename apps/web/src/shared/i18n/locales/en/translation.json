@@ -48,7 +48,12 @@
     "telegramNotInitialized": "Telegram not initialized",
     "telegramAuthCancelled": "Telegram auth cancelled",
     "telegramAuthFailed": "Telegram auth failed",
-    "telegramLinkFailed": "Telegram link failed"
+    "telegramLinkFailed": "Telegram link failed",
+    "deleteAccount": "Delete account",
+    "deleteAccountConfirm": "This permanently deletes your account and all your data (transactions, AI history, donations, linked logins). This cannot be undone.",
+    "deleteAccountConfirmYes": "Yes, delete everything",
+    "deleteAccountCancel": "Cancel",
+    "deleteAccountDeleting": "Deleting account..."
   },
   "dashboard": {
     "title": "Dashboard",

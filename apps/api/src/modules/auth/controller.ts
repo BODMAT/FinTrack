@@ -60,7 +60,7 @@ function setAuthCookies(
   });
 }
 
-function clearAuthCookies(res: Response) {
+export function clearAuthCookies(res: Response) {
   res.clearCookie(ACCESS_TOKEN_COOKIE, cookieBaseOptions);
   res.clearCookie(REFRESH_TOKEN_COOKIE, cookieBaseOptions);
 }

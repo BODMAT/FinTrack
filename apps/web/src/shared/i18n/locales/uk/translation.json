@@ -47,7 +47,12 @@
     "telegramNotInitialized": "Telegram не ініціалізовано",
     "telegramAuthCancelled": "Авторизацію Telegram скасовано",
     "telegramAuthFailed": "Помилка авторизації Telegram",
-    "telegramLinkFailed": "Не вдалося прив'язати Telegram"
+    "telegramLinkFailed": "Не вдалося прив'язати Telegram",
+    "deleteAccount": "Видалити акаунт",
+    "deleteAccountConfirm": "Це назавжди видалить ваш акаунт і всі ваші дані (транзакції, історію AI, донати, привʼязані входи). Дію не можна скасувати.",
+    "deleteAccountConfirmYes": "Так, видалити все",
+    "deleteAccountCancel": "Скасувати",
+    "deleteAccountDeleting": "Видалення акаунта..."
   },
   "dashboard": {
     "title": "Дашборд",

@@ -4,6 +4,7 @@ import { prisma } from "../../prisma/client.js";
 import bcrypt from "bcrypt";
 import * as userService from "./service.js";
 import * as authService from "../auth/service.js";
+import { clearAuthCookies } from "../auth/controller.js";
 import { AppError } from "../../middleware/errorHandler.js";
 import { logSecurityEvent } from "../../utils/authSecurity.js";
 import { sendVerificationEmail } from "../../utils/mailer.js";
@@ -311,6 +312,7 @@ export async function deleteCurrentUser(
     if (!id) throw new AppError("Unauthorized", 401);
 
     await userService.deleteUser(id);
+    clearAuthCookies(res);
     res.sendStatus(204);
   } catch (err) {
     next(err);
