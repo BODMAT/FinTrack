@@ -57,7 +57,14 @@
     "loginOrRegister": "Вхід / Реєстрація",
     "saveProfile": "Зберегти зміни",
     "profileUpdated": "Профіль оновлено",
-    "linkMethodsTitle": "Привʼязати інший метод входу"
+    "linkMethodsTitle": "Привʼязати інший метод входу",
+    "changePasswordTitle": "Змінити пароль",
+    "createPasswordTitle": "Створити пароль для входу через email",
+    "changePassword": "Змінити пароль",
+    "createPassword": "Створити пароль",
+    "newPassword": "Новий пароль",
+    "passwordUpdated": "Пароль оновлено",
+    "emailRequired": "Потрібен email"
   },
   "dashboard": {
     "title": "Дашборд",

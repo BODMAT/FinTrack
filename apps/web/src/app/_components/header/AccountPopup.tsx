@@ -11,6 +11,7 @@ import { GoogleIcon } from "../auth/AuthProviderIcons";
 import { linkTelegramAccount } from "@/api/auth";
 import { queryClient } from "@/api/queryClient";
 import { AccountActions } from "./AccountActions";
+import { AccountPasswordForm } from "./AccountPasswordForm";
 
 type AuthMethod = UserResponse["authMethods"][number];
 
@@ -38,11 +39,12 @@ export function AccountPopup() {
 
   if (!user) return null;
 
-  const emails = user.authMethods
-    .filter((m: AuthMethod) => m.type === "EMAIL")
-    .map((m: AuthMethod) => m.email)
-    .filter(Boolean)
-    .join(", ");
+  const emailSet = new Set<string>();
+  if (user.email) emailSet.add(user.email);
+  user.authMethods.forEach((m: AuthMethod) => {
+    if (m.type === "EMAIL" && m.email) emailSet.add(m.email);
+  });
+  const emails = [...emailSet].join(", ");
 
   const telegrams = user.authMethods
     .filter((m: AuthMethod) => m.type === "TELEGRAM")
@@ -165,6 +167,10 @@ export function AccountPopup() {
         )}
         {updateError && <span className="text-red-500">{updateError}</span>}
       </form>
+
+      <span className="h-0.5 w-full bg-(--color-background) rounded" />
+
+      <AccountPasswordForm user={user} />
 
       {(!hasGoogle || !hasTelegram) && (
         <>

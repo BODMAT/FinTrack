@@ -58,7 +58,14 @@
     "loginOrRegister": "Anmelden / Registrieren",
     "saveProfile": "Änderungen speichern",
     "profileUpdated": "Profil aktualisiert",
-    "linkMethodsTitle": "Weitere Anmeldemethode verknüpfen"
+    "linkMethodsTitle": "Weitere Anmeldemethode verknüpfen",
+    "changePasswordTitle": "Passwort ändern",
+    "createPasswordTitle": "Passwort für die E-Mail-Anmeldung erstellen",
+    "changePassword": "Passwort ändern",
+    "createPassword": "Passwort erstellen",
+    "newPassword": "Neues Passwort",
+    "passwordUpdated": "Passwort aktualisiert",
+    "emailRequired": "E-Mail ist erforderlich"
   },
   "dashboard": {
     "title": "Dashboard",

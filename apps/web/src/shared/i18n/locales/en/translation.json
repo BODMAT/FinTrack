@@ -58,7 +58,14 @@
     "loginOrRegister": "Login / Register",
     "saveProfile": "Save changes",
     "profileUpdated": "Profile updated",
-    "linkMethodsTitle": "Link another login method"
+    "linkMethodsTitle": "Link another login method",
+    "changePasswordTitle": "Change your password",
+    "createPasswordTitle": "Create a password to log in with email",
+    "changePassword": "Change password",
+    "createPassword": "Create password",
+    "newPassword": "New password",
+    "passwordUpdated": "Password updated",
+    "emailRequired": "Email is required"
   },
   "dashboard": {
     "title": "Dashboard",

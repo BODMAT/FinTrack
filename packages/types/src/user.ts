@@ -61,6 +61,7 @@ export const UpdateUserSchema = CreateUserSchema.partial();
 export const UserResponseSchema = z.object({
   id: z.string().uuid(),
   name: z.string(),
+  email: z.string().nullable(),
   photo_url: z.string().nullable(),
   isVerified: z.boolean(),
   role: z.enum(["USER", "ADMIN"]),
