@@ -174,7 +174,8 @@ pnpm run dev
 | `apps/web/.env`      | `apps/web/.env.example`      | Set `NEXT_PUBLIC_API_URL`, `NEXTAUTH_SECRET`, Google OAuth                |
 | `apps/bot/.env`      | `apps/bot/.env.example`      | Dev + Docker — `TELEGRAM_BOT_TOKEN`; Docker hosts injected by compose     |
 
-Each example file is annotated — read it for variable descriptions and required values.
+Each example file is split into REQUIRED (app won't boot without these) and
+OPTIONAL (safe defaults + feature toggles) blocks — read it for per-variable details.
 
 ---
 
