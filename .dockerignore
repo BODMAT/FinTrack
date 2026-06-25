@@ -11,14 +11,8 @@
 **/.cache
 **/*.tsbuildinfo
 
-**/.env
-**/.env.local
-**/.env.docker
-**/.env.development.local
-**/.env.test.local
-**/.env.production.local
-!**/.env.example
-!**/.env.docker.example
+**/.env*
+!**/.env*.example
 
 *.log
 npm-debug.log*
