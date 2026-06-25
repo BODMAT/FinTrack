@@ -67,9 +67,9 @@
     "db:api:test:drop": "psql \"postgresql://postgres:postgres@localhost:5432/postgres\" -c \"SELECT pg_terminate_backend(pid) FROM pg_stat_activity WHERE datname='fintrack_test'\" -c \"DROP DATABASE IF EXISTS fintrack_test;\"",
     "db:api:drop:all": "pnpm run db:api:drop && pnpm run db:api:test:drop && psql \"postgresql://postgres:postgres@localhost:5432/postgres\" -c \"DROP ROLE IF EXISTS fintrack;\"",
     "db:api:clean": "bash scripts/db-restore.sh -e apps/api/.env --clean",
-    "db:api:clean:dx": "bash scripts/db-restore.sh -e apps/api/.env.docker --clean",
+    "db:api:clean:dx": "bash scripts/db-restore.sh -e apps/api/.env --clean",
     "db:api:clean:test": "bash scripts/db-restore.sh -e apps/api/.env.test --clean",
-    "db:api:clean:test:dx": "bash scripts/db-restore.sh -e apps/api/.env.test.docker --clean",
+    "db:api:clean:test:dx": "bash scripts/db-restore.sh -e apps/api/.env.test --clean",
     "test": "pnpm run test:api && pnpm run test:web && pnpm run test:bot",
     "test:dx": "bash dx shell api pnpm run test:dx && bash dx shell web pnpm run test && bash dx shell bot pnpm run test",
     "test:api": "pnpm --filter fintrack-api run test",
@@ -101,11 +101,11 @@
     "dump:web": "bash scripts/codebase-dump.sh -d apps/web",
     "dump:bot": "bash scripts/codebase-dump.sh -d apps/bot",
     "dump:db": "bash scripts/db-dump.sh -e apps/api/.env",
-    "dump:db:dx": "bash scripts/db-dump.sh -e apps/api/.env.docker",
+    "dump:db:dx": "bash scripts/db-dump.sh -e apps/api/.env",
     "restore:db": "bash scripts/db-restore.sh -e apps/api/.env",
-    "restore:db:dx": "bash scripts/db-restore.sh -e apps/api/.env.docker",
+    "restore:db:dx": "bash scripts/db-restore.sh -e apps/api/.env",
     "restore:db:reset": "bash scripts/db-restore.sh -e apps/api/.env --reset",
-    "restore:db:reset:dx": "bash scripts/db-restore.sh -e apps/api/.env.docker --reset"
+    "restore:db:reset:dx": "bash scripts/db-restore.sh -e apps/api/.env --reset"
   },
   "lint-staged": {
     "**/*.{ts,tsx}": [
@@ -141,5 +141,14 @@
     "@rollup/rollup-linux-x64-gnu": "^4.62.0",
     "@tailwindcss/oxide-linux-x64-gnu": "*",
     "lightningcss-linux-x64-gnu": "*"
+  },
+  "pnpm": {
+    "overrides": {
+      "nodemailer@<9.0.1": ">=9.0.1",
+      "shell-quote@<1.8.4": "1.8.4",
+      "uuid@<11.1.1": "11.1.1",
+      "js-yaml@3": "4.2.0",
+      "postcss@<8.5.15": "8.5.15"
+    }
   }
 }

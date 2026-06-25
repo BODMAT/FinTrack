@@ -46,10 +46,15 @@ services:
       dockerfile: apps/api/Dockerfile
     restart: "unless-stopped"
     env_file:
-      # Copy apps/api/.env.docker.example → apps/api/.env.docker and fill in
-      # your values before running docker compose up.
-      - apps/api/.env.docker
+      # Copy apps/api/.env.example → apps/api/.env and fill in your values
+      # before running docker compose up.
+      - apps/api/.env
     environment:
+      # NODE_ENV must be set here — .env defaults to development for local dev.
+      - NODE_ENV=production
+      # Override hosts: localhost (in .env) → internal compose service names.
+      - DATABASE_URL=postgresql://fintrack:fintrack@postgres:5432/fintrack?schema=public
+      - DIRECT_URL=postgresql://fintrack:fintrack@postgres:5432/fintrack?schema=public
       - REDIS_URL=redis://redis:6379
       - MONGO_URL=mongodb://mongo:27017/fintrack
     depends_on:
@@ -74,9 +79,11 @@ services:
       dockerfile: apps/bot/Dockerfile
     restart: "unless-stopped"
     env_file:
-      # Copy apps/bot/.env.example → apps/bot/.env.docker and set TELEGRAM_BOT_TOKEN
-      - apps/bot/.env.docker
+      # Copy apps/bot/.env.example → apps/bot/.env and set TELEGRAM_BOT_TOKEN
+      - apps/bot/.env
     environment:
+      - NODE_ENV=production
+      - API_URL=http://api:8000/api
       - REDIS_URL=redis://redis:6379
     depends_on:
       api:
@@ -96,7 +103,7 @@ services:
         NEXT_PUBLIC_TELEGRAM_BOT_ID: ${NEXT_PUBLIC_TELEGRAM_BOT_ID:-}
     restart: "unless-stopped"
     env_file:
-      - apps/web/.env.docker
+      - apps/web/.env
     depends_on:
       api:
         condition: service_healthy

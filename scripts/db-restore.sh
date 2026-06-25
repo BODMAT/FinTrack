@@ -7,7 +7,7 @@
 #  Usage:
 #    bash scripts/db-restore.sh                                              (latest dump, default .env)
 #    bash scripts/db-restore.sh -f dumps/db/backup-2026-04-09.sql            (specific dump)
-#    bash scripts/db-restore.sh -e apps/api/.env.docker                      (custom .env.docker)
+#    bash scripts/db-restore.sh -e apps/api/.env.test                        (custom env file)
 #    bash scripts/db-restore.sh -r                                           (drop & restore)
 #    bash scripts/db-restore.sh -c|--clean                                   (only drop public objects)
 #    bash scripts/db-restore.sh -f dumps/db/backup.sql -e apps/api/.env -r   (full options)

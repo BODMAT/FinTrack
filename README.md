@@ -176,7 +176,7 @@ The database uses **PostgreSQL 15** managed via Prisma migrations. Key models:
 | `donation`               | `/donations`               | Create Stripe Checkout session, webhook handler, leaderboard                       |
 | `admin`                  | `/admin`                   | User list, role update, session revocation, error log management, stats            |
 
-Interactive Swagger docs are available at `/api-docs` (`ENABLE_SWAGGER_IN_PROD=true` or in dev mode).
+Interactive Swagger docs are served at `/api-docs` automatically in dev and test; in production they are exposed only when `ENABLE_SWAGGER_IN_PROD=true`.
 
 ### Security
 
@@ -278,17 +278,16 @@ Database migrations are applied automatically from GitHub Actions on pushes to `
 
 GitHub Actions runs the following checks on every pull request and push to `master`/`main`:
 
-1.  **ENV Docs Validation** — verifies `apps/api/.env.example` and `apps/api/.env.docker.example` stay in sync.
-2.  **Migration Drift** — non-blocking check that `schema.prisma` matches migrations (advisory).
-3.  **Format & Lint** — `prettier`, `eslint`, and ToC freshness check.
-4.  **Type check** — `tsc --noEmit` across the monorepo.
-5.  **Security Audit** — `pnpm audit` and dependency review.
-6.  **Tests** — Jest + Supertest API tests and Vitest web tests against a real PostgreSQL container.
-7.  **Release Gate** — on push to `master`/`main`, `gate.yml` listens for CI completion and dispatches `release.yml` only when CI succeeds; if CI fails, dispatch is skipped and a failure is logged.
-8.  **Release Workflow (`release.yml`)** — also triggers directly on push/PR to `master`/`main`; builds and (on push) publishes images to **GHCR**.
-9.  **Security Scanning** — **Trivy** scans every Docker image for vulnerabilities (CRITICAL, HIGH).
-10. **CodeQL Analysis** — static analysis of JavaScript/TypeScript on every PR and push, plus a weekly scheduled scan.
-11. **Prisma Auto-Migrate (`master`)** — applies `apps/api` migrations to Supabase after schema/migration changes.
+1.  **Migration Drift** — non-blocking check that `schema.prisma` matches migrations (advisory).
+2.  **Format & Lint** — `prettier`, `eslint`, and ToC freshness check.
+3.  **Type check** — `tsc --noEmit` across the monorepo.
+4.  **Security Audit** — `pnpm audit` and dependency review.
+5.  **Tests** — Jest + Supertest API tests and Vitest web tests against a real PostgreSQL container.
+6.  **Release Gate** — on push to `master`/`main`, `gate.yml` listens for CI completion and dispatches `release.yml` only when CI succeeds; if CI fails, dispatch is skipped and a failure is logged.
+7.  **Release Workflow (`release.yml`)** — also triggers directly on push/PR to `master`/`main`; builds and (on push) publishes images to **GHCR**.
+8.  **Security Scanning** — **Trivy** scans every Docker image for vulnerabilities (CRITICAL, HIGH).
+9.  **CodeQL Analysis** — static analysis of JavaScript/TypeScript on every PR and push, plus a weekly scheduled scan.
+10. **Prisma Auto-Migrate (`master`)** — applies `apps/api` migrations to Supabase after schema/migration changes.
 
 ### Auto Migration Secrets (GitHub)
 
