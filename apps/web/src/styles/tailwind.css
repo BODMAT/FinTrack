@@ -236,6 +236,19 @@
       box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
     }
 
+    /* Keep browser autofill on-theme so it doesn't repaint the field with a
+       light background (which made the show/hide-password eye icon vanish on
+       the dark theme). */
+    &:-webkit-autofill,
+    &:-webkit-autofill:hover,
+    &:-webkit-autofill:focus,
+    &:-webkit-autofill:active {
+      -webkit-text-fill-color: var(--color-text);
+      -webkit-box-shadow: 0 0 0 1000px var(--color-input) inset;
+      caret-color: var(--color-text);
+      transition: background-color 9999s ease-in-out 0s;
+    }
+
     @apply invalid:border-red-500/50;
   }
 }
