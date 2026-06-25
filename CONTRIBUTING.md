@@ -255,7 +255,8 @@ The test database (`fintrack_test`) is separate from the dev DB and is used excl
 cd apps/api
 
 cp .env.example .env
-# fill in DATABASE_URL, ACCESS_TOKEN_SECRET, GROQ_API_KEY_1, STRIPE_*, GOOGLE_CLIENT_ID, TELEGRAM_BOT_TOKEN ...
+# fill in the REQUIRED block (DATABASE_URL, ACCESS_TOKEN_SECRET, GOOGLE_CLIENT_ID, TELEGRAM_BOT_TOKEN ...);
+# OPTIONAL vars (GROQ_API_KEY_1, STRIPE_*, ...) gate features and can stay empty
 
 pnpm run prisma:migrate:dev  # apply migrations
 pnpm run prisma:seed         # optional seed data

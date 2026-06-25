@@ -176,7 +176,7 @@ The database uses **PostgreSQL 15** managed via Prisma migrations. Key models:
 | `donation`               | `/donations`               | Create Stripe Checkout session, webhook handler, leaderboard                       |
 | `admin`                  | `/admin`                   | User list, role update, session revocation, error log management, stats            |
 
-Interactive Swagger docs are available at `/api-docs` (`ENABLE_SWAGGER_IN_PROD=true` or in dev mode).
+Interactive Swagger docs are served at `/api-docs` automatically in dev and test; in production they are exposed only when `ENABLE_SWAGGER_IN_PROD=true`.
 
 ### Security
 
