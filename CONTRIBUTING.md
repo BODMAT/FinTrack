@@ -166,14 +166,13 @@ pnpm run dev
 
 `bash dx setup` copies all example files automatically. For manual setup:
 
-| File                   | Example                        | Notes                                                                     |
-| ---------------------- | ------------------------------ | ------------------------------------------------------------------------- |
-| `.env` (repo root)     | `.env.example`                 | Docker Compose build args — `NEXT_PUBLIC_TELEGRAM_BOT_ID`                 |
-| `apps/api/.env`        | `apps/api/.env.example`        | Dev + Docker — secrets; Docker hosts injected by compose                  |
-| `apps/api/.env.test`   | `apps/api/.env.test.example`   | Tests — `fintrack_test`; Docker hosts rewritten by `scripts/test-env.cjs` |
-| `apps/web/.env`        | `apps/web/.env.example`        | Set `NEXT_PUBLIC_API_URL`, `NEXTAUTH_SECRET`, Google OAuth                |
-| `apps/bot/.env`        | `apps/bot/.env.example`        | Local dev — set `TELEGRAM_BOT_TOKEN`, `API_URL`, `REDIS_URL`              |
-| `apps/bot/.env.docker` | `apps/bot/.env.docker.example` | Docker dev — same vars, host points to Docker service                     |
+| File                 | Example                      | Notes                                                                     |
+| -------------------- | ---------------------------- | ------------------------------------------------------------------------- |
+| `.env` (repo root)   | `.env.example`               | Docker Compose build args — `NEXT_PUBLIC_TELEGRAM_BOT_ID`                 |
+| `apps/api/.env`      | `apps/api/.env.example`      | Dev + Docker — secrets; Docker hosts injected by compose                  |
+| `apps/api/.env.test` | `apps/api/.env.test.example` | Tests — `fintrack_test`; Docker hosts rewritten by `scripts/test-env.cjs` |
+| `apps/web/.env`      | `apps/web/.env.example`      | Set `NEXT_PUBLIC_API_URL`, `NEXTAUTH_SECRET`, Google OAuth                |
+| `apps/bot/.env`      | `apps/bot/.env.example`      | Dev + Docker — `TELEGRAM_BOT_TOKEN`; Docker hosts injected by compose     |
 
 Each example file is annotated — read it for variable descriptions and required values.
 
