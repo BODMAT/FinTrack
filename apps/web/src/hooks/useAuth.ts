@@ -13,6 +13,8 @@ import {
   logoutAllUser,
   logoutUser,
   resendVerificationEmail,
+  forgotPassword,
+  resetPassword,
 } from "@/api/auth";
 import { useAuthStore } from "@/store/useAuthStore";
 import type {
@@ -84,6 +86,22 @@ export const useAuth = () => {
     mutationFn: resendVerificationEmail,
   });
 
+  const forgotPasswordMutation = useMutation<
+    { sent: boolean },
+    ApiError,
+    string
+  >({
+    mutationFn: forgotPassword,
+  });
+
+  const resetPasswordMutation = useMutation<
+    { reset: boolean },
+    ApiError,
+    { token: string; password: string }
+  >({
+    mutationFn: ({ token, password }) => resetPassword(token, password),
+  });
+
   const update = useMutation<UserResponse, ApiError, UpdateUserBody>({
     mutationFn: updateMe,
     onSuccess: (data) => {
@@ -120,6 +138,8 @@ export const useAuth = () => {
       logout: logout.mutateAsync,
       logoutAll: logoutAll.mutateAsync,
       resendVerification: resendVerification.mutateAsync,
+      forgotPassword: forgotPasswordMutation.mutateAsync,
+      resetPassword: resetPasswordMutation.mutateAsync,
       update: update.mutate,
       deleteAccount: deleteAccount.mutate,
       deleteAuthMethod: deleteAuthMethod.mutate,
@@ -136,6 +156,10 @@ export const useAuth = () => {
       registerError: register.error?.message,
       isResendingVerification: resendVerification.isPending,
       resendVerificationError: resendVerification.error?.message,
+      isSendingForgotPassword: forgotPasswordMutation.isPending,
+      forgotPasswordError: forgotPasswordMutation.error?.message,
+      isResettingPassword: resetPasswordMutation.isPending,
+      resetPasswordError: resetPasswordMutation.error?.message,
       logoutAllError: logoutAll.error?.message,
       updateError: update.error?.message,
       deleteAccountError: deleteAccount.error?.message,

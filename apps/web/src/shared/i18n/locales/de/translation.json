@@ -65,7 +65,19 @@
     "createPassword": "Passwort erstellen",
     "newPassword": "Neues Passwort",
     "passwordUpdated": "Passwort aktualisiert",
-    "emailRequired": "E-Mail ist erforderlich"
+    "emailRequired": "E-Mail ist erforderlich",
+    "forgotPassword": "Passwort vergessen?",
+    "forgotPasswordHint": "Gib die E-Mail deines Kontos ein und wir senden dir einen Link zum Zurücksetzen des Passworts.",
+    "sendResetLink": "Link senden",
+    "sendingResetLink": "Link wird gesendet...",
+    "resetLinkSent": "Falls ein Konto mit dieser E-Mail existiert, wurde ein Link zum Zurücksetzen gesendet.",
+    "backToLogin": "Zurück zur Anmeldung",
+    "resetPasswordTitle": "Passwort zurücksetzen",
+    "resetPasswordHint": "Wähle ein neues Passwort für dein Konto.",
+    "resetPasswordButton": "Passwort zurücksetzen",
+    "resettingPassword": "Passwort wird zurückgesetzt...",
+    "resetPasswordSuccess": "Passwort aktualisiert. Weiterleitung zur Anmeldung...",
+    "resetPasswordMissingToken": "Dieser Link ist ungültig oder abgelaufen. Bitte fordere einen neuen an."
   },
   "dashboard": {
     "title": "Dashboard",

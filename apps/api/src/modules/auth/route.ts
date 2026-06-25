@@ -11,12 +11,16 @@ import {
   linkTelegram,
   verifyEmail,
   resendVerification,
+  forgotPassword,
+  resetPassword,
 } from "./controller.js";
 import {
   authLoginLimiter,
   authLogoutLimiter,
   authRefreshLimiter,
   resendVerificationLimiter,
+  forgotPasswordLimiter,
+  resetPasswordLimiter,
 } from "../../middleware/rateLimit.js";
 
 export const authRouter = express.Router();
@@ -40,3 +44,5 @@ authRouter.post(
   resendVerificationLimiter,
   resendVerification,
 );
+authRouter.post("/forgot-password", forgotPasswordLimiter, forgotPassword);
+authRouter.post("/reset-password", resetPasswordLimiter, resetPassword);

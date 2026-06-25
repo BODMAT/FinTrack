@@ -98,6 +98,8 @@ export const ENV = {
   SMTP_PASS: process.env.SMTP_PASS ?? "",
   SMTP_FROM: process.env.SMTP_FROM ?? "",
   EMAIL_VERIFICATION_BASE_URL: process.env.EMAIL_VERIFICATION_BASE_URL ?? "",
+  // Base URL of the frontend directory that hosts /reset-password
+  PASSWORD_RESET_BASE_URL: process.env.PASSWORD_RESET_BASE_URL ?? "",
 } as const;
 
 export type EnvConfig = typeof ENV;

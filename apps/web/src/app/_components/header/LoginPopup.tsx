@@ -40,12 +40,17 @@ export function LoginPopup() {
       isLoggingIn,
       isResendingVerification,
       resendVerificationError,
+      isSendingForgotPassword,
+      forgotPasswordError,
     },
-    actions: { login, resendVerification },
+    actions: { login, resendVerification, forgotPassword },
   } = useAuth();
   const [loginSuccess, setLoginSuccess] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
+  const [isForgotMode, setIsForgotMode] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSuccess, setForgotSuccess] = useState(false);
   const [loginFields, setLoginFields] = useState<LoginUserBody>({
     email: "",
     password: "",
@@ -116,6 +121,73 @@ export function LoginPopup() {
       setResendSuccess(false);
     }
   };
+
+  const handleForgotPassword = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!forgotEmail.trim()) return;
+    setForgotSuccess(false);
+    try {
+      await forgotPassword(forgotEmail.trim());
+      setForgotSuccess(true);
+    } catch {
+      setForgotSuccess(false);
+    }
+  };
+
+  const openForgotMode = () => {
+    setForgotEmail(loginFields.email);
+    setForgotSuccess(false);
+    setIsForgotMode(true);
+  };
+
+  if (isForgotMode) {
+    return (
+      <section className="flex items-center flex-col gap-5 w-full">
+        <form
+          onSubmit={handleForgotPassword}
+          className="flex flex-col gap-5 w-full"
+        >
+          <p className="text-sm text-(--color-text) opacity-80">
+            {t("auth.forgotPasswordHint")}
+          </p>
+          <input
+            required
+            type="email"
+            placeholder={t("auth.email")}
+            value={forgotEmail}
+            onChange={(e) => {
+              setForgotEmail(e.target.value);
+            }}
+            className="custom-input"
+          />
+          <button
+            type="submit"
+            disabled={isSendingForgotPassword}
+            className="custom-btn"
+          >
+            {isSendingForgotPassword
+              ? t("auth.sendingResetLink")
+              : t("auth.sendResetLink")}
+          </button>
+          {forgotSuccess && (
+            <span className="text-green-500">{t("auth.resetLinkSent")}</span>
+          )}
+          {forgotPasswordError && (
+            <span className="text-red-500">{forgotPasswordError}</span>
+          )}
+        </form>
+        <button
+          type="button"
+          onClick={() => {
+            setIsForgotMode(false);
+          }}
+          className="custom-btn w-full"
+        >
+          {t("auth.backToLogin")}
+        </button>
+      </section>
+    );
+  }
 
   return (
     <section className="flex items-center flex-col gap-5 w-full">
@@ -200,6 +272,13 @@ export function LoginPopup() {
         </div>
         <button type="submit" disabled={isLoggingIn} className="custom-btn">
           {t("auth.loginButton")}
+        </button>
+        <button
+          type="button"
+          onClick={openForgotMode}
+          className="self-start text-sm text-(--color-text) opacity-75 hover:opacity-100 transitioned underline"
+        >
+          {t("auth.forgotPassword")}
         </button>
         <div className="flex flex-col sm:flex-row sm:items-start gap-3 w-full">
           <button

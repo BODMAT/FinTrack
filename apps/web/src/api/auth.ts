@@ -64,3 +64,16 @@ export const resendVerificationEmail = async (
 ): Promise<{ sent: boolean }> => {
   return handleRequest(api.post("/auth/resend-verification", { email }));
 };
+
+export const forgotPassword = async (
+  email: string,
+): Promise<{ sent: boolean }> => {
+  return handleRequest(api.post("/auth/forgot-password", { email }));
+};
+
+export const resetPassword = async (
+  token: string,
+  password: string,
+): Promise<{ reset: boolean }> => {
+  return handleRequest(api.post("/auth/reset-password", { token, password }));
+};

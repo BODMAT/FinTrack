@@ -75,6 +75,24 @@ export const resendVerificationLimiter = rateLimit({
   message: { error: "Too many resend attempts. Try again in an hour." },
 });
 
+export const forgotPasswordLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: makeStore("forgot-password"),
+  message: { error: "Too many password reset requests. Try again in an hour." },
+});
+
+export const resetPasswordLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  store: makeStore("reset-password"),
+  message: { error: "Too many reset attempts. Try again later." },
+});
+
 export const userMutationLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 60,

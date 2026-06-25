@@ -11,6 +11,8 @@ import * as authService from "./service.js";
 import {
   LoginUserBodySchema,
   TelegramWidgetPayloadSchema,
+  ForgotPasswordSchema,
+  ResetPasswordSchema,
 } from "@fintrack/types";
 import {
   extractClientIp,
@@ -787,6 +789,51 @@ export async function resendVerification(
 
     logSecurityEvent("auth.email.resend_verification", { userId: user.id });
     return res.status(200).json({ sent: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function forgotPassword(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { email } = ForgotPasswordSchema.parse(req.body);
+
+    const result = await authService.createPasswordResetToken(email);
+
+    // Always return 200 to avoid leaking whether the email is registered.
+    if (result) {
+      await mailer.sendPasswordResetEmail(
+        email.trim().toLowerCase(),
+        result.token,
+        result.name,
+      );
+      logSecurityEvent("auth.password.reset_requested", {
+        userId: result.userId,
+      });
+    }
+
+    return res.status(200).json({ sent: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function resetPassword(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { token, password } = ResetPasswordSchema.parse(req.body);
+
+    const userId = await authService.consumePasswordResetToken(token, password);
+
+    logSecurityEvent("auth.password.reset_completed", { userId });
+    return res.status(200).json({ reset: true });
   } catch (err) {
     next(err);
   }
