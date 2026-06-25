@@ -159,8 +159,8 @@ importers:
         specifier: ^5.0.6
         version: 5.0.6
       '@types/express-serve-static-core':
-        specifier: 4.19.0
-        version: 4.19.0
+        specifier: 5.1.1
+        version: 5.1.1
       '@types/jest':
         specifier: ^29.5.14
         version: 29.5.14
@@ -2279,9 +2279,6 @@ packages:
 
   '@types/estree@1.0.9':
     resolution: {integrity: sha512-GhdPgy1el4/ImP05X05Uw4cw2/M93BCUmnEvWZNStlCzEKME4Fkk+YpoA5OiHNQmoS7Cafb8Xa3Pya8m1Qrzeg==}
-
-  '@types/express-serve-static-core@4.19.0':
-    resolution: {integrity: sha512-bGyep3JqPCRry1wq+O5n7oiBgGWmeIJXPjXXCo8EK0u8duZGSYar7cGqd3ML2JUsLGeB7fmc06KYo9fLGWqPvQ==}
 
   '@types/express-serve-static-core@5.1.1':
     resolution: {integrity: sha512-v4zIMr/cX7/d2BpAEX3KNKL/JrT1s43s96lLvvdTmza1oEvDudCqK9aF/djc/SWgy8Yh0h30TZx5VpzqFCxk5A==}
@@ -8145,13 +8142,6 @@ snapshots:
   '@types/deep-eql@4.0.2': {}
 
   '@types/estree@1.0.9': {}
-
-  '@types/express-serve-static-core@4.19.0':
-    dependencies:
-      '@types/node': 24.13.2
-      '@types/qs': 6.15.1
-      '@types/range-parser': 1.2.7
-      '@types/send': 1.2.1
 
   '@types/express-serve-static-core@5.1.1':
     dependencies:
