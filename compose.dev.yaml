@@ -170,9 +170,10 @@ services:
       - NODE_ENV=development
       - DX_SERVICE_NAME=bot
       - COREPACK_HOME=/corepack
+      - API_URL=http://api:8000/api
       - REDIS_URL=redis://redis:6379
     env_file:
-      - apps/bot/.env.docker
+      - apps/bot/.env
     command: sh -c "corepack enable && pnpm run dev"
     depends_on:
       redis:
