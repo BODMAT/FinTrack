@@ -35,6 +35,8 @@
     "userPhotoAlt": "Benutzerfoto",
     "linkTelegram": "Telegram verknüpfen",
     "linkGoogle": "Google verknüpfen",
+    "googleLinked": "Google-Konto verknüpft.",
+    "googleLinkFailed": "Google-Konto konnte nicht verknüpft werden.",
     "showPassword": "Passwort anzeigen",
     "hidePassword": "Passwort verbergen",
     "resendVerification": "Bestätigungs-E-Mail erneut senden",

@@ -1,11 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { signIn } from "next-auth/react";
 import type { TelegramWidgetPayload, UserResponse } from "@fintrack/types";
 import { useAuth } from "@/hooks/useAuth";
 import { usePopupStore } from "@/store/popup";
+import { useGoogleLinkStore } from "@/store/useGoogleLinkStore";
 import { useSafeTranslation } from "@/shared/i18n/useSafeTranslation";
 import { APP_BASE_PATH } from "@/config/constants";
-import { clearProcessedGoogleIdToken } from "@/lib/oauthBridge";
+import {
+  clearProcessedGoogleIdToken,
+  setGoogleLinkIntent,
+} from "@/lib/oauthBridge";
 import { TelegramLoginWidget } from "../auth/TelegramLoginWidget";
 import { GoogleIcon } from "../auth/AuthProviderIcons";
 import { linkTelegramAccount } from "@/api/auth";
@@ -36,6 +40,13 @@ export function AccountPopup() {
   const [updateSuccess, setUpdateSuccess] = useState(false);
   const [telegramLinkSuccess, setTelegramLinkSuccess] = useState(false);
   const [telegramLinkError, setTelegramLinkError] = useState("");
+
+  const googleLinkNotice = useGoogleLinkStore((s) => s.notice);
+  const clearGoogleLinkNotice = useGoogleLinkStore((s) => s.clearNotice);
+
+  // The notice is a one-shot result of a Google-link round-trip; drop it once
+  // the popup is dismissed so it doesn't resurface on the next open.
+  useEffect(() => () => clearGoogleLinkNotice(), [clearGoogleLinkNotice]);
 
   if (!user) return null;
 
@@ -137,6 +148,16 @@ export function AccountPopup() {
         </div>
       </div>
 
+      {googleLinkNotice && (
+        <span
+          className={googleLinkNotice.ok ? "text-green-500" : "text-red-500"}
+        >
+          {googleLinkNotice.ok
+            ? t("auth.googleLinked")
+            : googleLinkNotice.message || t("auth.googleLinkFailed")}
+        </span>
+      )}
+
       <span className="h-0.5 w-full bg-(--color-background) rounded" />
 
       <form onSubmit={handleSaveProfile} className="flex flex-col gap-5 w-full">
@@ -185,6 +206,7 @@ export function AccountPopup() {
                   type="button"
                   onClick={() => {
                     clearProcessedGoogleIdToken();
+                    setGoogleLinkIntent();
                     void signIn("google", {
                       callbackUrl: `${APP_BASE_PATH}/dashboard`,
                     });

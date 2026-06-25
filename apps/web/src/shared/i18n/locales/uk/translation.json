@@ -34,6 +34,8 @@
     "userPhotoAlt": "фото користувача",
     "linkTelegram": "Прив'язати Telegram",
     "linkGoogle": "Прив'язати Google",
+    "googleLinked": "Google-акаунт прив'язано.",
+    "googleLinkFailed": "Не вдалося прив'язати Google-акаунт.",
     "showPassword": "Показати пароль",
     "hidePassword": "Сховати пароль",
     "resendVerification": "Надіслати лист підтвердження ще раз",

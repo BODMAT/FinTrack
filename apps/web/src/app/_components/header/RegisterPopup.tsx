@@ -13,7 +13,10 @@ import { createInitialUserLocalInfo } from "@/utils/register";
 import { signIn } from "next-auth/react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { APP_BASE_PATH } from "@/config/constants";
-import { clearProcessedGoogleIdToken } from "@/lib/oauthBridge";
+import {
+  clearProcessedGoogleIdToken,
+  clearGoogleLinkIntent,
+} from "@/lib/oauthBridge";
 import { TelegramLoginWidget } from "../auth/TelegramLoginWidget";
 import { GoogleIcon } from "../auth/AuthProviderIcons";
 import { exchangeTelegramWidgetSession } from "@/api/auth";
@@ -161,6 +164,7 @@ export function RegisterPopup() {
             type="button"
             onClick={() => {
               clearProcessedGoogleIdToken();
+              clearGoogleLinkIntent();
               void signIn("google", {
                 callbackUrl: `${APP_BASE_PATH}/dashboard`,
               });

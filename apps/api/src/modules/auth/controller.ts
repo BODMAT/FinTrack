@@ -680,6 +680,40 @@ export async function linkTelegram(
   }
 }
 
+export async function linkGoogle(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const userId = req.user?.id;
+    if (!userId) throw new AppError("Unauthorized", 401);
+
+    const parsed = z
+      .object({ idToken: z.string().min(10) })
+      .safeParse(req.body);
+    if (!parsed.success) throw new AppError("Invalid Google link payload", 400);
+
+    const verifiedGoogleData = await verifyGoogleToken(parsed.data.idToken);
+    const user = await authService.linkGoogleToUser({
+      userId,
+      googleSub: verifiedGoogleData.sub,
+      email: verifiedGoogleData.email,
+      photoUrl: verifiedGoogleData.picture ?? null,
+    });
+
+    if (!user) throw new AppError("User not found", 404);
+    logSecurityEvent("auth.google.link.success", { userId });
+    return res.status(200).json({ linked: true });
+  } catch (err) {
+    logSecurityEvent("auth.google.link.failed", {
+      userId: req.user?.id,
+      ip: req.ip,
+    });
+    next(err);
+  }
+}
+
 export async function telegramRefresh(
   req: Request,
   res: Response,

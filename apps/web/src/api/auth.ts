@@ -59,6 +59,10 @@ export const linkTelegramAccount = async (
   );
 };
 
+export const linkGoogleAccount = async (idToken: string): Promise<void> => {
+  await handleRequest(api.post("/auth/link/google", { idToken }));
+};
+
 export const resendVerificationEmail = async (
   email: string,
 ): Promise<{ sent: boolean }> => {

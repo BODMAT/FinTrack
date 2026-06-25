@@ -35,6 +35,8 @@
     "userPhotoAlt": "user photo",
     "linkTelegram": "Link Telegram",
     "linkGoogle": "Link Google",
+    "googleLinked": "Google account linked.",
+    "googleLinkFailed": "Could not link Google account.",
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "resendVerification": "Resend verification email",

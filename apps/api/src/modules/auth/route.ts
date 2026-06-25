@@ -9,6 +9,7 @@ import {
   telegramExchange,
   telegramRefresh,
   linkTelegram,
+  linkGoogle,
   verifyEmail,
   resendVerification,
   forgotPassword,
@@ -34,6 +35,12 @@ authRouter.post(
   authenticateToken,
   authLoginLimiter,
   linkTelegram,
+);
+authRouter.post(
+  "/link/google",
+  authenticateToken,
+  authLoginLimiter,
+  linkGoogle,
 );
 authRouter.post("/token", authRefreshLimiter, token);
 authRouter.delete("/logout", authLogoutLimiter, logout);

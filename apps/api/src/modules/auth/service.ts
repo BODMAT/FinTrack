@@ -486,6 +486,91 @@ export async function loginWithTelegram(telegramId: string, name: string) {
   return newUser;
 }
 
+export async function linkGoogleToUser(params: {
+  userId: string;
+  googleSub: string;
+  email: string;
+  photoUrl?: string | null;
+}) {
+  const { userId, googleSub, email, photoUrl } = params;
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { authMethods: true },
+  });
+  if (!user) throw new AppError("User not found", 404);
+
+  // Collect the account's known emails (primary + EMAIL auth methods).
+  const knownEmails = new Set<string>();
+  if (user.email) knownEmails.add(user.email.toLowerCase());
+  for (const m of user.authMethods) {
+    if (m.type === "EMAIL" && m.email) knownEmails.add(m.email.toLowerCase());
+  }
+
+  // The linked Google account must belong to the same email the user
+  // registered with — you can't attach an arbitrary Google account.
+  if (knownEmails.size > 0 && !knownEmails.has(normalizedEmail)) {
+    void logEvent("auth.google.link_email_mismatch", {}, userId);
+    throw new AppError(
+      "Google account email must match your account email",
+      400,
+    );
+  }
+
+  const existingGoogleMethod = await prisma.authMethod.findFirst({
+    where: { type: "GOOGLE", google_sub: googleSub },
+  });
+  if (existingGoogleMethod) {
+    if (existingGoogleMethod.userId === userId) {
+      void logEvent("auth.google.link.idempotent", {}, userId);
+      return userService.getUser(userId);
+    }
+    void logEvent("auth.google.link_conflict", {}, userId);
+    throw new AppError("Google account is already linked", 409);
+  }
+
+  const currentGoogleMethod = user.authMethods.find((m) => m.type === "GOOGLE");
+  if (currentGoogleMethod) {
+    throw new AppError("User already has a linked Google account", 409);
+  }
+
+  try {
+    await prisma.authMethod.create({
+      data: {
+        type: "GOOGLE",
+        // Keep email only in the EMAIL auth method; AuthMethod.email is unique.
+        email: null,
+        password_hash: null,
+        telegram_id: null,
+        google_sub: googleSub,
+        user: { connect: { id: userId } },
+      },
+    });
+  } catch (err) {
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2002"
+    ) {
+      throw new AppError("Google account is already linked", 409);
+    }
+    throw err;
+  }
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      isVerified: true,
+      // Backfill the primary email only when the account had none yet.
+      ...(user.email ? {} : { email: normalizedEmail }),
+      ...(photoUrl ? { photo_url: photoUrl } : {}),
+    },
+  });
+
+  void logEvent("auth.google.linked", {}, userId);
+  return userService.getUser(userId);
+}
+
 export async function linkTelegramToUser(params: {
   userId: string;
   telegramId: string;
