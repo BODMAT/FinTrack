@@ -46,10 +46,15 @@ services:
       dockerfile: apps/api/Dockerfile
     restart: "unless-stopped"
     env_file:
-      # Copy apps/api/.env.docker.example → apps/api/.env.docker and fill in
-      # your values before running docker compose up.
-      - apps/api/.env.docker
+      # Copy apps/api/.env.example → apps/api/.env and fill in your values
+      # before running docker compose up.
+      - apps/api/.env
     environment:
+      # NODE_ENV must be set here — .env defaults to development for local dev.
+      - NODE_ENV=production
+      # Override hosts: localhost (in .env) → internal compose service names.
+      - DATABASE_URL=postgresql://fintrack:fintrack@postgres:5432/fintrack?schema=public
+      - DIRECT_URL=postgresql://fintrack:fintrack@postgres:5432/fintrack?schema=public
       - REDIS_URL=redis://redis:6379
       - MONGO_URL=mongodb://mongo:27017/fintrack
     depends_on:
