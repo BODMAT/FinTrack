@@ -203,7 +203,7 @@ services:
       - COREPACK_HOME=/corepack
       - WATCHPACK_POLLING=true
     env_file:
-      - apps/web/.env.docker
+      - apps/web/.env
     command: sh -c "corepack enable && pnpm run dev"
     depends_on:
       init:

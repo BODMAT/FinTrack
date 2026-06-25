@@ -101,7 +101,7 @@ services:
         NEXT_PUBLIC_TELEGRAM_BOT_ID: ${NEXT_PUBLIC_TELEGRAM_BOT_ID:-}
     restart: "unless-stopped"
     env_file:
-      - apps/web/.env.docker
+      - apps/web/.env
     depends_on:
       api:
         condition: service_healthy
