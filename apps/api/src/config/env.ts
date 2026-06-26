@@ -97,6 +97,9 @@ export const ENV = {
   SMTP_USER: process.env.SMTP_USER ?? "",
   SMTP_PASS: process.env.SMTP_PASS ?? "",
   SMTP_FROM: process.env.SMTP_FROM ?? "",
+  // Brevo transactional HTTP API key — used over port 443 so email works on
+  // hosts that block outbound SMTP (e.g. Render). Takes precedence over SMTP.
+  BREVO_API_KEY: process.env.BREVO_API_KEY ?? "",
   EMAIL_VERIFICATION_BASE_URL: process.env.EMAIL_VERIFICATION_BASE_URL ?? "",
   // Base URL of the frontend directory that hosts /reset-password
   PASSWORD_RESET_BASE_URL: process.env.PASSWORD_RESET_BASE_URL ?? "",

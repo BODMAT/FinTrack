@@ -23,6 +23,7 @@ import {
 } from "../../utils/authSecurity.js";
 import * as userService from "../user/service.js";
 import * as mailer from "../../utils/mailer.js";
+import { logger } from "../../lib/logger.js";
 
 // Controllers
 const { ACCESS_TOKEN_SECRET } = ENV;
@@ -815,11 +816,13 @@ export async function resendVerification(
     const verificationToken = await authService.createEmailVerificationToken(
       user.id,
     );
-    await mailer.sendVerificationEmail(
-      normalizedEmail,
-      verificationToken,
-      user.name,
-    );
+    // Background send — keep the response fast and leak-free regardless of the
+    // mail provider's latency or availability.
+    void mailer
+      .sendVerificationEmail(normalizedEmail, verificationToken, user.name)
+      .catch((err) =>
+        logger.error({ err }, "Failed to send verification email"),
+      );
 
     logSecurityEvent("auth.email.resend_verification", { userId: user.id });
     return res.status(200).json({ sent: true });
@@ -839,12 +842,18 @@ export async function forgotPassword(
     const result = await authService.createPasswordResetToken(email);
 
     // Always return 200 to avoid leaking whether the email is registered.
+    // Send in the background: a slow/blocked mail provider must not hang the
+    // request or turn the no-leak 200 into a 500.
     if (result) {
-      await mailer.sendPasswordResetEmail(
-        email.trim().toLowerCase(),
-        result.token,
-        result.name,
-      );
+      void mailer
+        .sendPasswordResetEmail(
+          email.trim().toLowerCase(),
+          result.token,
+          result.name,
+        )
+        .catch((err) =>
+          logger.error({ err }, "Failed to send password reset email"),
+        );
       logSecurityEvent("auth.password.reset_requested", {
         userId: result.userId,
       });
