@@ -14,12 +14,12 @@ interface MailSender {
 }
 
 /**
- * Derives the sender identity from SMTP_FROM ("Name <email>" or a bare
- * address), falling back to SMTP_USER. Returns null when nothing usable is
- * configured so callers can skip sending instead of throwing.
+ * Derives the sender identity from MAIL_FROM ("Name <email>" or a bare
+ * address). Returns null when it isn't configured so callers can skip sending
+ * instead of throwing.
  */
 function resolveSender(): MailSender | null {
-  const raw = ENV.SMTP_FROM || ENV.SMTP_USER;
+  const raw = ENV.MAIL_FROM;
   if (!raw) return null;
 
   const named = raw.match(/^\s*(.*?)\s*<([^>]+)>\s*$/);
@@ -29,13 +29,21 @@ function resolveSender(): MailSender | null {
 }
 
 /**
- * Sends via Brevo's transactional HTTP API (port 443). Works on hosts that
- * block outbound SMTP ports (e.g. Render), which raw nodemailer cannot reach.
+ * Single entry point for outbound mail. Sends via Brevo's transactional HTTP
+ * API over port 443 — the only thing that works on hosts that block outbound
+ * SMTP (e.g. Render). Silently skips when BREVO_API_KEY / MAIL_FROM aren't set
+ * (local dev without email configured).
  */
-async function sendViaBrevo(
-  message: MailMessage,
-  sender: MailSender,
-): Promise<void> {
+async function sendMail(message: MailMessage): Promise<void> {
+  const sender = resolveSender();
+
+  if (!ENV.BREVO_API_KEY || !sender) {
+    logger.warn(
+      "Email not configured (BREVO_API_KEY / MAIL_FROM) — skipping email send",
+    );
+    return;
+  }
+
   const response = await fetch("https://api.brevo.com/v3/smtp/email", {
     method: "POST",
     headers: {
@@ -56,71 +64,6 @@ async function sendViaBrevo(
     const body = await response.text().catch(() => "");
     throw new Error(`Brevo API ${response.status}: ${body.slice(0, 300)}`);
   }
-}
-
-/**
- * Direct SMTP via nodemailer. Convenient for local development, but blocked on
- * many PaaS hosts. Timeouts keep a blocked port from hanging the request.
- */
-async function sendViaSmtp(
-  message: MailMessage,
-  sender: MailSender,
-): Promise<void> {
-  // Lazy-load nodemailer (CJS) only when actually needed,
-  // so Jest ESM tests don't load it at module init time.
-  const { createRequire } = await import("node:module");
-  const requireFn = createRequire(import.meta.url);
-  const nodemailer = requireFn("nodemailer") as typeof import("nodemailer");
-
-  const transporter = nodemailer.createTransport({
-    host: ENV.SMTP_HOST,
-    port: ENV.SMTP_PORT,
-    secure: ENV.SMTP_SECURE,
-    auth: {
-      user: ENV.SMTP_USER,
-      pass: ENV.SMTP_PASS,
-    },
-    connectionTimeout: 10_000,
-    greetingTimeout: 10_000,
-    socketTimeout: 15_000,
-  });
-
-  await transporter.sendMail({
-    from: ENV.SMTP_FROM || `${sender.name} <${sender.email}>`,
-    to: message.to,
-    subject: message.subject,
-    text: message.text,
-    html: message.html,
-  });
-}
-
-/**
- * Single entry point for outbound mail. Prefers the Brevo HTTP API when a key
- * is configured (the only thing that works on Render), otherwise falls back to
- * SMTP for local development. Silently skips when nothing is configured.
- */
-async function sendMail(message: MailMessage): Promise<void> {
-  const sender = resolveSender();
-
-  if (ENV.BREVO_API_KEY) {
-    if (!sender) {
-      logger.warn(
-        "BREVO_API_KEY set but no sender (SMTP_FROM/SMTP_USER) — skipping email send",
-      );
-      return;
-    }
-    await sendViaBrevo(message, sender);
-    return;
-  }
-
-  if (ENV.SMTP_HOST && ENV.SMTP_USER && ENV.SMTP_PASS && sender) {
-    await sendViaSmtp(message, sender);
-    return;
-  }
-
-  logger.warn(
-    "No email transport configured (BREVO_API_KEY or SMTP_*) — skipping email send",
-  );
 }
 
 export async function sendVerificationEmail(

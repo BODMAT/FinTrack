@@ -66,22 +66,11 @@ services:
         sync: false
 
       # ── Optional: email (verification + password reset) ───────────────
-      # Render blocks outbound SMTP (25/465/587), so set BREVO_API_KEY and the
-      # mailer sends over Brevo's HTTP API (443). SMTP_FROM is the sender —
-      # verify it in the Brevo dashboard. SMTP_* only matters for local dev.
+      # Sent via Brevo's HTTP API (443) because Render blocks outbound SMTP.
+      # MAIL_FROM must be a verified sender in the Brevo dashboard.
       - key: BREVO_API_KEY
         sync: false
-      - key: SMTP_FROM
-        sync: false
-      - key: SMTP_HOST
-        sync: false
-      - key: SMTP_PORT
-        sync: false
-      - key: SMTP_SECURE
-        sync: false
-      - key: SMTP_USER
-        sync: false
-      - key: SMTP_PASS
+      - key: MAIL_FROM
         sync: false
       - key: EMAIL_VERIFICATION_BASE_URL
         sync: false
