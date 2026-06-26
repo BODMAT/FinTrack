@@ -14,6 +14,8 @@ const CSRF_BYPASS_PATHS = new Set([
   "/api/auth/logout-all",
   "/api/auth/verify-email",
   "/api/auth/resend-verification",
+  "/api/auth/forgot-password",
+  "/api/auth/reset-password",
 ]);
 
 // CSRF (double-submit) only protects ambient-credential requests (browser

@@ -10,6 +10,8 @@ const DUMMY_PASSWORD_HASH =
   "$2b$10$9QebfQfX8hS8GDYQz9G8vOhF8vwPUfY2K/BysI0h9M2v8a1FhLB2K";
 
 const EMAIL_VERIFICATION_TOKEN_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const PASSWORD_RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
+const PASSWORD_SALT_ROUNDS = 10;
 
 export async function login(email: string, password: string) {
   const authMethod = await prisma.authMethod.findUnique({
@@ -341,6 +343,118 @@ export async function findAuthMethodByEmail(email: string) {
   return prisma.authMethod.findUnique({ where: { email } });
 }
 
+// ── Password reset tokens ─────────────────────────────────────────────────────
+
+/**
+ * Issues a password reset token for the account behind `email`.
+ * Resolves the user via the EMAIL auth method first, then falls back to the
+ * primary User.email (covers Google/Telegram-first accounts that set a
+ * recovery email). Returns null when no account is found so the controller
+ * can respond identically and avoid leaking which emails are registered.
+ */
+export async function createPasswordResetToken(
+  email: string,
+): Promise<{ token: string; userId: string; name: string } | null> {
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const authMethod = await prisma.authMethod.findUnique({
+    where: { email: normalizedEmail },
+    include: { user: { select: { id: true, name: true } } },
+  });
+
+  let user = authMethod?.user ?? null;
+  if (!user) {
+    user = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      select: { id: true, name: true },
+    });
+  }
+
+  if (!user) return null;
+
+  // Purge any pre-existing tokens for this user before issuing a fresh one
+  await prisma.passwordResetToken.deleteMany({ where: { userId: user.id } });
+
+  const token = generateSecureToken();
+  const hash = hashToken(token);
+  const expiresAt = new Date(Date.now() + PASSWORD_RESET_TOKEN_TTL_MS);
+
+  await prisma.passwordResetToken.create({
+    data: { userId: user.id, tokenHash: hash, expiresAt },
+  });
+
+  void logEvent("auth.password_reset.requested", {}, user.id);
+  return { token, userId: user.id, name: user.name };
+}
+
+/**
+ * Consumes a password reset token and sets a new password on the user's EMAIL
+ * auth method. If the user has no EMAIL method (e.g. registered via Google with
+ * a recovery email), one is created using the known User.email. All existing
+ * sessions are revoked so a leaked password can't keep an attacker signed in.
+ */
+export async function consumePasswordResetToken(
+  token: string,
+  newPassword: string,
+): Promise<string> {
+  const hash = hashToken(token);
+
+  const record = await prisma.passwordResetToken.findUnique({
+    where: { tokenHash: hash },
+  });
+
+  if (!record) {
+    throw new AppError("Invalid or expired reset token", 400);
+  }
+
+  if (record.expiresAt < new Date()) {
+    await prisma.passwordResetToken.delete({ where: { tokenHash: hash } });
+    throw new AppError("Reset token expired", 400);
+  }
+
+  const passwordHash = await bcrypt.hash(newPassword, PASSWORD_SALT_ROUNDS);
+
+  await prisma.$transaction(async (tx) => {
+    const emailMethod = await tx.authMethod.findFirst({
+      where: { userId: record.userId, type: "EMAIL" },
+    });
+
+    if (emailMethod) {
+      await tx.authMethod.update({
+        where: { id: emailMethod.id },
+        data: { password_hash: passwordHash },
+      });
+    } else {
+      const user = await tx.user.findUnique({
+        where: { id: record.userId },
+        select: { email: true },
+      });
+      if (!user?.email) {
+        throw new AppError(
+          "Cannot reset password: no email is associated with this account",
+          400,
+        );
+      }
+      await tx.authMethod.create({
+        data: {
+          type: "EMAIL",
+          email: user.email,
+          password_hash: passwordHash,
+          user: { connect: { id: record.userId } },
+        },
+      });
+    }
+
+    await tx.passwordResetToken.delete({ where: { tokenHash: hash } });
+  });
+
+  // Invalidate every active session after a password change.
+  await revokeAllUserSessions(record.userId);
+
+  void logEvent("auth.password_reset.completed", {}, record.userId);
+  return record.userId;
+}
+
 export async function loginWithTelegram(telegramId: string, name: string) {
   const existing = await prisma.authMethod.findUnique({
     where: { telegram_id: telegramId },
@@ -370,6 +484,91 @@ export async function loginWithTelegram(telegramId: string, name: string) {
   });
   void logEvent("auth.login", { method: "telegram" }, newUser.id);
   return newUser;
+}
+
+export async function linkGoogleToUser(params: {
+  userId: string;
+  googleSub: string;
+  email: string;
+  photoUrl?: string | null;
+}) {
+  const { userId, googleSub, email, photoUrl } = params;
+  const normalizedEmail = email.trim().toLowerCase();
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+    include: { authMethods: true },
+  });
+  if (!user) throw new AppError("User not found", 404);
+
+  // Collect the account's known emails (primary + EMAIL auth methods).
+  const knownEmails = new Set<string>();
+  if (user.email) knownEmails.add(user.email.toLowerCase());
+  for (const m of user.authMethods) {
+    if (m.type === "EMAIL" && m.email) knownEmails.add(m.email.toLowerCase());
+  }
+
+  // The linked Google account must belong to the same email the user
+  // registered with — you can't attach an arbitrary Google account.
+  if (knownEmails.size > 0 && !knownEmails.has(normalizedEmail)) {
+    void logEvent("auth.google.link_email_mismatch", {}, userId);
+    throw new AppError(
+      "Google account email must match your account email",
+      400,
+    );
+  }
+
+  const existingGoogleMethod = await prisma.authMethod.findFirst({
+    where: { type: "GOOGLE", google_sub: googleSub },
+  });
+  if (existingGoogleMethod) {
+    if (existingGoogleMethod.userId === userId) {
+      void logEvent("auth.google.link.idempotent", {}, userId);
+      return userService.getUser(userId);
+    }
+    void logEvent("auth.google.link_conflict", {}, userId);
+    throw new AppError("Google account is already linked", 409);
+  }
+
+  const currentGoogleMethod = user.authMethods.find((m) => m.type === "GOOGLE");
+  if (currentGoogleMethod) {
+    throw new AppError("User already has a linked Google account", 409);
+  }
+
+  try {
+    await prisma.authMethod.create({
+      data: {
+        type: "GOOGLE",
+        // Keep email only in the EMAIL auth method; AuthMethod.email is unique.
+        email: null,
+        password_hash: null,
+        telegram_id: null,
+        google_sub: googleSub,
+        user: { connect: { id: userId } },
+      },
+    });
+  } catch (err) {
+    if (
+      err instanceof Prisma.PrismaClientKnownRequestError &&
+      err.code === "P2002"
+    ) {
+      throw new AppError("Google account is already linked", 409);
+    }
+    throw err;
+  }
+
+  await prisma.user.update({
+    where: { id: userId },
+    data: {
+      isVerified: true,
+      // Backfill the primary email only when the account had none yet.
+      ...(user.email ? {} : { email: normalizedEmail }),
+      ...(photoUrl ? { photo_url: photoUrl } : {}),
+    },
+  });
+
+  void logEvent("auth.google.linked", {}, userId);
+  return userService.getUser(userId);
 }
 
 export async function linkTelegramToUser(params: {

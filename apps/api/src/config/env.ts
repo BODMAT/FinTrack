@@ -53,10 +53,6 @@ if (process.env.PORT && Number.isNaN(Number(process.env.PORT))) {
   throw new AppError("Invalid PORT. It must be a number.", 500);
 }
 
-if (process.env.SMTP_PORT && Number.isNaN(Number(process.env.SMTP_PORT))) {
-  throw new AppError("Invalid SMTP_PORT. It must be a number.", 500);
-}
-
 export const ENV = {
   NODE_ENV: process.env.NODE_ENV ?? "development",
   ENABLE_SWAGGER_IN_PROD: process.env.ENABLE_SWAGGER_IN_PROD === "true",
@@ -90,14 +86,15 @@ export const ENV = {
   STRIPE_DONATION_DURATION_DAYS: process.env.STRIPE_DONATION_DURATION_DAYS
     ? Number(process.env.STRIPE_DONATION_DURATION_DAYS)
     : undefined,
-  // SMTP (email verification via Gmail or any SMTP provider)
-  SMTP_HOST: process.env.SMTP_HOST ?? "",
-  SMTP_PORT: process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 587,
-  SMTP_SECURE: process.env.SMTP_SECURE === "true",
-  SMTP_USER: process.env.SMTP_USER ?? "",
-  SMTP_PASS: process.env.SMTP_PASS ?? "",
-  SMTP_FROM: process.env.SMTP_FROM ?? "",
+  // Email — sent via Brevo's transactional HTTP API (port 443) so it works on
+  // hosts that block outbound SMTP (e.g. Render). Empty key disables sending.
+  BREVO_API_KEY: process.env.BREVO_API_KEY ?? "",
+  // Sender identity, "Name <email>" or a bare address. Must be a verified
+  // sender in the Brevo dashboard.
+  MAIL_FROM: process.env.MAIL_FROM ?? "",
   EMAIL_VERIFICATION_BASE_URL: process.env.EMAIL_VERIFICATION_BASE_URL ?? "",
+  // Base URL of the frontend directory that hosts /reset-password
+  PASSWORD_RESET_BASE_URL: process.env.PASSWORD_RESET_BASE_URL ?? "",
 } as const;
 
 export type EnvConfig = typeof ENV;

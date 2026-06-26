@@ -15,7 +15,6 @@ overrides:
   prisma: "^6.19.3"
   zod: "^4.3.6"
   postcss: "^8.5.10"
-  nodemailer: "^8.0.5"
   # Security: force patched shell-quote (CVE GHSA-w7jw-789q-3m8p, critical).
   # Pulled transitively (dev-only) by concurrently@9.2.1, which pins 1.8.3.
   shell-quote: "^1.8.4"

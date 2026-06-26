@@ -59,8 +59,25 @@ export const linkTelegramAccount = async (
   );
 };
 
+export const linkGoogleAccount = async (idToken: string): Promise<void> => {
+  await handleRequest(api.post("/auth/link/google", { idToken }));
+};
+
 export const resendVerificationEmail = async (
   email: string,
 ): Promise<{ sent: boolean }> => {
   return handleRequest(api.post("/auth/resend-verification", { email }));
+};
+
+export const forgotPassword = async (
+  email: string,
+): Promise<{ sent: boolean }> => {
+  return handleRequest(api.post("/auth/forgot-password", { email }));
+};
+
+export const resetPassword = async (
+  token: string,
+  password: string,
+): Promise<{ reset: boolean }> => {
+  return handleRequest(api.post("/auth/reset-password", { token, password }));
 };

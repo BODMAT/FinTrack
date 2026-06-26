@@ -11,6 +11,8 @@ import * as authService from "./service.js";
 import {
   LoginUserBodySchema,
   TelegramWidgetPayloadSchema,
+  ForgotPasswordSchema,
+  ResetPasswordSchema,
 } from "@fintrack/types";
 import {
   extractClientIp,
@@ -21,6 +23,7 @@ import {
 } from "../../utils/authSecurity.js";
 import * as userService from "../user/service.js";
 import * as mailer from "../../utils/mailer.js";
+import { logger } from "../../lib/logger.js";
 
 // Controllers
 const { ACCESS_TOKEN_SECRET } = ENV;
@@ -60,7 +63,7 @@ function setAuthCookies(
   });
 }
 
-function clearAuthCookies(res: Response) {
+export function clearAuthCookies(res: Response) {
   res.clearCookie(ACCESS_TOKEN_COOKIE, cookieBaseOptions);
   res.clearCookie(REFRESH_TOKEN_COOKIE, cookieBaseOptions);
 }
@@ -678,6 +681,40 @@ export async function linkTelegram(
   }
 }
 
+export async function linkGoogle(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const userId = req.user?.id;
+    if (!userId) throw new AppError("Unauthorized", 401);
+
+    const parsed = z
+      .object({ idToken: z.string().min(10) })
+      .safeParse(req.body);
+    if (!parsed.success) throw new AppError("Invalid Google link payload", 400);
+
+    const verifiedGoogleData = await verifyGoogleToken(parsed.data.idToken);
+    const user = await authService.linkGoogleToUser({
+      userId,
+      googleSub: verifiedGoogleData.sub,
+      email: verifiedGoogleData.email,
+      photoUrl: verifiedGoogleData.picture ?? null,
+    });
+
+    if (!user) throw new AppError("User not found", 404);
+    logSecurityEvent("auth.google.link.success", { userId });
+    return res.status(200).json({ linked: true });
+  } catch (err) {
+    logSecurityEvent("auth.google.link.failed", {
+      userId: req.user?.id,
+      ip: req.ip,
+    });
+    next(err);
+  }
+}
+
 export async function telegramRefresh(
   req: Request,
   res: Response,
@@ -779,14 +816,67 @@ export async function resendVerification(
     const verificationToken = await authService.createEmailVerificationToken(
       user.id,
     );
-    await mailer.sendVerificationEmail(
-      normalizedEmail,
-      verificationToken,
-      user.name,
-    );
+    // Background send — keep the response fast and leak-free regardless of the
+    // mail provider's latency or availability.
+    void mailer
+      .sendVerificationEmail(normalizedEmail, verificationToken, user.name)
+      .catch((err) =>
+        logger.error({ err }, "Failed to send verification email"),
+      );
 
     logSecurityEvent("auth.email.resend_verification", { userId: user.id });
     return res.status(200).json({ sent: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function forgotPassword(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { email } = ForgotPasswordSchema.parse(req.body);
+
+    const result = await authService.createPasswordResetToken(email);
+
+    // Always return 200 to avoid leaking whether the email is registered.
+    // Send in the background: a slow/blocked mail provider must not hang the
+    // request or turn the no-leak 200 into a 500.
+    if (result) {
+      void mailer
+        .sendPasswordResetEmail(
+          email.trim().toLowerCase(),
+          result.token,
+          result.name,
+        )
+        .catch((err) =>
+          logger.error({ err }, "Failed to send password reset email"),
+        );
+      logSecurityEvent("auth.password.reset_requested", {
+        userId: result.userId,
+      });
+    }
+
+    return res.status(200).json({ sent: true });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function resetPassword(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const { token, password } = ResetPasswordSchema.parse(req.body);
+
+    const userId = await authService.consumePasswordResetToken(token, password);
+
+    logSecurityEvent("auth.password.reset_completed", { userId });
+    return res.status(200).json({ reset: true });
   } catch (err) {
     next(err);
   }

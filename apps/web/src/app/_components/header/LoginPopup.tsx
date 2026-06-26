@@ -8,7 +8,10 @@ import { queryClient } from "@/api/queryClient";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { APP_BASE_PATH } from "@/config/constants";
-import { clearProcessedGoogleIdToken } from "@/lib/oauthBridge";
+import {
+  clearProcessedGoogleIdToken,
+  clearGoogleLinkIntent,
+} from "@/lib/oauthBridge";
 import { TelegramLoginWidget } from "../auth/TelegramLoginWidget";
 import { GoogleIcon } from "../auth/AuthProviderIcons";
 import { exchangeTelegramWidgetSession } from "@/api/auth";
@@ -34,21 +37,23 @@ export function LoginPopup() {
   const setAuthenticated = useAuthStore((state) => state.setAuthenticated);
   const setBootstrapping = useAuthStore((state) => state.setBootstrapping);
   const {
-    user,
     status: {
       loginError,
       loginErrorCode,
       isLoggingIn,
-      isLoggingOutAll,
       isResendingVerification,
       resendVerificationError,
-      logoutAllError,
+      isSendingForgotPassword,
+      forgotPasswordError,
     },
-    actions: { login, logout, logoutAll, resendVerification },
+    actions: { login, resendVerification, forgotPassword },
   } = useAuth();
   const [loginSuccess, setLoginSuccess] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
+  const [isForgotMode, setIsForgotMode] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSuccess, setForgotSuccess] = useState(false);
   const [loginFields, setLoginFields] = useState<LoginUserBody>({
     email: "",
     password: "",
@@ -80,22 +85,6 @@ export function LoginPopup() {
       setTimeout(() => {
         setLoginSuccess(false);
       }, 5000);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch {
-      void 0;
-    }
-  };
-
-  const handleLogoutAll = async () => {
-    try {
-      await logoutAll();
-    } catch {
-      void 0;
     }
   };
 
@@ -135,6 +124,73 @@ export function LoginPopup() {
       setResendSuccess(false);
     }
   };
+
+  const handleForgotPassword = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!forgotEmail.trim()) return;
+    setForgotSuccess(false);
+    try {
+      await forgotPassword(forgotEmail.trim());
+      setForgotSuccess(true);
+    } catch {
+      setForgotSuccess(false);
+    }
+  };
+
+  const openForgotMode = () => {
+    setForgotEmail(loginFields.email);
+    setForgotSuccess(false);
+    setIsForgotMode(true);
+  };
+
+  if (isForgotMode) {
+    return (
+      <section className="flex items-center flex-col gap-5 w-full">
+        <form
+          onSubmit={handleForgotPassword}
+          className="flex flex-col gap-5 w-full"
+        >
+          <p className="text-sm text-(--color-text) opacity-80">
+            {t("auth.forgotPasswordHint")}
+          </p>
+          <input
+            required
+            type="email"
+            placeholder={t("auth.email")}
+            value={forgotEmail}
+            onChange={(e) => {
+              setForgotEmail(e.target.value);
+            }}
+            className="custom-input"
+          />
+          <button
+            type="submit"
+            disabled={isSendingForgotPassword}
+            className="custom-btn"
+          >
+            {isSendingForgotPassword
+              ? t("auth.sendingResetLink")
+              : t("auth.sendResetLink")}
+          </button>
+          {forgotSuccess && (
+            <span className="text-green-500">{t("auth.resetLinkSent")}</span>
+          )}
+          {forgotPasswordError && (
+            <span className="text-red-500">{forgotPasswordError}</span>
+          )}
+        </form>
+        <button
+          type="button"
+          onClick={() => {
+            setIsForgotMode(false);
+          }}
+          className="custom-btn w-full"
+        >
+          {t("auth.backToLogin")}
+        </button>
+      </section>
+    );
+  }
 
   return (
     <section className="flex items-center flex-col gap-5 w-full">
@@ -220,11 +276,19 @@ export function LoginPopup() {
         <button type="submit" disabled={isLoggingIn} className="custom-btn">
           {t("auth.loginButton")}
         </button>
+        <button
+          type="button"
+          onClick={openForgotMode}
+          className="self-start text-sm text-(--color-text) opacity-75 hover:opacity-100 transitioned underline"
+        >
+          {t("auth.forgotPassword")}
+        </button>
         <div className="flex flex-col sm:flex-row sm:items-start gap-3 w-full">
           <button
             type="button"
             onClick={() => {
               clearProcessedGoogleIdToken();
+              clearGoogleLinkIntent();
               void signIn("google", {
                 callbackUrl: `${APP_BASE_PATH}/dashboard`,
               });
@@ -270,26 +334,9 @@ export function LoginPopup() {
         </>
         <span className="h-0.5 w-full bg-(--color-background) rounded" />
       </form>
-      <div className="w-full flex gap-5 justify-space-between">
-        {user && (
-          <>
-            <button onClick={handleLogout} className="custom-btn">
-              {t("auth.logout")}
-            </button>
-            <button
-              onClick={handleLogoutAll}
-              disabled={isLoggingOutAll}
-              className="custom-btn"
-            >
-              {t("auth.logoutAllSessions")}
-            </button>
-          </>
-        )}
-        <button onClick={handleOpenRegisterPopup} className="custom-btn">
-          {t("auth.registerNew")}
-        </button>
-      </div>
-      {logoutAllError && <span className="text-red-500">{logoutAllError}</span>}
+      <button onClick={handleOpenRegisterPopup} className="custom-btn w-full">
+        {t("auth.registerNew")}
+      </button>
     </section>
   );
 }

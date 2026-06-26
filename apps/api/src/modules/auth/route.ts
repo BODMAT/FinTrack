@@ -9,14 +9,19 @@ import {
   telegramExchange,
   telegramRefresh,
   linkTelegram,
+  linkGoogle,
   verifyEmail,
   resendVerification,
+  forgotPassword,
+  resetPassword,
 } from "./controller.js";
 import {
   authLoginLimiter,
   authLogoutLimiter,
   authRefreshLimiter,
   resendVerificationLimiter,
+  forgotPasswordLimiter,
+  resetPasswordLimiter,
 } from "../../middleware/rateLimit.js";
 
 export const authRouter = express.Router();
@@ -31,6 +36,12 @@ authRouter.post(
   authLoginLimiter,
   linkTelegram,
 );
+authRouter.post(
+  "/link/google",
+  authenticateToken,
+  authLoginLimiter,
+  linkGoogle,
+);
 authRouter.post("/token", authRefreshLimiter, token);
 authRouter.delete("/logout", authLogoutLimiter, logout);
 authRouter.post("/logout-all", authenticateToken, authLogoutLimiter, logoutAll);
@@ -40,3 +51,5 @@ authRouter.post(
   resendVerificationLimiter,
   resendVerification,
 );
+authRouter.post("/forgot-password", forgotPasswordLimiter, forgotPassword);
+authRouter.post("/reset-password", resetPasswordLimiter, resetPassword);

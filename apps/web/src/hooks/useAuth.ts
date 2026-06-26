@@ -13,10 +13,13 @@ import {
   logoutAllUser,
   logoutUser,
   resendVerificationEmail,
+  forgotPassword,
+  resetPassword,
 } from "@/api/auth";
 import { useAuthStore } from "@/store/useAuthStore";
 import type {
   CreateUserBody,
+  UpdateUserBody,
   LoginUserBody,
   LoginUserResponse,
   UserResponse,
@@ -83,7 +86,23 @@ export const useAuth = () => {
     mutationFn: resendVerificationEmail,
   });
 
-  const update = useMutation<UserResponse, ApiError, CreateUserBody>({
+  const forgotPasswordMutation = useMutation<
+    { sent: boolean },
+    ApiError,
+    string
+  >({
+    mutationFn: forgotPassword,
+  });
+
+  const resetPasswordMutation = useMutation<
+    { reset: boolean },
+    ApiError,
+    { token: string; password: string }
+  >({
+    mutationFn: ({ token, password }) => resetPassword(token, password),
+  });
+
+  const update = useMutation<UserResponse, ApiError, UpdateUserBody>({
     mutationFn: updateMe,
     onSuccess: (data) => {
       queryClient.setQueryData(["user", "me"], data);
@@ -92,7 +111,9 @@ export const useAuth = () => {
 
   const deleteAccount = useMutation<void, ApiError>({
     mutationFn: deleteMe,
-    onSettled: () => {
+    // Only tear down the local session when the account was actually deleted.
+    // On error keep the user signed in so they can see the failure and retry.
+    onSuccess: () => {
       void signOut({ redirect: false });
       clearStore();
       queryClient.clear();
@@ -117,6 +138,8 @@ export const useAuth = () => {
       logout: logout.mutateAsync,
       logoutAll: logoutAll.mutateAsync,
       resendVerification: resendVerification.mutateAsync,
+      forgotPassword: forgotPasswordMutation.mutateAsync,
+      resetPassword: resetPasswordMutation.mutateAsync,
       update: update.mutate,
       deleteAccount: deleteAccount.mutate,
       deleteAuthMethod: deleteAuthMethod.mutate,
@@ -133,6 +156,10 @@ export const useAuth = () => {
       registerError: register.error?.message,
       isResendingVerification: resendVerification.isPending,
       resendVerificationError: resendVerification.error?.message,
+      isSendingForgotPassword: forgotPasswordMutation.isPending,
+      forgotPasswordError: forgotPasswordMutation.error?.message,
+      isResettingPassword: resetPasswordMutation.isPending,
+      resetPasswordError: resetPasswordMutation.error?.message,
       logoutAllError: logoutAll.error?.message,
       updateError: update.error?.message,
       deleteAccountError: deleteAccount.error?.message,

@@ -11,6 +11,22 @@ export const LoginUserResponseSchema = z.object({
 });
 export type LoginUserResponse = z.infer<typeof LoginUserResponseSchema>;
 
+export const ForgotPasswordSchema = z.object({
+  email: z.string().email("Invalid email"),
+});
+export type ForgotPasswordBody = z.infer<typeof ForgotPasswordSchema>;
+
+export const ResetPasswordSchema = z.object({
+  token: z.string().min(1, "Reset token is required"),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[A-Z]/, "Password must contain an uppercase letter")
+    .regex(/[a-z]/, "Password must contain a lowercase letter")
+    .regex(/\d/, "Password must contain a number"),
+});
+export type ResetPasswordBody = z.infer<typeof ResetPasswordSchema>;
+
 export const TokenUserBodySchema = z.object({}).optional();
 export type TokenUserBody = z.infer<typeof TokenUserBodySchema>;
 
