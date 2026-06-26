@@ -270,6 +270,8 @@ Production deployment flow:
 - **Supabase** -> PostgreSQL
 - **TBD** -> `apps/bot` (Telegram bot — no production host configured yet)
 
+The API is deployed to Render via the [`render.yaml`](./render.yaml) Blueprint (Render → New → Blueprint → select repo). It builds `apps/api/Dockerfile`, auto-deploys on `master`, and health-checks `/api/health`. All secrets are declared `sync: false` — set their values in the Render dashboard (Environment tab), never in the file.
+
 Database migrations are applied automatically from GitHub Actions on pushes to `master` when Prisma schema or migrations change.
 
 ---
