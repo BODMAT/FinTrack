@@ -35,6 +35,8 @@
 - [Deployment Topology](#deployment-topology)
 - [CI/CD](#cicd)
   - [Auto Migration Secrets (GitHub)](#auto-migration-secrets-github)
+  - [Web Vercel Deploy Setup](#web-vercel-deploy-setup)
+  - [Bot VM Deploy Setup](#bot-vm-deploy-setup)
   - [Docker Images (GHCR)](#docker-images-ghcr)
 - [License](#license)
 
@@ -268,9 +270,13 @@ Production deployment flow:
 - **Vercel** -> `apps/web` (Next.js)
 - **Render** -> `apps/api` (Express + Prisma)
 - **Supabase** -> PostgreSQL
-- **TBD** -> `apps/bot` (Telegram bot — no production host configured yet)
+- **Oracle Cloud VM** -> `apps/bot` (Telegram bot — `VM.Standard.E2.1.Micro`, Docker container)
+
+The web app is deployed to Vercel (root [`vercel.json`](./vercel.json) handles the `/FinTrack` basePath redirects and the NextAuth path rewrite). Project settings and env vars live in the Vercel dashboard, not in the file — see [Web Vercel Deploy Setup](#web-vercel-deploy-setup).
 
 The API is deployed to Render via the [`render.yaml`](./render.yaml) Blueprint (Render → New → Blueprint → select repo). It builds `apps/api/Dockerfile`, auto-deploys on `master`, and health-checks `/api/health`. All secrets are declared `sync: false` — set their values in the Render dashboard (Environment tab), never in the file.
+
+The bot is deployed by the `deploy-bot` job in [`release.yml`](./.github/workflows/release.yml): after images build and scan, it SSHes into the VM, pulls `ghcr.io/fintrack-team/fintrack-bot:latest`, and recreates the `fintrack-bot` container (`--restart unless-stopped`, `--env-file ~/bot.env`). This replaces a Watchtower polling setup with a push-based deploy gated on a green build. One-time VM setup is required — see [Bot VM Deploy Setup](#bot-vm-deploy-setup).
 
 Database migrations are applied automatically from GitHub Actions on pushes to `master` when Prisma schema or migrations change.
 
@@ -297,6 +303,35 @@ GitHub Actions runs the following checks on every pull request and push to `mast
 2. Add secret `SUPABASE_DATABASE_URL` (pooled connection string for app/runtime).
 3. Add secret `SUPABASE_DIRECT_URL` (direct connection string for Prisma Migrate).
 4. Push migration changes to `master` and verify workflow `Prisma Migrate Deploy (master)` in Actions tab.
+
+### Web Vercel Deploy Setup
+
+The web app deploys to Vercel from the repo. Unlike `render.yaml`, Vercel has no committed Blueprint — project settings and secrets live in the dashboard (or `vercel env`), never in `vercel.json` (strict JSON, routing only):
+
+1. **Import the repo** (Vercel → Add New → Project). Set the **Root Directory** to the repo root so the root [`vercel.json`](./vercel.json) is picked up; the build runs the `apps/web` Next.js app via Turborepo.
+2. **Set the env vars** from [`apps/web/.env.example`](./apps/web/.env.example) in the dashboard (Project → Settings → Environment Variables), with production values: point `NEXT_PUBLIC_API_URL` at the deployed Render API, set `NEXT_PUBLIC_SITE_ORIGIN` and `NEXTAUTH_URL` to the deployed web origin (`NEXTAUTH_URL` keeps the `/FinTrack` basePath: `<web-origin>/FinTrack/api/auth`).
+3. **Align the API side**: add the deployed web origin to `CORS_ORIGINS` and set `FRONTEND_URL` in the Render dashboard, or browser requests and OAuth redirects break.
+
+The app is served under the `/FinTrack` basePath (`next.config.ts`); the root `vercel.json` redirects `/` → `/FinTrack` and rewrites the NextAuth path accordingly.
+
+### Bot VM Deploy Setup
+
+One-time provisioning of the Oracle `VM.Standard.E2.1.Micro` instance (x86_64) that runs the bot:
+
+1. **Install Docker** on the VM and confirm the deploy user can run it without `sudo` (`sudo usermod -aG docker $USER`, then re-login).
+2. **Create `~/bot.env`** in the deploy user's home from [`apps/bot/.env.example`](./apps/bot/.env.example), with production values: `API_URL` → deployed Render API, `REDIS_URL` → managed Redis (e.g. Upstash), `NODE_ENV=production` (and the production `TELEGRAM_BOT_TOKEN`).
+3. **Generate an SSH key pair** for CI and add the public key to `~/.ssh/authorized_keys` on the VM.
+4. **Add GitHub Actions secrets** (`Settings` -> `Secrets and variables` -> `Actions`):
+   - `VM_HOST` — VM public IP / hostname.
+   - `VM_USER` — deploy username.
+   - `VM_SSH_KEY` — the private key from step 3.
+5. **Open the Oracle security list / VM firewall** for outbound 443 (GHCR pull, Telegram, API). The bot is long-poll — no inbound port needed.
+
+> The VM pulls the private GHCR image using the workflow's built-in `GITHUB_TOKEN` (auto-generated per run, scoped to `packages: read`, and revoked when the job ends — you neither create nor store it). The deploy script logs out of GHCR immediately after pulling.
+
+After setup, every successful push to `master` recreates `fintrack-bot` automatically. To verify a deploy: `docker ps` and `docker logs --tail 50 fintrack-bot` on the VM.
+
+**Granting operator access.** SSH is keyed per public key — `~/.ssh/authorized_keys` holds one line per operator. To give a team member shell access for logs/ops, have them generate their own key pair (`ssh-keygen -t ed25519`) and send you the **public** half only; append it to `authorized_keys` (`chmod 700 ~/.ssh`, `chmod 600 ~/.ssh/authorized_keys`). Each person uses their own key — never share a private key, and keep the CI deploy key (step 3) separate from personal keys so it can be rotated independently.
 
 ### Docker Images (GHCR)
 
