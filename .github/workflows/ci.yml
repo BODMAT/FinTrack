@@ -11,16 +11,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  validate-env:
-    name: Validate ENV Docs
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-      - name: Check if .env.example matches .env.docker.example
-        run: |
-          diff <(grep -v '^#' apps/api/.env.example | cut -d= -f1 | sort) <(grep -v '^#' apps/api/.env.docker.example | cut -d= -f1 | sort) || { echo "::error::API env examples are out of sync!"; exit 1; }
-        shell: bash
-
   migration-check:
     name: Migration Drift Check
     runs-on: ubuntu-latest

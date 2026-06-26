@@ -74,7 +74,7 @@ cd FinTrack
 
 # Use the dx CLI to create all necessary .env files from examples
 bash dx setup
-# → Edit .env for local run or .env.docker for Docker setup (DATABASE_URL host difference).
+# → Edit each apps/*/.env. In Docker, compose overrides the PostgreSQL/Redis/Mongo hosts.
 ```
 
 ### 2. Docker (Recommended)
@@ -166,18 +166,18 @@ pnpm run dev
 
 `bash dx setup` copies all example files automatically. For manual setup:
 
-| File                        | Example                             | Notes                                                        |
-| --------------------------- | ----------------------------------- | ------------------------------------------------------------ |
-| `.env` (repo root)          | `.env.example`                      | Docker Compose build args — `NEXT_PUBLIC_TELEGRAM_BOT_ID`    |
-| `apps/api/.env`             | `apps/api/.env.example`             | Local dev — fill in secrets                                  |
-| `apps/api/.env.docker`      | `apps/api/.env.docker.example`      | Docker dev — DB host is `postgres`                           |
-| `apps/api/.env.test`        | `apps/api/.env.test.example`        | Local tests — points to `fintrack_test`                      |
-| `apps/api/.env.test.docker` | `apps/api/.env.test.docker.example` | Docker tests — DB host is `postgres`                         |
-| `apps/web/.env`             | `apps/web/.env.example`             | Set `NEXT_PUBLIC_API_URL`, `NEXTAUTH_SECRET`, Google OAuth   |
-| `apps/bot/.env`             | `apps/bot/.env.example`             | Local dev — set `TELEGRAM_BOT_TOKEN`, `API_URL`, `REDIS_URL` |
-| `apps/bot/.env.docker`      | `apps/bot/.env.docker.example`      | Docker dev — same vars, host points to Docker service        |
+| File                 | Example                      | Notes                                                                                                                                |
+| -------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `.env` (repo root)   | `.env.example`               | Docker Compose build args — `NEXT_PUBLIC_TELEGRAM_BOT_ID`                                                                            |
+| `apps/api/.env`      | `apps/api/.env.example`      | Dev + Docker — secrets; Docker hosts injected by compose                                                                             |
+| `apps/api/.env.test` | `apps/api/.env.test.example` | Tests — `fintrack_test`; Docker hosts rewritten by `scripts/test-env.cjs`                                                            |
+| `apps/web/.env`      | `apps/web/.env.example`      | Set `NEXT_PUBLIC_API_URL`, `NEXTAUTH_SECRET`, Google OAuth                                                                           |
+| `apps/bot/.env`      | `apps/bot/.env.example`      | Dev + Docker — `TELEGRAM_BOT_TOKEN`; Docker hosts injected by compose. Prod values live on the VM (see README → Bot VM Deploy Setup) |
 
-Each example file is annotated — read it for variable descriptions and required values.
+Each example file is split into REQUIRED (app won't boot without these) and
+OPTIONAL (safe defaults + feature toggles) blocks; `apps/api/.env.example` adds a
+REQUIRED IN PRODUCTION block (localhost defaults that must be overridden before
+deploying) — read each file for per-variable details.
 
 ---
 
@@ -257,7 +257,8 @@ The test database (`fintrack_test`) is separate from the dev DB and is used excl
 cd apps/api
 
 cp .env.example .env
-# fill in DATABASE_URL, ACCESS_TOKEN_SECRET, GROQ_API_KEY_1, STRIPE_*, GOOGLE_CLIENT_ID, TELEGRAM_BOT_TOKEN ...
+# fill in the REQUIRED block (DATABASE_URL, ACCESS_TOKEN_SECRET, GOOGLE_CLIENT_ID, TELEGRAM_BOT_TOKEN ...);
+# OPTIONAL vars (GROQ_API_KEY_1, STRIPE_*, ...) gate features and can stay empty
 
 pnpm run prisma:migrate:dev  # apply migrations
 pnpm run prisma:seed         # optional seed data
@@ -343,10 +344,9 @@ Every tier has a `:dx` variant that targets the Docker environment (e.g. `test:l
 
 ### Environment Files
 
-| File                        | Used by                | DB host                     |
-| --------------------------- | ---------------------- | --------------------------- |
-| `apps/api/.env.test`        | local `test:*` scripts | `localhost`                 |
-| `apps/api/.env.test.docker` | `test:*:dx` scripts    | `postgres` (Docker service) |
+| File                 | Used by                         | DB host                                                                        |
+| -------------------- | ------------------------------- | ------------------------------------------------------------------------------ |
+| `apps/api/.env.test` | local + Docker `test:*` scripts | `localhost`; `:dx` scripts rewrite it to `postgres` via `scripts/test-env.cjs` |
 
 ### Running Tests
 

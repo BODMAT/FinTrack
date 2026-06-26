@@ -7,7 +7,7 @@
 #  Usage:
 #    bash scripts/db-dump.sh                           (default .env)
 #    bash scripts/db-dump.sh -e apps/api/.env          (custom .env)
-#    bash scripts/db-dump.sh -e apps/api/.env.docker   (custom .env.docker)
+#    bash scripts/db-dump.sh -e apps/api/.env.test    (custom env file)
 # ================================================================
 
 ENV_FILE=".env"

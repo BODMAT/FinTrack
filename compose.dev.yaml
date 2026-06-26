@@ -102,10 +102,13 @@ services:
       - NODE_ENV=development
       - DX_SERVICE_NAME=api
       - COREPACK_HOME=/corepack
+      # Override hosts: localhost (in .env) → internal compose service names.
+      - DATABASE_URL=postgresql://fintrack:fintrack@postgres:5432/fintrack?schema=public
+      - DIRECT_URL=postgresql://fintrack:fintrack@postgres:5432/fintrack?schema=public
       - REDIS_URL=redis://redis:6379
       - MONGO_URL=mongodb://mongo:27017/fintrack
     env_file:
-      - apps/api/.env.docker
+      - apps/api/.env
     # Apply any pending migrations before starting the dev server.
     # `migrate deploy` is safe to run repeatedly — it only applies new migrations.
     command: sh -c "corepack enable && pnpm run prisma:migrate:deploy && pnpm run dev"
@@ -143,8 +146,13 @@ services:
       - types_node_modules:/app/packages/types/node_modules
     environment:
       - DX_SERVICE_NAME=runner
+      # Override hosts: localhost (in .env) → internal compose service names.
+      - DATABASE_URL=postgresql://fintrack:fintrack@postgres:5432/fintrack?schema=public
+      - DIRECT_URL=postgresql://fintrack:fintrack@postgres:5432/fintrack?schema=public
+      - REDIS_URL=redis://redis:6379
+      - MONGO_URL=mongodb://mongo:27017/fintrack
     env_file:
-      - apps/api/.env.docker
+      - apps/api/.env
     # Interactive shell by default
     command: bash
 
@@ -162,9 +170,10 @@ services:
       - NODE_ENV=development
       - DX_SERVICE_NAME=bot
       - COREPACK_HOME=/corepack
+      - API_URL=http://api:8000/api
       - REDIS_URL=redis://redis:6379
     env_file:
-      - apps/bot/.env.docker
+      - apps/bot/.env
     command: sh -c "corepack enable && pnpm run dev"
     depends_on:
       redis:
@@ -195,7 +204,7 @@ services:
       - COREPACK_HOME=/corepack
       - WATCHPACK_POLLING=true
     env_file:
-      - apps/web/.env.docker
+      - apps/web/.env
     command: sh -c "corepack enable && pnpm run dev"
     depends_on:
       init:
