@@ -1,0 +1,80 @@
+# Render Blueprint — FinTrack API
+# Render → New → Blueprint → select repo. Render provisions the service below.
+# All secrets use `sync: false`: enter their values in the Render dashboard
+# (Environment tab), never commit them here.
+services:
+  - type: web
+    name: fintrack-api
+    runtime: docker
+    repo: https://github.com/fintrack-team/FinTrack
+    branch: master
+    region: frankfurt
+    plan: free
+    dockerfilePath: apps/api/Dockerfile
+    dockerContext: .
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      # ── Non-secret config ──────────────────────────────────────────────
+      - key: NODE_ENV
+        value: production
+      - key: ENABLE_SWAGGER_IN_PROD
+        value: "false"
+
+      # ── Databases (external: Supabase / Upstash / Atlas ) ─────────
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: MONGO_URL
+        sync: false
+
+      # ── Secrets ────────────────────────────────────────────────────────
+      - key: ACCESS_TOKEN_SECRET
+        sync: false
+      - key: CSRF_SECRET
+        sync: false
+      - key: API_KEY_ENCRYPTION_SECRET
+        sync: false
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GROQ_API_KEY_1
+        sync: false
+
+      # ── Frontend / CORS (set to your Vercel URL once web is deployed) ───
+      - key: CORS_ORIGINS
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+
+      # ── Optional: Stripe donations (leave unset to disable; if enabled,
+      #    SUCCESS_URL/CANCEL_URL are required — their localhost defaults
+      #    break the checkout redirect in production) ───────────────────
+      - key: STRIPE_SECRET_KEY
+        sync: false
+      - key: STRIPE_WEBHOOK_SECRET
+        sync: false
+      - key: STRIPE_DONATION_PRICE_ID
+        sync: false
+      - key: STRIPE_DONATION_SUCCESS_URL
+        sync: false
+      - key: STRIPE_DONATION_CANCEL_URL
+        sync: false
+
+      # ── Optional: SMTP email verification (leave unset to disable) ─────
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        sync: false
+      - key: EMAIL_VERIFICATION_BASE_URL
+        sync: false

@@ -166,16 +166,18 @@ pnpm run dev
 
 `bash dx setup` copies all example files automatically. For manual setup:
 
-| File                 | Example                      | Notes                                                                     |
-| -------------------- | ---------------------------- | ------------------------------------------------------------------------- |
-| `.env` (repo root)   | `.env.example`               | Docker Compose build args — `NEXT_PUBLIC_TELEGRAM_BOT_ID`                 |
-| `apps/api/.env`      | `apps/api/.env.example`      | Dev + Docker — secrets; Docker hosts injected by compose                  |
-| `apps/api/.env.test` | `apps/api/.env.test.example` | Tests — `fintrack_test`; Docker hosts rewritten by `scripts/test-env.cjs` |
-| `apps/web/.env`      | `apps/web/.env.example`      | Set `NEXT_PUBLIC_API_URL`, `NEXTAUTH_SECRET`, Google OAuth                |
-| `apps/bot/.env`      | `apps/bot/.env.example`      | Dev + Docker — `TELEGRAM_BOT_TOKEN`; Docker hosts injected by compose     |
+| File                 | Example                      | Notes                                                                                                                                |
+| -------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `.env` (repo root)   | `.env.example`               | Docker Compose build args — `NEXT_PUBLIC_TELEGRAM_BOT_ID`                                                                            |
+| `apps/api/.env`      | `apps/api/.env.example`      | Dev + Docker — secrets; Docker hosts injected by compose                                                                             |
+| `apps/api/.env.test` | `apps/api/.env.test.example` | Tests — `fintrack_test`; Docker hosts rewritten by `scripts/test-env.cjs`                                                            |
+| `apps/web/.env`      | `apps/web/.env.example`      | Set `NEXT_PUBLIC_API_URL`, `NEXTAUTH_SECRET`, Google OAuth                                                                           |
+| `apps/bot/.env`      | `apps/bot/.env.example`      | Dev + Docker — `TELEGRAM_BOT_TOKEN`; Docker hosts injected by compose. Prod values live on the VM (see README → Bot VM Deploy Setup) |
 
 Each example file is split into REQUIRED (app won't boot without these) and
-OPTIONAL (safe defaults + feature toggles) blocks — read it for per-variable details.
+OPTIONAL (safe defaults + feature toggles) blocks; `apps/api/.env.example` adds a
+REQUIRED IN PRODUCTION block (localhost defaults that must be overridden before
+deploying) — read each file for per-variable details.
 
 ---
 
