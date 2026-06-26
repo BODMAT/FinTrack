@@ -175,7 +175,9 @@ pnpm run dev
 | `apps/bot/.env`      | `apps/bot/.env.example`      | Dev + Docker — `TELEGRAM_BOT_TOKEN`; Docker hosts injected by compose     |
 
 Each example file is split into REQUIRED (app won't boot without these) and
-OPTIONAL (safe defaults + feature toggles) blocks — read it for per-variable details.
+OPTIONAL (safe defaults + feature toggles) blocks; `apps/api/.env.example` adds a
+REQUIRED IN PRODUCTION block (localhost defaults that must be overridden before
+deploying) — read each file for per-variable details.
 
 ---
 
