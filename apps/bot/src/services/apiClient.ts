@@ -1,7 +1,7 @@
 import { config } from "../config.js";
+import { logger } from "../lib/logger.js";
 import {
   type TokenPair,
-  deleteTokens,
   getTokens,
   hasTokens,
   setTokens,
@@ -47,6 +47,21 @@ async function exchangeTokens(
   return data;
 }
 
+// Dedupe concurrent re-exchanges per user: a burst of 401s would otherwise fire
+// one exchange each and blow the API's exchange rate limit (10 / 15 min).
+const inflightExchange = new Map<number, Promise<TokenPair>>();
+
+function exchangeOnce(telegramId: number, name: string): Promise<TokenPair> {
+  let inflight = inflightExchange.get(telegramId);
+  if (!inflight) {
+    inflight = exchangeTokens(telegramId, name).finally(() => {
+      inflightExchange.delete(telegramId);
+    });
+    inflightExchange.set(telegramId, inflight);
+  }
+  return inflight;
+}
+
 async function apiFetch(
   method: string,
   path: string,
@@ -67,12 +82,16 @@ async function apiFetch(
 
   if (res.status === 401 && tokens && !retried) {
     try {
-      await exchangeTokens(telegramId, tokens.name);
-    } catch {
-      await deleteTokens(telegramId);
+      await exchangeOnce(telegramId, tokens.name);
+    } catch (err) {
+      logger.warn({ err, path }, "token re-exchange failed");
       return res;
     }
     return apiFetch(method, path, telegramId, body, true);
+  }
+
+  if (!res.ok) {
+    logger.warn({ status: res.status, method, path }, "api request failed");
   }
 
   return res;
