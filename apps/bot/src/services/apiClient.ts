@@ -9,58 +9,26 @@ import {
 
 const { API_URL } = config;
 
-async function apiFetch(
-  method: string,
-  path: string,
-  telegramId: number,
-  body?: unknown,
-): Promise<Response> {
-  const tokens = await getTokens(telegramId);
+const FETCH_TIMEOUT_MS = 20_000;
 
-  const res = await fetch(`${API_URL}${path}`, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      ...(tokens ? { Authorization: `Bearer ${tokens.accessToken}` } : {}),
-    },
-    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
-  });
-
-  if (res.status === 401 && tokens) {
-    const refreshed = await tryRefresh(telegramId, tokens.refreshToken);
-    if (refreshed) {
-      return apiFetch(method, path, telegramId, body);
-    }
+async function timedFetch(url: string, init: RequestInit): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+  try {
+    return await fetch(url, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
   }
-
-  return res;
 }
 
-async function tryRefresh(
-  telegramId: number,
-  refreshToken: string,
-): Promise<boolean> {
-  const res = await fetch(`${API_URL}/auth/telegram/refresh`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refreshToken }),
-  });
-
-  if (!res.ok) {
-    await deleteTokens(telegramId);
-    return false;
-  }
-
-  const data = (await res.json()) as TokenPair;
-  await setTokens(telegramId, data);
-  return true;
-}
-
-export async function authenticateUser(
+// Bot is a trusted service client: instead of rotating refresh tokens (which
+// trips the API's reuse-detection when a response is lost to a cold start), it
+// re-exchanges telegramId + name for a fresh pair on demand.
+async function exchangeTokens(
   telegramId: number,
   name: string,
-): Promise<void> {
-  const res = await fetch(`${API_URL}/auth/telegram/exchange`, {
+): Promise<TokenPair> {
+  const res = await timedFetch(`${API_URL}/auth/telegram/exchange`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -75,7 +43,46 @@ export async function authenticateUser(
   }
 
   const data = (await res.json()) as TokenPair;
-  await setTokens(telegramId, data);
+  await setTokens(telegramId, data, name);
+  return data;
+}
+
+async function apiFetch(
+  method: string,
+  path: string,
+  telegramId: number,
+  body?: unknown,
+  retried = false,
+): Promise<Response> {
+  const tokens = await getTokens(telegramId);
+
+  const res = await timedFetch(`${API_URL}${path}`, {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      ...(tokens ? { Authorization: `Bearer ${tokens.accessToken}` } : {}),
+    },
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+  });
+
+  if (res.status === 401 && tokens && !retried) {
+    try {
+      await exchangeTokens(telegramId, tokens.name);
+    } catch {
+      await deleteTokens(telegramId);
+      return res;
+    }
+    return apiFetch(method, path, telegramId, body, true);
+  }
+
+  return res;
+}
+
+export async function authenticateUser(
+  telegramId: number,
+  name: string,
+): Promise<void> {
+  await exchangeTokens(telegramId, name);
 }
 
 export async function isAuthenticated(telegramId: number): Promise<boolean> {
