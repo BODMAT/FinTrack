@@ -41,6 +41,7 @@ Please read our [Code of Conduct](./CODE_OF_CONDUCT.md) before contributing. To 
   - [Database Changes](#database-changes)
 - [Pull Request Process](#pull-request-process)
   - [Contribution Flow](#contribution-flow)
+  - [Lightweight Changes](#lightweight-changes)
   - [Merge Strategy](#merge-strategy)
 - [Troubleshooting](#troubleshooting)
   - [Database is in a broken state / migrations fail](#database-is-in-a-broken-state--migrations-fail)
@@ -711,7 +712,7 @@ Prisma prepends a timestamp automatically — the name you provide becomes the h
 
 ### Contribution Flow
 
-The standard cycle for any change — bug fix, feature, or chore:
+The standard cycle for any change — bug fix, feature, or chore. Small, low-risk changes can take a shorter path — see [Lightweight Changes](#lightweight-changes).
 
 1. **Open an issue** using one of the templates in [`.github/ISSUE_TEMPLATE/`](./.github/ISSUE_TEMPLATE/) — [`fix_request.md`](./.github/ISSUE_TEMPLATE/fix_request.md), [`feat_request.md`](./.github/ISSUE_TEMPLATE/feat_request.md), or [`chore_request.md`](./.github/ISSUE_TEMPLATE/chore_request.md). Keep the prefilled title prefix (`fix: `, `feat: `, `chore: `) and fill every section before writing any code.
 2. **Create a branch** from `master` following the [Branch Naming](#branch-naming) convention. Optionally prefix with the issue number for traceability: `feat/42-csv-export`, `fix/17-refresh-token`.
@@ -719,6 +720,32 @@ The standard cycle for any change — bug fix, feature, or chore:
 4. Quality checks run automatically — lint + format on `git commit`, type-check + web tests + light API tests on `git push`. See [Quality Gates](#quality-gates) for the full breakdown.
 5. **Open a PR** targeting `master` — GitHub auto-loads [`.github/PULL_REQUEST_TEMPLATE.md`](./.github/PULL_REQUEST_TEMPLATE.md). Reuse the issue title verbatim, fill every section (Description, Type of change, How Has This Been Tested?, Checklist), and link the issue with `Closes #N` so GitHub auto-closes it on merge.
 6. **After merge** — delete the branch.
+
+### Lightweight Changes
+
+The contribution flow scales to the **size and risk** of the change. Small, low-risk changes do not need a tracking issue or the full PR template — they are still opened as a PR and still go through review and CI; only the issue and the long template are dropped.
+
+**Lightweight flow** (no issue, short PR description) — use it when _all_ of these hold:
+
+- the change is self-contained and reviewable at a glance
+- it does not change behavior in a non-obvious way
+- it does not touch the database schema / migrations, a public API contract, or security-sensitive code
+- it is a fix, docs, config, or chore — not a new feature or module
+
+Examples: a typo or docs edit, a config tweak, a dependency bump, a one-file bug fix.
+
+**Full flow** (issue + full [`PULL_REQUEST_TEMPLATE.md`](./.github/PULL_REQUEST_TEMPLATE.md)) — use it when _any_ of these hold:
+
+- a new feature or module
+- a behavior or contract change, a database migration, or anything security-related
+- a breaking change
+- anything that benefits from design discussion before coding
+
+> Commit count is a rough hint, not the rule — branches are squash-merged, so they collapse to a single commit in `master` regardless of how many you made. Gate on **scope and risk**, not on commit count. **When in doubt, use the full flow**, and a reviewer can always ask to promote a lightweight PR to the full process.
+
+The PR template carries this short form in a comment at the top — for a
+lightweight PR, delete the full template and use that **What / Why / Testing**
+form instead.
 
 ### Merge Strategy
 

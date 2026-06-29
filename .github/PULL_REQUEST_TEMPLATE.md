@@ -1,3 +1,23 @@
+<!--
+Small, low-risk change (docs, config, chore, one-file fix)? No tracking issue
+needed — delete the full template below and use this short form instead (copy
+it out of this comment). See "Lightweight Changes" in CONTRIBUTING.md for when
+this applies. For a full PR, leave this comment as-is — it stays hidden — and
+fill every section below.
+
+## What
+
+<one-line summary — the headline, not a play-by-play of the diff>
+
+## Why
+
+<the reason / context — the part the diff can't show>
+
+## Testing
+
+<how you verified, or "n/a" — best add one-two words why>
+-->
+
 ## Description
 
 Please include a summary of the changes and which issue is fixed. List any dependencies that are required for this change.
