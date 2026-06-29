@@ -272,7 +272,7 @@ Production deployment flow:
 - **Supabase** -> PostgreSQL
 - **Oracle Cloud VM** -> `apps/bot` (Telegram bot — `VM.Standard.E2.1.Micro`, Docker container)
 
-The web app is deployed to Vercel (root [`vercel.json`](./vercel.json) handles the `/FinTrack` basePath redirects and the NextAuth path rewrite). Project settings and env vars live in the Vercel dashboard, not in the file — see [Web Vercel Deploy Setup](#web-vercel-deploy-setup).
+The web app is deployed to Vercel with the **Root Directory** set to `apps/web` (Next.js + Turborepo are auto-detected, so there are no build or output overrides). The `/FinTrack` basePath redirects and the NextAuth path rewrite live in [`apps/web/next.config.ts`](./apps/web/next.config.ts), so they apply identically on Vercel and on the Docker self-host build. Project settings and env vars live in the Vercel dashboard — see [Web Vercel Deploy Setup](#web-vercel-deploy-setup).
 
 The API is deployed to Render via the [`render.yaml`](./render.yaml) Blueprint (Render → New → Blueprint → select repo). It builds `apps/api/Dockerfile`, auto-deploys on `master`, and health-checks `/api/health`. All secrets are declared `sync: false` — set their values in the Render dashboard (Environment tab), never in the file.
 
@@ -306,13 +306,13 @@ GitHub Actions runs the following checks on every pull request and push to `mast
 
 ### Web Vercel Deploy Setup
 
-The web app deploys to Vercel from the repo. Unlike `render.yaml`, Vercel has no committed Blueprint — project settings and secrets live in the dashboard (or `vercel env`), never in `vercel.json` (strict JSON, routing only):
+The web app deploys to Vercel from the repo. Unlike `render.yaml`, Vercel has no committed Blueprint — project settings and secrets live in the dashboard (or `vercel env`):
 
-1. **Import the repo** (Vercel → Add New → Project). Set the **Root Directory** to the repo root so the root [`vercel.json`](./vercel.json) is picked up; the build runs the `apps/web` Next.js app via Turborepo.
+1. **Import the repo** (Vercel → Add New → Project). Set the **Root Directory** to `apps/web`; Vercel auto-detects Next.js and Turborepo and builds the app — leave the Build, Output, and Install commands on their defaults (no overrides).
 2. **Set the env vars** from [`apps/web/.env.example`](./apps/web/.env.example) in the dashboard (Project → Settings → Environment Variables), with production values: point `NEXT_PUBLIC_API_URL` at the deployed Render API, set `NEXT_PUBLIC_SITE_ORIGIN` and `NEXTAUTH_URL` to the deployed web origin (`NEXTAUTH_URL` keeps the `/FinTrack` basePath: `<web-origin>/FinTrack/api/auth`).
 3. **Align the API side**: add the deployed web origin to `CORS_ORIGINS` and set `FRONTEND_URL` in the Render dashboard, or browser requests and OAuth redirects break.
 
-The app is served under the `/FinTrack` basePath (`next.config.ts`); the root `vercel.json` redirects `/` → `/FinTrack` and rewrites the NextAuth path accordingly.
+The app is served under the `/FinTrack` basePath (`next.config.ts`), which also redirects `/` → `/FinTrack` and rewrites the NextAuth path accordingly.
 
 ### Bot VM Deploy Setup
 
