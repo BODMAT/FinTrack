@@ -723,7 +723,7 @@ The standard cycle for any change — bug fix, feature, or chore. Small, low-ris
 
 ### Lightweight Changes
 
-The contribution flow scales to the **size and risk** of the change. Small, low-risk changes do not need a tracking issue or the full PR template — they are still opened as a PR and still go through review and CI; only the issue and the long template are dropped.
+The contribution flow scales to the **size and risk** of the change. Small, low-risk changes do not need a tracking issue, the full PR template, or a blocking approval — they are still opened as a PR and still run through CI; only the tracking issue, the long template, and the required review are dropped.
 
 **Lightweight flow** (no issue, short PR description) — use it when _all_ of these hold:
 
@@ -734,6 +734,8 @@ The contribution flow scales to the **size and risk** of the change. Small, low-
 
 Examples: a typo or docs edit, a config tweak, a dependency bump, a one-file bug fix.
 
+**Merging a lightweight PR** — once CI is green, the author may merge their own PR without waiting for an approval. Review is welcome but not blocking: a reviewer can comment before or after merge, and anything they flag is fixed in a follow-up. This keeps trivial work from stalling on a second pair of eyes it does not need. A **full-flow** PR still needs a reviewer's approval before merge.
+
 **Full flow** (issue + full [`PULL_REQUEST_TEMPLATE.md`](./.github/PULL_REQUEST_TEMPLATE.md)) — use it when _any_ of these hold:
 
 - a new feature or module
@@ -742,6 +744,8 @@ Examples: a typo or docs edit, a config tweak, a dependency bump, a one-file bug
 - anything that benefits from design discussion before coding
 
 > Commit count is a rough hint, not the rule — branches are squash-merged, so they collapse to a single commit in `master` regardless of how many you made. Gate on **scope and risk**, not on commit count. **When in doubt, use the full flow**, and a reviewer can always ask to promote a lightweight PR to the full process.
+
+Which path applies is enforced automatically by [`.github/CODEOWNERS`](./.github/CODEOWNERS): it lists the sensitive paths — database schema and migrations, any `.env*.example`, auth and middleware code, `packages/types`, CI workflows, and deploy config. A PR that touches any of them needs an owner's approval before it can merge; a PR that touches none can be self-merged once CI is green. (Branch protection: `0` baseline approvals + **Require review from Code Owners**.)
 
 The PR template carries this short form in a comment at the top — for a
 lightweight PR, delete the full template and use that **What / Why / Testing**

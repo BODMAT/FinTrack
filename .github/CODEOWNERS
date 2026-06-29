@@ -1,0 +1,30 @@
+# CODEOWNERS — gates review by risk. Branch protection runs with 0 baseline
+# approvals and "Require review from Code Owners" ON: a PR that touches any path
+# below needs an owner's approval to merge; a PR that touches none can be
+# self-merged once CI is green. Keeps trivial work moving while schema, secrets
+# surface, auth, shared contracts, CI, and deploy still get a second set of eyes.
+
+# --- Governance: the review rules themselves ---
+/.github/CODEOWNERS              @dzhhem @BODMAT
+
+# --- Database schema & migrations (data-shape / breaking risk) ---
+/apps/api/prisma/schema.prisma   @dzhhem @BODMAT
+/apps/api/prisma/migrations/     @dzhhem @BODMAT
+
+# --- Secrets surface: every env example documents required/secret vars ---
+.env*.example                    @dzhhem @BODMAT
+
+# --- Auth & security-sensitive code ---
+/apps/api/src/modules/auth/      @dzhhem @BODMAT
+/apps/api/src/middleware/        @dzhhem @BODMAT
+
+# --- Shared API contract: both API and web import from here ---
+/packages/types/                 @dzhhem @BODMAT
+
+# --- CI / release automation ---
+/.github/workflows/              @dzhhem @BODMAT
+
+# --- Deploy & infra config ---
+/render.yaml                     @dzhhem @BODMAT
+/**/Dockerfile                   @dzhhem @BODMAT
+/compose*.yaml                   @dzhhem @BODMAT
